@@ -8,12 +8,12 @@ function redirect($path = "index.php")
     } else {
         header("Location: $path");
     }
-    die();
+    exit;
 }
 function checkImage($img)
 {
-    if (!file_exists(__DIR__ . "/img/catalog/$img")) {
-        return "/img/catalog/base.png";
+    if (!file_exists(__DIR__ . "/img/index/$img")) {
+        return "/img/index/base.png";
     }
-    return "/img/catalog/$img";
+    return "/img/index/$img";
 }

@@ -11,7 +11,7 @@ if ($isLogin) {
     </span>";
 } else {
     $partHeader = "<span>
-        <a href='log.php'>Войти</a>
+        <a href='auth.php'>Войти</a>
         <a href='reg.php'>Зарегистрироваться</a>
     </span>";
 }
@@ -31,7 +31,7 @@ if ($isLogin) {
 <body>
     <header>
         <nav>
-            <a href="catalog.php">Каталог</a>
+            <a href="/">Тест 1</a>
             <a href="/">Тест 2</a>
             <a href="/">Тест 3</a>
             <a href="/">Тест 4</a>

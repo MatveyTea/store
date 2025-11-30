@@ -23,14 +23,14 @@ if (!empty($_POST["submit_button"])) {
     } else {
         $_SESSION["error"] = "Ошибки";
     }
-    redirect("log.php");
+    redirect("auth.php");
 }
 
 $error = $_SESSION["error"] ?? "";
 unset($_SESSION["error"]);
 ?>
 
-<form action="log.php" method="POST">
+<form action="auth.php" method="POST">
     <legend>Вход</legend>
     <div>
         <label for="email_users">Почта</label>
