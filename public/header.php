@@ -2,15 +2,16 @@
 include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
-$isLogin = !empty($_SESSION["id_user"]);
-
 $partHeader = "";
 
-if ($isLogin) {
+if (isUserAuth()) {
     $partHeader = "<span>
         <a href='profile.php'>Профиль</a>
         <a href='logout.php'>Выйти</a>
     </span>";
+    if (!empty($_SESSION["is_admin"])) {
+        $partHeader .= "<a href='admin.php'>Админ панель</a>";
+    }
 } else {
     $partHeader = "<span>
         <a href='auth.php'>Войти</a>

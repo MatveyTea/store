@@ -16,13 +16,16 @@ if (!empty($_POST["submit_button"])) {
             $check = $check->fetch(PDO::FETCH_ASSOC);
             if (!empty($check) && password_verify($password, $check["password_users"])) {
                 $_SESSION["id_user"] = $check["id_users"];
+                if ($check["id_users"] == 1) {
+                    $_SESSION["is_admin"] = true;
+                }
                 redirect();
             }
         } catch (Throwable $e) {
             $_SESSION["error"] = "Не удалось найти пользователя";
         }
     } else {
-        $_SESSION["error"] = "Ошибки";
+        $_SESSION["error"] = "Заполните все поля";
     }
     redirect("auth.php");
 }
@@ -33,7 +36,7 @@ unset($_SESSION["error"]);
 include_once __DIR__ . "/header.php";
 ?>
 
-<form action="auth.php" method="POST">
+<form action="auth.php" method="POST" class="content form">
     <legend>Вход</legend>
     <div>
         <label for="email_users">Почта</label>
@@ -46,7 +49,8 @@ include_once __DIR__ . "/header.php";
         <p class="error hidden"></p>
     </div>
     <div>
-        <input type="submit" id="submit_button" name="submit_button" value="Войти">
+        <input type="submit" id="submit_button" name="submit_button" value="Войти" class="button">
     </div>
     <p><?= $error ?></p>
+    <a href="reg.php" class="button">Зарегистрироваться</a>
 </form>

@@ -29,6 +29,8 @@ if (!empty($_POST["submit_button"])) {
         } else {
             $_SESSION["error"] = "Ошибки";
         }
+    } else {
+        $_SESSION["error"] = "Заполните все поля";
     }
     redirect("reg.php");
 }
@@ -39,7 +41,7 @@ unset($_SESSION["error"]);
 include_once __DIR__ . "/header.php";
 ?>
 
-<form action="reg.php" method="POST">
+<form action="reg.php" method="POST" class="content form">
     <legend>Регистрация</legend>
     <div>
         <label for="name_users">Имя</label>
@@ -53,16 +55,17 @@ include_once __DIR__ . "/header.php";
     </div>
     <div>
         <label for="password_users">Пароль</label>
-        <input type="password" placeholder="Введите логин" id="password_users" name="password_users" autocomplete="new-password">
+        <input type="password" placeholder="Введите пароль" id="password_users" name="password_users" autocomplete="new-password">
         <p class="error hidden"></p>
     </div>
     <div>
         <label for="re_password_users">Повтор пароля</label>
-        <input type="password" placeholder="Введите логин" id="re_password_users" name="re_password_users" autocomplete="new-password">
+        <input type="password" placeholder="Введите пароль" id="re_password_users" name="re_password_users" autocomplete="new-password">
         <p class="error hidden"></p>
     </div>
     <div>
-        <input type="submit" id="submit_button" name="submit_button" value="Зарегистрироваться">
+        <input type="submit" id="submit_button" name="submit_button" value="Зарегистрироваться" class="button">
     </div>
     <p><?= $error ?></p>
+    <a href="auth.php" class="button">Войти</a>
 </form>

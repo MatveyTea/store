@@ -13,6 +13,50 @@
 .hidden {
     opacity: 0;
 }
+.button {
+    display: flex;
+    width: max-content;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: white;
+    background-color: coral;
+    padding: 20px;
+    border-radius: 10px;
+}
+.form {
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+.form div {
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.form legend {
+    font-size: 2.5rem;
+}
+.form div label {
+    width: 15%;
+}
+.form div input {
+    width: 90%;
+    height: 30px;
+}
+.form div:has(input[type=submit]) {
+    justify-content: center;
+}
+.form div input[type=submit] {
+    width: 50%;
+    height: 50px;
+    padding: 0;
+    align-self: center;
+}
 
 header {
     width: 100%;

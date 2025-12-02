@@ -8,8 +8,8 @@ if (!empty(file_get_contents("php://input"))) {
     $idUser = $_SESSION["id_user"] ?? null;
     $isAuth = isUserAuth();
 
-    // index.js - Добавление/Удаление вещей в корзине
-    if ($serverType == "basket" && $isAuth) {
+
+    if ($serverType == "basket" && $isAuth) { // index.js - Добавление/Удаление вещей в корзине
         if (empty($json["id_item"]) || !isset($json["count_item"]) || empty($json["action_item"]) || !in_array($json["action_item"], ["add", "remove"])) {
             echo json_encode(["status" => "FAIL"]);
             exit;
@@ -41,6 +41,21 @@ if (!empty(file_get_contents("php://input"))) {
             } else {
                 echo json_encode(["status" => "FAIL"]);
             }
+        } catch (Throwable $e) {
+            echo json_encode(["status" => "FAIL"]);
+        }
+    } else if ($serverType == "items" && !empty($json["offset"])) { // index.js Получение товаров
+        $items = getItems(20, $json["offset"]);
+        if (!empty($items)) {
+            echo json_encode(["status" => "OK", "items" => $items]);
+        } else {
+            echo json_encode(["status" => "FAIL"]);
+        }
+    } else if ($serverType == "buy_items") { // profile.js Покупка товаров в корзине
+        try {
+            $datetime = date("y-m-d H:i:s");
+            $link->prepare("UPDATE `baskets` SET `status_id_baskets` = 2, `datetime_baskets` = ? WHERE `users_id_baskets` = ? AND `status_id_baskets` = 1 AND `datetime_baskets` IS NULL ")->execute([$datetime, $idUser]);
+            echo json_encode(["status" => "OK"]);
         } catch (Throwable $e) {
             echo json_encode(["status" => "FAIL"]);
         }
