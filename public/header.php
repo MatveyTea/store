@@ -1,5 +1,6 @@
 <?php
 include_once __DIR__ . "/config/config.php";
+include_once __DIR__ . "/function.php";
 
 $isLogin = !empty($_SESSION["id_user"]);
 
@@ -8,6 +9,7 @@ $partHeader = "";
 if ($isLogin) {
     $partHeader = "<span>
         <a href='profile.php'>Профиль</a>
+        <a href='logout.php'>Выйти</a>
     </span>";
 } else {
     $partHeader = "<span>
@@ -30,7 +32,7 @@ if ($isLogin) {
 </head>
 <body>
     <header>
-        <nav>
+        <nav class="content">
             <a href="/">Тест 1</a>
             <a href="/">Тест 2</a>
             <a href="/">Тест 3</a>

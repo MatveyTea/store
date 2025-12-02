@@ -1,33 +1,35 @@
 "use strict";
 const items = document.querySelectorAll("div[data-id]");
 
-items.forEach((item) => {
-    const basketButton = item.querySelector("button.basket");
-    const counter = item.querySelector("span.hidden");
-    const minusButton = counter.querySelector("button.minus");
-    const counterText = counter.querySelector("p b");
-    const plusButton = counter.querySelector("button.plus");
+if (items[0]?.querySelector("button.basket")) {
+    items.forEach((item) => {
+        const basketButton = item.querySelector("button.basket");
+        const counter = item.querySelector("span");
+        const minusButton = counter.querySelector("button.minus");
+        const counterText = counter.querySelector("p b");
+        const plusButton = counter.querySelector("button.plus");
 
-    basketButton.addEventListener("click", async () => {
-        changeButtonBasket(basketButton.dataset.type == "add", counter, counterText, basketButton);
-        await sendItem(item, counter, counterText, basketButton);
-    });
+        basketButton.addEventListener("click", async () => {
+            changeButtonBasket(basketButton.dataset.type == "add", counter, counterText, basketButton);
+            await sendItem(item, counter, counterText, basketButton);
+        });
 
-    minusButton.addEventListener("click", async () => {
-        if (parseInt(counterText.textContent) <= 1) {
-            changeButtonBasket(false, counter, counterText, basketButton);
-        } else {
-            counterText.textContent = parseInt(counterText.textContent) - 1;
-        }
-        await sendItem(item, counter, counterText, basketButton);
+        minusButton.addEventListener("click", async () => {
+            if (parseInt(counterText.textContent) <= 1) {
+                changeButtonBasket(false, counter, counterText, basketButton);
+            } else {
+                counterText.textContent = parseInt(counterText.textContent) - 1;
+            }
+            await sendItem(item, counter, counterText, basketButton);
+        });
+        plusButton.addEventListener("click", async () => {
+            if (item.dataset.count > parseInt(counterText.textContent)) {
+                counterText.textContent = parseInt(counterText.textContent) + 1;
+                await sendItem(item, counter, counterText, basketButton);
+            }
+        });
     });
-    plusButton.addEventListener("click", async () => {
-        if (item.dataset.count >= parseInt(counterText.textContent)) {
-            counterText.textContent = parseInt(counterText.textContent) + 1;
-        }
-        await sendItem(item, counter, counterText, basketButton);
-    });
-});
+}
 
 function changeButtonBasket(status, counter, counterText, basketButton) {
     if (status == null || counterText == null || counter == null || basketButton == null) return;

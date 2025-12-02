@@ -1,11 +1,12 @@
 <?php
 include_once __DIR__ . "/config/config.php";
+include_once __DIR__ . "/function.php";
 
 if (!empty(file_get_contents("php://input"))) {
     $json = json_decode(file_get_contents("php://input"), true);
     $serverType = $json["server_type"] ?? "";
     $idUser = $_SESSION["id_user"] ?? null;
-    $isAuth = !empty($idUser);
+    $isAuth = isUserAuth();
 
     // index.js - Добавление/Удаление вещей в корзине
     if ($serverType == "basket" && $isAuth) {
@@ -43,5 +44,7 @@ if (!empty(file_get_contents("php://input"))) {
         } catch (Throwable $e) {
             echo json_encode(["status" => "FAIL"]);
         }
+    } else {
+        echo json_encode(["status" => "FAIL"]);
     }
 }

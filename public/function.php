@@ -1,6 +1,5 @@
 <?php
 include_once __DIR__ . "/config/config.php";
-
 function redirect($path = "index.php")
 {
     if (!file_exists(__DIR__ . "/$path")) {
@@ -16,4 +15,8 @@ function checkImage($img)
         return "/img/index/base.png";
     }
     return "/img/index/$img";
+}
+function isUserAuth()
+{
+    return !empty($_SESSION["id_user"]);
 }

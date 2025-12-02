@@ -1,5 +1,6 @@
 <?php
-include_once __DIR__ . "/header.php";
+include_once __DIR__ . "/config/config.php";
+include_once __DIR__ . "/function.php";
 
 if (!empty($_SESSION["id_user"])) {
     redirect();
@@ -34,6 +35,8 @@ if (!empty($_POST["submit_button"])) {
 
 $error = $_SESSION["error"] ?? "";
 unset($_SESSION["error"]);
+
+include_once __DIR__ . "/header.php";
 ?>
 
 <form action="reg.php" method="POST">
@@ -45,17 +48,17 @@ unset($_SESSION["error"]);
     </div>
     <div>
         <label for="email_users">Почта</label>
-        <input type="text" placeholder="Введите почту" id="email_users" name="email_users">
+        <input type="text" placeholder="Введите почту" id="email_users" name="email_users" autocomplete="username">
         <p class="error hidden"></p>
     </div>
     <div>
         <label for="password_users">Пароль</label>
-        <input type="password" placeholder="Введите логин" id="password_users" name="password_users">
+        <input type="password" placeholder="Введите логин" id="password_users" name="password_users" autocomplete="new-password">
         <p class="error hidden"></p>
     </div>
     <div>
         <label for="re_password_users">Повтор пароля</label>
-        <input type="password" placeholder="Введите логин" id="re_password_users" name="re_password_users">
+        <input type="password" placeholder="Введите логин" id="re_password_users" name="re_password_users" autocomplete="new-password">
         <p class="error hidden"></p>
     </div>
     <div>

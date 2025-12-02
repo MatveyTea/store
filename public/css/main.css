@@ -1,3 +1,45 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    text-decoration: none;
+    outline: none;
+    border: none;
+    letter-spacing: 1px;
+}
+.content {
+    width: 1440px;
+} 
 .hidden {
     opacity: 0;
+}
+
+header {
+    width: 100%;
+    height: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: cornflowerblue;
+    margin-bottom: 50px;
+}
+header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+header nav a {
+    color: white;
+    font-size: 1.2rem;
+    transition: 0.5s color;
+}
+header nav a:hover,
+header nav a:focus {
+    color: chocolate;
+}
+
+@media (max-width: 1440px) {
+    .content {
+        width: 1080px;
+    }
 }
