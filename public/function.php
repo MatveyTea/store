@@ -20,14 +20,25 @@ function isUserAuth()
 {
     return !empty($_SESSION["id_user"]);
 }
-function getItems($limit = 20, $offset = 0)
+function getItems($limit = 20, $offset = 0, $where = "")
 {
     $result = "";
     $items = [];
     $userItems = [];
 
     try {
-        $items = $GLOBALS["link"]->prepare("SELECT `id_items`, `name_items`, `count_items`, `image_items`, `cost_items` FROM `items` LIMIT :limit OFFSET :offset");
+        $items = $GLOBALS["link"]->prepare("SELECT
+            `id_items`,
+            `name_items`,
+            `count_items`,
+            `image_items`,
+            `cost_items`
+            FROM `items`
+            $where
+            ORDER BY `id_items` DESC, `id_items` DESC
+            LIMIT :limit
+            OFFSET :offset
+        ");
         $items->bindParam(':limit', $limit, PDO::PARAM_INT);
         $items->bindParam(':offset', $offset, PDO::PARAM_INT);
         $items->execute();
@@ -68,6 +79,7 @@ function getItems($limit = 20, $offset = 0)
         }
 
         $result .= "<div data-id='$item[id_items]' data-count='$item[count_items]'>
+        <p>ID: $item[id_items]<p>
             <img src='$img'>
             <p>$item[name_items]</p>
             <p>Количество: $item[count_items]</p>
@@ -102,18 +114,110 @@ function dateformat($datetime = null)
     return "$array[4]:$array[5], " . intval($array[3]) . " " . $months[$array[2] - 1] . " $array[1]";
 }
 
+function getValidationRules(): array
+{
+    $result = [];
+    $file = basename($_SERVER["SCRIPT_NAME"]);
+
+    $rules = [
+        "name_users" => [
+            "files" => ["reg.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/^[а-яёА-ЯЁ-]{1,30}$/u", $value);
+            }
+        ],
+        "email_users" => [
+            "files" => ["reg.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/", $value);
+            },
+        ],
+        "password_users" => [
+            "files" => ["reg.php", "auth.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
+            }
+        ],
+        "re_password_users" => [
+            "files" => ["reg.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
+            }
+        ]
+    ];
+
+    foreach ($rules as $key => $rule) {
+        if (in_array($file, $rule["files"])) {
+            $result[$key] = $rule;
+        }
+    }
+    return $result;
+}
+function getValidatedData($array, $expectedCorrectCount): array
+{
+    $result = [
+        "data" => [],
+        "errorField" => [],
+        "isCorrect" => false
+    ];
+
+    if ($array == null || $expectedCorrectCount == null) return $result;
+
+    $validationRules = getValidationRules();
+    if (empty($validationRules)) return $result;
+
+    $currentCountCorrect = 0;
+    foreach ($array as $key => $value) {
+        if (empty($validationRules[$key])) {
+            continue;
+        }
+
+        $value = trim($value);
+        $result["data"][$key] = $value;
+        $rule = $validationRules[$key];
+
+        if (!$rule["required"] && $value == "") {
+            $currentCountCorrect++;
+            $result["errorField"][$key] = 0;
+            continue;
+        }
+
+        if ($rule["required"] && $value == "" ||
+            $key == "re_password_users" && $value != $array["password_users"] ||
+            $key == "password_users" && $value != $array["re_password_users"] ||
+            is_callable($rule["pattern"]) && !$rule["pattern"]($value))
+        {
+            $result["errorField"][$key] = 1;
+            continue;
+        } else {
+            $result["errorField"][$key] = 0;
+        }
+
+        $currentCountCorrect++;
+    }
+
+    $result["isCorrect"] = $currentCountCorrect == $expectedCorrectCount;
+    return $result;
+}
+
+
 // На тест
 function createRandomItem()
 {
-    $id = $GLOBALS["link"]->query("SELECT MAX(`id_items`) AS `max_id` FROM `items`")->fetch(PDO::FETCH_ASSOC)["max_id"];
+    $id = $GLOBALS["link"]->query("SELECT MAX(`id_items`) AS `max_id` FROM `items`")->fetch(PDO::FETCH_ASSOC)["max_id"] ?? 0;
     for ($i = $id + 1; $i < $id + 100; $i++) {
         $r1 = rand(5, 30);
         $r2 = rand(10, 1000);
+        $time = date("Y-m-d");
         $GLOBALS["link"]->query("
             INSERT INTO `items`
-            (`name_items`, `count_items`, `image_items`, `cost_items`)
+            (`id_items`, `name_items`, `count_items`, `image_items`, `cost_items`, `date_add_items`)
             VALUES
-            ('Товар $i', $r1, 'default.png', $r2)
+            ($i, 'Товар $i', $r1, 'default.png', $r2, '$time')
         ");
     }
 }

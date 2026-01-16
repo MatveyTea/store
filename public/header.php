@@ -27,6 +27,7 @@ if (isUserAuth()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Интернет-магазин</title>
+    <script src="js/function.js" defer></script>
     <script src="js/main.js" defer></script>
     <link rel="stylesheet" href="css/main.css">
     <link rel="shortcut icon" href="img/main/favicon.ico" type="image/x-icon">
@@ -34,7 +35,7 @@ if (isUserAuth()) {
 <body>
     <header>
         <nav class="content">
-            <a href="/">Тест 1</a>
+            <a href="/">Католог</a>
             <a href="/">Тест 2</a>
             <a href="/">Тест 3</a>
             <a href="/">Тест 4</a>

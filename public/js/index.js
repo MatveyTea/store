@@ -70,34 +70,58 @@ async function sendItem(item, counter, counterText, basketButton) {
     }
 }
 
-let maxScroll = document.documentElement.offsetHeight - window.innerHeight - items[0]?.clientHeight;
-const sectionItems = document.querySelector("section");
-addEventListener("scroll", async () => {
-    if (scrollY >= maxScroll) {
-        const lastItemsId = parseInt(document.querySelector("div[data-id]:last-of-type")?.dataset?.id ?? 0);
-        const result = await fetch("server.php", {
-            "method": "POST",
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": JSON.stringify({
-                "server_type": "items",
-                "offset": lastItemsId
-            })
-        });
-        const dataResult = await result.json();
-
-        if (dataResult["status"] == "OK") {
-            const tempContainer = document.createElement("div");
-            tempContainer.innerHTML = dataResult["items"];
-            Array.from(tempContainer.children).forEach((item) => {
-                if (isAuth) {
-                    clickableItem(item);
-                }
-                sectionItems.appendChild(item);
+async function getSearchItems(isSearch = false) {
+    const result = await fetch("server.php", {
+        "method": "POST",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": JSON.stringify({
+            "server_type": "search_items",
+            "offset": offset,
+            "name_item": searchSection.querySelector("input[name=name_item]").value,
+            "min_cost_item": searchSection.querySelector("input[name=min_cost_item]").value,
+            "max_cost_item": searchSection.querySelector("input[name=min_cost_item]").value
+        })
+    });
+    const dataResult = await result.json();
+    if (dataResult["status"] == "OK") {
+        const tempContainer = document.createElement("div");
+        tempContainer.innerHTML = dataResult["items"];
+        if (isResetSearch) {
+            Array.from(itemsSection.children).forEach((elem) => {
+                elem.remove();
             });
+            offset = 0;
+            isResetSearch = false;
         }
-        maxScroll = document.documentElement.offsetHeight - window.innerHeight - items[0]?.clientHeight;
+        Array.from(tempContainer.children).forEach((item) => {
+            if (isAuth) {
+                clickableItem(item);
+            }
+            itemsSection.appendChild(item);
+            offset++;
+        });
     }
-    console.log(scrollY, maxScroll);
+    maxScroll = document.documentElement.offsetHeight - window.innerHeight - items[0]?.clientHeight;
+    isCanGet = true;
+}
+
+let isCanGet = true;
+let maxScroll = document.documentElement.offsetHeight - window.innerHeight;
+let offset = parseInt(document.querySelector("section.content").children.length ?? 0);
+let isResetSearch = false; 
+const itemsSection = document.querySelector("section");
+addEventListener("scroll", async () => {
+    if (scrollY >= maxScroll && screenY <= maxScroll - items[0]?.clientHeight && isCanGet) {
+        isCanGet = false;
+        getSearchItems(false);
+    }
+});
+
+const searchSection = document.querySelector(".search");
+searchSection.addEventListener("submit", async(event) => {
+    event.preventDefault();
+    isResetSearch = true;
+    getSearchItems(true);
 });

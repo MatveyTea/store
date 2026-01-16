@@ -44,19 +44,35 @@ if (!empty(file_get_contents("php://input"))) {
         } catch (Throwable $e) {
             echo json_encode(["status" => "FAIL"]);
         }
-    } else if ($serverType == "items" && !empty($json["offset"])) { // index.js Получение товаров
-        $items = getItems(20, $json["offset"]);
-        if (!empty($items)) {
-            echo json_encode(["status" => "OK", "items" => $items]);
-        } else {
-            echo json_encode(["status" => "FAIL"]);
-        }
     } else if ($serverType == "buy_items") { // profile.js Покупка товаров в корзине
         try {
             $datetime = date("y-m-d H:i:s");
             $link->prepare("UPDATE `baskets` SET `status_id_baskets` = 2, `datetime_baskets` = ? WHERE `users_id_baskets` = ? AND `status_id_baskets` = 1 AND `datetime_baskets` IS NULL ")->execute([$datetime, $idUser]);
             echo json_encode(["status" => "OK"]);
         } catch (Throwable $e) {
+            echo json_encode(["status" => "FAIL"]);
+        }
+    } else if ($serverType == "search_items" && !empty($json["offset"])) { // index.php Поиск товаров
+        $offset = $json["offset"];    
+        $name = trim($json["name_item"] ?? "");
+        $maxCount = $json["min_cost_item"] ?? "";
+        $minCount = $json["max_cost_item"] ?? "";
+
+        $where = "";
+        if ($name != "") {
+            $where .= "`name_items` LIKE '%$name%'";
+        }
+        if ($maxCount != "" && $minCount != "") {
+            $where .= "`cost_items` <= $maxCount AND `cost_items` >= $minCount";
+        }
+        if ($where != "") {
+            $where = "WHERE $where";
+        }
+
+        $items = getItems(20, $offset, $where);
+        if (!empty($items)) {
+            echo json_encode(["status" => "OK", "items" => $items]);
+        } else {
             echo json_encode(["status" => "FAIL"]);
         }
     } else {

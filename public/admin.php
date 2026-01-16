@@ -7,17 +7,24 @@ if (!empty($_POST["submit_button"])) {
         $name = $_POST["name_items"];
         $count = $_POST["count_items"];
         $cost = $_POST["cost_items"];
+        $image = $_FILES["image_items"];
 
-        $datetime = date("Y-m-d H-i-s") . ".png";
-        if (move_uploaded_file($_FILES["image_items"]["tmp_name"], __DIR__ . "/img/index/$datetime")) {
-            try {
-                $link->prepare("INSERT INTO `items` (`name_items`, `count_items`, `cost_items`, `image_items`) VALUES (?, ?, ?, ?)")->execute([$name, $count, $cost, $datetime]);
-            } catch (Throwable $e) {
+        $extension = pathinfo($image["name"], PATHINFO_EXTENSION);
+        if (in_array($extension, ["jpg", "png", "webp"])) {
+            $datetime = date("Y-m-d H-i-s") . ".$extension";
+            if (move_uploaded_file($image["tmp_name"], __DIR__ . "/img/index/$datetime")) {
+                try {
+                    $link->prepare("INSERT INTO `items` (`name_items`, `count_items`, `cost_items`, `image_items`) VALUES (?, ?, ?, ?)")->execute([$name, $count, $cost, $datetime]);
+                } catch (Throwable $e) {
+                    $_SESSION["error"] = "Ошибки";
+                }
+            } else {
                 $_SESSION["error"] = "Ошибки";
             }
         } else {
-            $_SESSION["error"] = "Ошибки";
+            $_SESSION["error"] = "Неверный формат";
         }
+
     } else {
         $_SESSION["error"] = "Заполните все поля";
     }
