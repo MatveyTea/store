@@ -7,12 +7,27 @@
     border: none;
     letter-spacing: 1px;
 }
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+body main {
+    flex: 1;
+}
+
 .content {
     width: 1440px;
+    margin: 20px auto;
 } 
-.error {
-    height: 30px;
-}
+
 .hidden {
     opacity: 0;
 }
@@ -27,39 +42,72 @@
     padding: 20px;
     border-radius: 10px;
 }
+
+
+/* Форма */
 .form {
     margin: 20px auto;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-wrap: wrap;
     justify-content: space-between;
+    align-items: center;
     gap: 20px;
 }
-.form div {
-    width: 80%;
+
+.form legend {
+    width: 100%;
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.form .field {
+    width: calc(50% - 20px);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
-.form legend {
-    font-size: 2.5rem;
-}
-.form div label {
-    width: 15%;
-}
-.form div input {
-    width: 90%;
-    height: 30px;
-}
-.form div:has(input[type=submit]) {
+
+.form .field:has(input.button) {
+    width: 100%;
     justify-content: center;
 }
-.form div input[type=submit] {
+
+.form .field .label {
+    width: 100%;
+}
+
+.form .field .label b {
+    margin-left: 2px;
+}
+
+.form .field .input {
+    width: 100%;
+    height: 20px;
+    border-bottom: 1px solid black;
+}
+
+.form .field input.button {
     width: 50%;
     height: 50px;
     padding: 0;
     align-self: center;
+    border-bottom: none;
 }
+
+.form .field .error {
+    width: 100%;
+    height: 20px;
+    transition: 0.3s all;
+    color: crimson;
+}
+
+.form .field .server-error {
+    text-align: center;
+}
+
 
 header {
     width: 100%;
@@ -83,6 +131,13 @@ header nav a {
 header nav a:hover,
 header nav a:focus {
     color: chocolate;
+}
+
+
+
+footer {
+    height: 400px;
+    background-color: aquamarine;
 }
 
 @media (max-width: 1440px) {

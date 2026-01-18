@@ -70,7 +70,7 @@ async function sendItem(item, counter, counterText, basketButton) {
     }
 }
 
-async function getSearchItems(isSearch = false) {
+async function getSearchItems() {
     const result = await fetch("server.php", {
         "method": "POST",
         "headers": {
@@ -79,20 +79,20 @@ async function getSearchItems(isSearch = false) {
         "body": JSON.stringify({
             "server_type": "search_items",
             "offset": offset,
-            "name_item": searchSection.querySelector("input[name=name_item]").value,
-            "min_cost_item": searchSection.querySelector("input[name=min_cost_item]").value,
-            "max_cost_item": searchSection.querySelector("input[name=min_cost_item]").value
+            "name_search_items": searchSection.querySelector("input[name=name_search_items]").value,
+            "min_cost_items": searchSection.querySelector("input[name=min_cost_items]").value,
+            "max_cost_items": searchSection.querySelector("input[name=min_cost_items]").value
         })
     });
     const dataResult = await result.json();
-    if (dataResult["status"] == "OK") {
+    if (dataResult["status"] == "OK" || dataResult["status"] == "NOTFOUND") {
         const tempContainer = document.createElement("div");
         tempContainer.innerHTML = dataResult["items"];
         if (isResetSearch) {
             Array.from(itemsSection.children).forEach((elem) => {
                 elem.remove();
             });
-            offset = 0;
+            offset = 20;
             isResetSearch = false;
         }
         Array.from(tempContainer.children).forEach((item) => {
@@ -104,16 +104,18 @@ async function getSearchItems(isSearch = false) {
         });
     }
     maxScroll = document.documentElement.offsetHeight - window.innerHeight - items[0]?.clientHeight;
-    isCanGet = true;
+    setTimeout(() => {
+        isCanGet = true;
+    }, 500);
 }
 
 let isCanGet = true;
 let maxScroll = document.documentElement.offsetHeight - window.innerHeight;
-let offset = parseInt(document.querySelector("section.content").children.length ?? 0);
+let offset = parseInt(document.querySelector("section").children.length ?? 0);
 let isResetSearch = false; 
 const itemsSection = document.querySelector("section");
 addEventListener("scroll", async () => {
-    if (scrollY >= maxScroll && screenY <= maxScroll - items[0]?.clientHeight && isCanGet) {
+    if (scrollY >= maxScroll - items[0]?.clientHeight && isCanGet) {
         isCanGet = false;
         getSearchItems(false);
     }

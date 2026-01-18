@@ -124,11 +124,11 @@ function getValidationRules(): array
             "files" => ["reg.php"], 
             "required" => true,
             "pattern" => function($value) {
-                return preg_match("/^[а-яёА-ЯЁ-]{1,30}$/u", $value);
+                return preg_match("/^[а-яёА-Я Ё-]{1,30}$/u", $value);
             }
         ],
         "email_users" => [
-            "files" => ["reg.php"], 
+            "files" => ["reg.php", "auth.php"], 
             "required" => true,
             "pattern" => function($value) {
                 return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/", $value);
@@ -147,6 +147,41 @@ function getValidationRules(): array
             "pattern" => function($value) {
                 return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
             }
+        ],
+        "name_items" => [
+            "files" => ["admin.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/^[a-zA-Z0-9 -().,:\"'%]{1,40}$/", $value);
+            }
+        ],
+        "count_items" => [
+            "files" => ["admin.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/^[0-9]{1,6}$/", $value);
+            }
+        ],
+        "cost_items" => [
+            "files" => ["admin.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/^[0-9]{1,6}$/", $value);
+            }
+        ],
+        "image_items" => [
+            "files" => ["admin.php"],
+            "required" => false,
+            "pattern" => function($value) {
+                $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
+                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
+                    $datetime = date("Y-m-d H-i-s") . ".$extension";
+                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/img/index/$datetime")) {
+                        return $datetime;
+                    }
+                }
+                return false;
+            }
         ]
     ];
 
@@ -157,7 +192,7 @@ function getValidationRules(): array
     }
     return $result;
 }
-function getValidatedData($array, $expectedCorrectCount): array
+function getValidatedData($array): array
 {
     $result = [
         "data" => [],
@@ -165,7 +200,7 @@ function getValidatedData($array, $expectedCorrectCount): array
         "isCorrect" => false
     ];
 
-    if ($array == null || $expectedCorrectCount == null) return $result;
+    if ($array == null) return $result;
 
     $validationRules = getValidationRules();
     if (empty($validationRules)) return $result;
@@ -176,9 +211,22 @@ function getValidatedData($array, $expectedCorrectCount): array
             continue;
         }
 
+        $rule = $validationRules[$key];
+
+        if ($key == "image_items" && is_callable($rule["pattern"])) {
+            $image = $rule["pattern"]($value);
+            if ($image !== false) {
+                $result["errorField"][$key] = 0;
+                $result["data"][$key] = $image;
+                $currentCountCorrect++;
+            } else {
+                $result["errorField"][$key] = 1;
+            }
+            continue;
+        }
+
         $value = trim($value);
         $result["data"][$key] = $value;
-        $rule = $validationRules[$key];
 
         if (!$rule["required"] && $value == "") {
             $currentCountCorrect++;
@@ -187,8 +235,8 @@ function getValidatedData($array, $expectedCorrectCount): array
         }
 
         if ($rule["required"] && $value == "" ||
-            $key == "re_password_users" && $value != $array["password_users"] ||
-            $key == "password_users" && $value != $array["re_password_users"] ||
+            !empty($array["re_password_users"]) &&
+            ($key == "re_password_users" && $value != $array["password_users"] || $key == "password_users" && $value != $array["re_password_users"]) ||
             is_callable($rule["pattern"]) && !$rule["pattern"]($value))
         {
             $result["errorField"][$key] = 1;
@@ -200,7 +248,7 @@ function getValidatedData($array, $expectedCorrectCount): array
         $currentCountCorrect++;
     }
 
-    $result["isCorrect"] = $currentCountCorrect == $expectedCorrectCount;
+    $result["isCorrect"] = $currentCountCorrect == count($array);
     return $result;
 }
 

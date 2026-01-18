@@ -7,7 +7,8 @@ if (isUserAuth()) {
 }
 
 if (!empty($_POST["submit_button"])) {
-    $validatedData = getValidatedData(array_diff($_POST, ["submit_button"]), 4);
+    unset($_POST["submit_button"]);
+    $validatedData = getValidatedData($_POST);
     $_SESSION["data"] = $validatedData["data"];
     $_SESSION["errorField"] = $validatedData["errorField"];
 
@@ -15,7 +16,7 @@ if (!empty($_POST["submit_button"])) {
         try {
             $stmt = $link->prepare("SELECT `id_users` FROM `users` WHERE `email_users` = ?");
             $stmt->execute([$validatedData["data"]["email_users"]]);
-            if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+            if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
                 $link->prepare("INSERT INTO `users` (`email_users`, `password_users`, `name_users`, `date_create_users`) VALUES (?, ?, ?, ?)")->execute([$validatedData["data"]["email_users"], password_hash($validatedData["data"]["password_users"], PASSWORD_DEFAULT), $validatedData["data"]["name_users"], date("y-m-d")]);
                 redirect("auth.php");
             } else {
@@ -28,11 +29,9 @@ if (!empty($_POST["submit_button"])) {
     redirect("reg.php");
 }
 
-$inToServer = !isset($_SESSION["errorField"]);
 include_once __DIR__ . "/header.php";
 ?>
-<script src="js/reg.js" defer></script>
-<section class="content">
+<main class="content">
     <form action="reg.php" method="POST" class="form">
         <legend>Регистрация</legend>
         <div class="field">
@@ -56,11 +55,11 @@ include_once __DIR__ . "/header.php";
             <p class="error" data-has-error="<?= $_SESSION["errorField"]["re_password_users"] ?? 0 ?>"></p>
         </div>
         <div class="field">
-            <input class="input" type="submit" id="submit_button" name="submit_button" value="Зарегистрироваться" class="button">
+            <p class="error server-error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
+            <input class="input button" type="submit" id="submit_button" name="submit_button" value="Зарегистрироваться" class="button">
         </div>
-        <p class="error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
     </form>
-    <a href="auth.php" class="button">Войти</a>
-</section>
+</main>
 
 <?php unset($_SESSION["data"], $_SESSION["errorField"]); ?>
+<?php include_once __DIR__ . "/footer.php"; ?>

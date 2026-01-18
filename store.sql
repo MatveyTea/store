@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.2
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Хост: MySQL-8.0
--- Время создания: Янв 14 2026 г., 14:55
--- Версия сервера: 8.0.35
--- Версия PHP: 8.1.28
+-- Хост: MySQL-8.4:3306
+-- Время создания: Янв 18 2026 г., 20:41
+-- Версия сервера: 8.4.6
+-- Версия PHP: 8.4.13
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -56,7 +56,7 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `cost_items`, `date_add_items`) VALUES
-(1, 'Товар 1', 19, 'default.png', 872, '2026-01-14'),
+(1, 'Товар 1', 19, 'default.png', 872, '2026-01-13'),
 (2, 'Товар 2', 14, 'default.png', 682, '2026-01-14'),
 (3, 'Товар 3', 15, 'default.png', 740, '2026-01-14'),
 (4, 'Товар 4', 18, 'default.png', 435, '2026-01-14'),
@@ -491,8 +491,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`) VALUES
-(1, 'admin', '$2y$12$6.CT7YD60.ZxJFebVuXBr.N2b7R0V/AFjNlryfQH.rpKPLmFkyXgy', 'admin', '2025-11-30'),
-(2, 'user', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'user', '2025-12-02');
+(1, 'admin@admin.com', '$2y$12$6.CT7YD60.ZxJFebVuXBr.N2b7R0V/AFjNlryfQH.rpKPLmFkyXgy', 'admin', '2025-11-30'),
+(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'user', '2025-11-30');
 
 --
 -- Индексы сохранённых таблиц
@@ -534,13 +534,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=400;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -552,7 +552,7 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц

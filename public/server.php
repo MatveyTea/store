@@ -54,26 +54,30 @@ if (!empty(file_get_contents("php://input"))) {
         }
     } else if ($serverType == "search_items" && !empty($json["offset"])) { // index.php Поиск товаров
         $offset = $json["offset"];    
-        $name = trim($json["name_item"] ?? "");
-        $maxCount = $json["min_cost_item"] ?? "";
-        $minCount = $json["max_cost_item"] ?? "";
+        $name = trim($json["name_search_items"] ?? "");
+        $maxCount = $json["min_cost_items"] ?? "";
+        $minCount = $json["max_cost_items"] ?? "";
 
-        $where = "";
+        $where = [];
         if ($name != "") {
-            $where .= "`name_items` LIKE '%$name%'";
+            $where[] = "`name_items` LIKE '%$name%'";
         }
         if ($maxCount != "" && $minCount != "") {
-            $where .= "`cost_items` <= $maxCount AND `cost_items` >= $minCount";
+            $where[] ="`cost_items` <= $maxCount AND `cost_items` >= $minCount";
         }
-        if ($where != "") {
-            $where = "WHERE $where";
+        if ($where != []) {
+            $where = "WHERE " . join(" AND ",  $where);
+        }
+
+        if (is_array($where)) {
+            $where = "";
         }
 
         $items = getItems(20, $offset, $where);
         if (!empty($items)) {
             echo json_encode(["status" => "OK", "items" => $items]);
         } else {
-            echo json_encode(["status" => "FAIL"]);
+            echo json_encode(["status" => "NOTFOUND"]);
         }
     } else {
         echo json_encode(["status" => "FAIL"]);
