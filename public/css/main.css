@@ -18,7 +18,9 @@ body {
     flex-direction: column;
     justify-content: space-between;
 }
-
+a {
+    color: black;
+}
 body main {
     flex: 1;
 }
@@ -108,6 +110,13 @@ body main {
     text-align: center;
 }
 
+
+.avatar {
+    height: 50px;
+    aspect-ratio:  1 / 1;
+    border-radius: 50%;
+    border: 1px solid black;
+}
 
 header {
     width: 100%;

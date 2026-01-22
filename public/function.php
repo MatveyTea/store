@@ -1,5 +1,10 @@
 <?php
 include_once __DIR__ . "/config/config.php";
+
+const FOLDER_PROFILE = "profile";
+const FOLDER_INDEX = "index";
+const FOLDER_IMG = "img";
+
 function redirect($path = "index.php")
 {
     if (!file_exists(__DIR__ . "/$path")) {
@@ -9,18 +14,38 @@ function redirect($path = "index.php")
     }
     exit;
 }
-function checkImage($img)
+function getValidImage($folder, $img)
 {
-    if (!file_exists(__DIR__ . "/img/index/$img")) {
-        return "/img/index/base.png";
+    if (!file_exists(__DIR__ . "/" . FOLDER_IMG . "/$folder/$img")) {
+        return "/" . FOLDER_IMG . "/$folder/default.png";
     }
-    return "/img/index/$img";
+    return "/" . FOLDER_IMG . "/$folder/$img";
 }
 function isUserAuth()
 {
-    return !empty($_SESSION["id_user"]);
+    return !empty(getUserID());
 }
-function getItems($limit = 20, $offset = 0, $where = "")
+function isAdmin()
+{
+    return getUserID() == 1;
+}
+function getUserInfo()
+{
+    $stmt = $GLOBALS["link"]->prepare("SELECT * FROM `users` WHERE `id_users` = ?");
+    $stmt->execute([getUserID()]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function clearValidatedSession()
+{
+    unset($_SESSION["errorField"], $_SESSION["data"]);
+}
+
+function getUserID()
+{
+    return $_SESSION["id_user"] ?? null;
+}
+function getItems($limit = 50, $offset = 0, $where = "")
 {
     $result = "";
     $items = [];
@@ -48,13 +73,13 @@ function getItems($limit = 20, $offset = 0, $where = "")
     if (isUserAuth()) {
         try {
             $userItems = $GLOBALS["link"]->prepare("SELECT `items_id_baskets`, `count_baskets` FROM `baskets` WHERE `users_id_baskets` = ? AND `status_id_baskets` = 1");
-            $userItems->execute([$_SESSION["id_user"]]);
+            $userItems->execute([getUserID()]);
             $userItems = $userItems->fetchAll(PDO::FETCH_ASSOC);
         } catch (Throwable $e) {}
     }
 
     foreach ($items as $item) {
-        $img = checkImage($item["image_items"]);
+        $img = getValidImage(FOLDER_INDEX, $item["image_items"]);
         $basket = "";
 
         foreach ($userItems as $userItem) {
@@ -70,7 +95,12 @@ function getItems($limit = 20, $offset = 0, $where = "")
         }
 
         if ($basket == "" && isUserAuth()) {
-            $basket = "<button class='basket' data-type='add'>Добавить в корзину</button>
+            $deleteButton = "";
+            if (isAdmin()) {
+                $deleteButton .= "<button class='button delete'>Удалить</button>";
+            }
+            $basket = "<button class='button basket' data-type='add'>Добавить в корзину</button>
+            $deleteButton
             <span class='hidden'>
                 <button class='minus'>-</button>
                 <p>В корзине: <b>0</b></p>
@@ -78,14 +108,14 @@ function getItems($limit = 20, $offset = 0, $where = "")
             </span>";
         }
 
-        $result .= "<div data-id='$item[id_items]' data-count='$item[count_items]'>
+        $result .= "<a href ='aboutItem.php?id_item=$item[id_items]' data-id='$item[id_items]' data-count='$item[count_items]'>
         <p>ID: $item[id_items]<p>
             <img src='$img'>
             <p>$item[name_items]</p>
             <p>Количество: $item[count_items]</p>
             <p>Стоимость: $item[cost_items]р</p>
             $basket
-        </div>";
+        </a>";
     }
 
     return $result;
@@ -94,14 +124,46 @@ function getItemHTML($item)
 {
     $result = "";
     if ($item == null) return $result;
-    $img = checkImage($item["image_items"]);
-    $result .= "<div class='item' data-id='$item[items_id_baskets]' data-count='$item[count_baskets]'>
+    $img = getValidImage(FOLDER_INDEX, $item["image_items"]);
+    $result .= "<div class='item' data-id='$item[id_items]' data-count='$item[count_baskets]'>
         <img src='$img'>
         <p>$item[name_items]</p>
         <p>Количество: $item[count_baskets]</p>
         <p>Стоимость: $item[cost_items]р</p>
     </div>";
     return $result;
+}
+
+function getBasketHTML($basket)
+{
+    $historyHTML = "";
+    $currentHTML = "";
+    $currentCost = 0;
+    $historyCost = 0;
+
+    $datetimeBuy = null;
+    $lastUserItem = end($basket);
+    foreach ($basket as $item) {
+        if (empty($item["datetime_buy_baskets"])) {
+            $currentHTML .= getItemHTML($item);
+            $currentCost += $item["cost_items"] * $item["count_baskets"];
+        } else {
+            if ($datetimeBuy != $item["datetime_buy_baskets"]) {
+                if ($datetimeBuy != null) {
+                    $historyHTML .= "<p>Всего: {$historyCost}р</p></article>";
+                    $historyCost = 0;
+                }
+                $historyHTML .= "<article class='basket'><h2>Время покупки: " . dateformat($item["datetime_buy_baskets"]) . "</h2>";
+                $datetimeBuy = $item["datetime_buy_baskets"];
+            }
+            $historyHTML .= getItemHTML($item);
+            $historyCost += $item["cost_items"] * $item["count_baskets"];
+            if ($item["id_baskets"] == $lastUserItem["id_baskets"]) {
+                $historyHTML .= "<p>Всего: {$historyCost}р</p></article>";
+            }
+        }
+    }
+    return ["currentHTML" => $currentHTML, "historyHTML" => $historyHTML, "currentCost" => $currentCost];
 }
 
 function dateformat($datetime = null)
@@ -121,7 +183,7 @@ function getValidationRules(): array
 
     $rules = [
         "name_users" => [
-            "files" => ["reg.php"], 
+            "files" => ["reg.php", "profile.php"], 
             "required" => true,
             "pattern" => function($value) {
                 return preg_match("/^[а-яёА-Я Ё-]{1,30}$/u", $value);
@@ -175,8 +237,22 @@ function getValidationRules(): array
             "pattern" => function($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
                 if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
-                    $datetime = date("Y-m-d H-i-s") . ".$extension";
+                    $datetime = date("Y-m-d-H-i-s") . ".$extension";
                     if (move_uploaded_file($value["tmp_name"], __DIR__ . "/img/index/$datetime")) {
+                        return $datetime;
+                    }
+                }
+                return false;
+            }
+        ],
+        "avatar_users" => [
+            "files" => ["profile.php"],
+            "required" => false,
+            "pattern" => function($value) {
+                $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
+                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
+                    $datetime = date("y-m-d-H-i-s") . ".$extension";
+                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/img/profile/$datetime")) {
                         return $datetime;
                     }
                 }
@@ -208,12 +284,13 @@ function getValidatedData($array): array
     $currentCountCorrect = 0;
     foreach ($array as $key => $value) {
         if (empty($validationRules[$key])) {
+            $result["emptyRule"] = $key; // дебаг
             continue;
         }
 
         $rule = $validationRules[$key];
 
-        if ($key == "image_items" && is_callable($rule["pattern"])) {
+        if (($key == "image_items" || $key == "avatar_users") && is_callable($rule["pattern"])) {  
             $image = $rule["pattern"]($value);
             if ($image !== false) {
                 $result["errorField"][$key] = 0;
@@ -253,19 +330,41 @@ function getValidatedData($array): array
 }
 
 
-// На тест
-function createRandomItem()
-{
-    $id = $GLOBALS["link"]->query("SELECT MAX(`id_items`) AS `max_id` FROM `items`")->fetch(PDO::FETCH_ASSOC)["max_id"] ?? 0;
-    for ($i = $id + 1; $i < $id + 100; $i++) {
-        $r1 = rand(5, 30);
-        $r2 = rand(10, 1000);
-        $time = date("Y-m-d");
-        $GLOBALS["link"]->query("
-            INSERT INTO `items`
-            (`id_items`, `name_items`, `count_items`, `image_items`, `cost_items`, `date_add_items`)
-            VALUES
-            ($i, 'Товар $i', $r1, 'default.png', $r2, '$time')
-        ");
+function getUpdateSQL($array) {
+    $result = [
+        "params" => [],
+        "sql" => []
+    ];
+
+
+    if ($array == null) return $result;
+
+    foreach ($array as $key => $value) {
+        if (empty($value)) continue;
+        $result["params"][] = $value;
+        $result["sql"][] = "`$key` = ?";
     }
+
+    $result["sql"] = join(",", $result["sql"]);
+    
+    return $result;
 }
+
+
+
+// На тест
+// function createRandomItem()
+// {
+//     $id = $GLOBALS["link"]->query("SELECT MAX(`id_items`) AS `max_id` FROM `items`")->fetch(PDO::FETCH_ASSOC)["max_id"] ?? 0;
+//     for ($i = $id + 1; $i < $id + 100; $i++) {
+//         $r1 = rand(5, 30);
+//         $r2 = rand(10, 1000);
+//         $time = date("Y-m-d");
+//         $GLOBALS["link"]->query("
+//             INSERT INTO `items`
+//             (`id_items`, `name_items`, `count_items`, `image_items`, `cost_items`, `date_add_items`)
+//             VALUES
+//             ($i, 'Товар $i', $r1, 'default.png', $r2, '$time')
+//         ");
+//     }
+// }

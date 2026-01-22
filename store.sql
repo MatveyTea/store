@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Янв 18 2026 г., 20:41
+-- Время создания: Янв 22 2026 г., 19:30
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -33,7 +33,7 @@ CREATE TABLE `baskets` (
   `status_id_baskets` int NOT NULL,
   `count_baskets` int NOT NULL,
   `users_id_baskets` int NOT NULL,
-  `datetime_baskets` datetime DEFAULT NULL
+  `datetime_buy_baskets` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -450,8 +450,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (392, '123', 25, 'default.png', 85, '2026-01-14'),
 (393, '123', 20, 'default.png', 122, '2026-01-14'),
 (394, '123', 26, 'default.png', 204, '2026-01-14'),
-(395, '123', 19, 'default.png', 656, '2026-01-14'),
-(396, '123', 9, 'default.png', 905, '2026-01-14');
+(395, '123', 19, 'default.png', 656, '2026-01-14');
 
 -- --------------------------------------------------------
 
@@ -483,16 +482,17 @@ CREATE TABLE `users` (
   `email_users` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `password_users` varchar(150) NOT NULL,
   `name_users` varchar(150) NOT NULL,
-  `date_create_users` date NOT NULL
+  `date_create_users` date NOT NULL,
+  `avatar_users` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`) VALUES
-(1, 'admin@admin.com', '$2y$12$6.CT7YD60.ZxJFebVuXBr.N2b7R0V/AFjNlryfQH.rpKPLmFkyXgy', 'admin', '2025-11-30'),
-(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'user', '2025-11-30');
+INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`) VALUES
+(1, 'admin@admin.com', '$2y$12$6.CT7YD60.ZxJFebVuXBr.N2b7R0V/AFjNlryfQH.rpKPLmFkyXgy', 'тестпп', '2025-11-30', '26-01-22-13-36-04.png'),
+(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'user', '2025-11-30', NULL);
 
 --
 -- Индексы сохранённых таблиц
@@ -534,13 +534,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=400;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=401;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -552,7 +552,7 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -562,9 +562,9 @@ ALTER TABLE `users`
 -- Ограничения внешнего ключа таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  ADD CONSTRAINT `baskets_ibfk_1` FOREIGN KEY (`items_id_baskets`) REFERENCES `items` (`id_items`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `baskets_ibfk_1` FOREIGN KEY (`items_id_baskets`) REFERENCES `items` (`id_items`) ON DELETE CASCADE ON UPDATE RESTRICT,
   ADD CONSTRAINT `baskets_ibfk_2` FOREIGN KEY (`status_id_baskets`) REFERENCES `status` (`id_status`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  ADD CONSTRAINT `baskets_ibfk_3` FOREIGN KEY (`users_id_baskets`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+  ADD CONSTRAINT `baskets_ibfk_3` FOREIGN KEY (`users_id_baskets`) REFERENCES `users` (`id_users`) ON DELETE CASCADE ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

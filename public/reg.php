@@ -18,6 +18,7 @@ if (!empty($_POST["submit_button"])) {
             $stmt->execute([$validatedData["data"]["email_users"]]);
             if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
                 $link->prepare("INSERT INTO `users` (`email_users`, `password_users`, `name_users`, `date_create_users`) VALUES (?, ?, ?, ?)")->execute([$validatedData["data"]["email_users"], password_hash($validatedData["data"]["password_users"], PASSWORD_DEFAULT), $validatedData["data"]["name_users"], date("y-m-d")]);
+                unset($_SESSION["data"], $_SESSION["errorField"]);
                 redirect("auth.php");
             } else {
                 $_SESSION["errorField"]["server"] = "Такая почта занята";

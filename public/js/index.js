@@ -7,6 +7,7 @@ if (isAuth) {
 
 function clickableItem(item) {
     const basketButton = item.querySelector("button.basket");
+    const deleteButton = item.querySelector("button.delete");
     const counter = item.querySelector("span");
     const minusButton = counter.querySelector("button.minus");
     const counterText = counter.querySelector("p b");
@@ -15,6 +16,27 @@ function clickableItem(item) {
     basketButton.addEventListener("click", async () => {
         changeButtonBasket(basketButton.dataset.type == "add", counter, counterText, basketButton);
         await sendItem(item, counter, counterText, basketButton);
+    });
+    deleteButton?.addEventListener("click", async() => {
+        const dataItem = {
+            "server_type": "delete_items",
+            "id_item": item.dataset.id
+        };
+        item.classList.add("hidden");
+        const result = await fetch("server.php", {
+            "method": "POST",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": JSON.stringify(dataItem)
+        });
+        const dataResult = await result.json();
+
+        if (dataResult["status"] == "OK") {
+            item.remove();
+        } else {
+            item.classList.remove("hidden");
+        }
     });
 
     minusButton.addEventListener("click", async () => {
@@ -78,21 +100,19 @@ async function getSearchItems() {
         },
         "body": JSON.stringify({
             "server_type": "search_items",
-            "offset": offset,
-            "name_search_items": searchSection.querySelector("input[name=name_search_items]").value,
-            "min_cost_items": searchSection.querySelector("input[name=min_cost_items]").value,
-            "max_cost_items": searchSection.querySelector("input[name=min_cost_items]").value
+            "offset": isResetSearch ? 0 : offset,
+            "name_search_items": searchSection.querySelector("input[id=name_search_items]").value,
+            "min_cost_items": searchSection.querySelector("input[id=min_cost_items]").value,
+            "max_cost_items": searchSection.querySelector("input[id=max_cost_items]").value
         })
     });
     const dataResult = await result.json();
-    if (dataResult["status"] == "OK" || dataResult["status"] == "NOTFOUND") {
+    if (dataResult["status"] == "OK") {
         const tempContainer = document.createElement("div");
         tempContainer.innerHTML = dataResult["items"];
         if (isResetSearch) {
-            Array.from(itemsSection.children).forEach((elem) => {
-                elem.remove();
-            });
-            offset = 20;
+            itemsSection.innerHTML = "";
+            offset = countGetMaxItems;
             isResetSearch = false;
         }
         Array.from(tempContainer.children).forEach((item) => {
@@ -102,6 +122,8 @@ async function getSearchItems() {
             itemsSection.appendChild(item);
             offset++;
         });
+    } else if (dataResult["status"] == "NOTFOUND") {
+        itemsSection.innerHTML = "<p class='notfound'>Ничего не найдено<p>";
     }
     maxScroll = document.documentElement.offsetHeight - window.innerHeight - items[0]?.clientHeight;
     setTimeout(() => {
@@ -109,11 +131,12 @@ async function getSearchItems() {
     }, 500);
 }
 
+const countGetMaxItems = 50;
 let isCanGet = true;
 let maxScroll = document.documentElement.offsetHeight - window.innerHeight;
 let offset = parseInt(document.querySelector("section").children.length ?? 0);
 let isResetSearch = false; 
-const itemsSection = document.querySelector("section");
+const itemsSection = document.querySelector(".items");
 addEventListener("scroll", async () => {
     if (scrollY >= maxScroll - items[0]?.clientHeight && isCanGet) {
         isCanGet = false;

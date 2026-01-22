@@ -6,8 +6,9 @@ function getValidationRules() {
 
     const rules = {
         "name_users" : {
-            "files" : ["reg.php"], 
-            "required" : true,
+            "oldValue": null,
+            "files" : ["reg.php", "profile.php"], 
+            "required" : file == "profile.php" ? false : true,
             "timer": null,
             "placeMsg": null,
             "length" : 30,
@@ -16,6 +17,7 @@ function getValidationRules() {
             }
         },
         "email_users" : {
+            "oldValue": null,
             "files" : ["reg.php", "auth.php"], 
             "required" : true,
             "timer": null,
@@ -26,8 +28,9 @@ function getValidationRules() {
             },
         },
         "password_users" : {
-            "files" : ["reg.php", "auth.php"], 
-            "required" : true,
+            "oldValue": null,
+            "files" : ["reg.php", "auth.php", "profile.php"], 
+            "required" : file == "profile.php" ? false : true,
             "timer": null,
             "length" : 40,
             "placeMsg": null,
@@ -52,8 +55,9 @@ function getValidationRules() {
             }
         },
         "re_password_users" : {
-            "files" : ["reg.php"], 
-            "required" : true,
+            "oldValue": null,
+            "files" : ["reg.php", "profile.php"], 
+            "required" : file == "profile.php" ? false : true,
             "timer": null,
             "length" : 40,
             "placeMsg": null,
@@ -78,6 +82,7 @@ function getValidationRules() {
             }
         },
         "name_items" : {
+            "oldValue": null,
             "files" : ["admin.php"], 
             "required" : true,
             "timer": null,
@@ -88,7 +93,8 @@ function getValidationRules() {
             }
         },
         "name_search_items" : {
-            "files" : [ "/"], 
+            "oldValue": null,
+            "files" : ["/", "index.php"], 
             "required" : false,
             "timer": null,
             "length" : 40,
@@ -98,6 +104,7 @@ function getValidationRules() {
             }
         },
         "count_items" : {
+            "oldValue": null,
             "files" : ["admin.php"], 
             "required" : true,
             "timer": null,
@@ -108,6 +115,7 @@ function getValidationRules() {
             }
         },
         "cost_items" : {
+            "oldValue": null,
             "files" : ["admin.php"], 
             "required" : false,
             "timer": null,
@@ -118,7 +126,8 @@ function getValidationRules() {
             }
         },
         "min_cost_items" : {
-            "files" : ["/"], 
+            "oldValue": null,
+            "files" : ["/", "index.php"], 
             "required" : false,
             "timer": null,
             "length" : 6,
@@ -128,7 +137,8 @@ function getValidationRules() {
             }
         },
         "max_cost_items" : {
-            "files" : ["/"], 
+            "oldValue": null,
+            "files" : ["/", "index.php"], 
             "required" : false,
             "timer": null,
             "length" : 6,
@@ -138,6 +148,7 @@ function getValidationRules() {
             }
         },
         "image_items" : {
+            "oldValue": null,
             "files" : ["admin.php"], 
             "required" : false,
             "timer": null,
@@ -169,8 +180,41 @@ function getValidationRules() {
                 }
                 return false;
             }
+        },
+        "avatar_users" : {
+            "oldValue": null,
+            "files" : ["profile.php"], 
+            "required" : false,
+            "timer": null,
+            "length" : 1,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                if (input.files.length > 0) {
+                    let extension = input.files[0].name.split(".");
+                    extension = extension[extension.length - 1];
+                    if (input.files[0].size > 2_000_000) {
+                        return "Размер файла не должен превышать 2МБ";
+                    }
+                    if (!["jpg", "png", "webp"].includes(extension)) {
+                        return "Некорректный тип файла. Файл должен быть jpg, png или webp";
+                    }
+                    let reader = new FileReader();
+                    reader.readAsDataURL(input.files[0]);
+                    reader.addEventListener("load", (event) => {
+                        if (event.target.result != null) {
+                            let img = input.parentElement.querySelector("img");
+                            img.classList.remove("hidden");
+                            img.src = event.target.result;
+                        } else {
+                            return "Не удалось загрузить картинку";
+                        }
+                    });
+                }
+                return false;
+            }
         }
     };
+
 
     for (const key in rules) {
         if (Array.from(rules[key]["files"]).includes(file)) {
@@ -183,7 +227,7 @@ function getValidationRules() {
 function checkInput(input, rule) {
     let textMessage = "";
     let isCorrect = true;
-    const { required, pattern, placeMsg } = rule;
+    const { required, pattern, placeMsg, oldValue } = rule;
 
     if (pattern != null && (required || (!required && input.value != ""))) {
         const result = pattern(input);
@@ -204,6 +248,12 @@ function checkInput(input, rule) {
 
     placeMsg.classList.toggle("hidden", isCorrect);
 
+    if (isCorrect && (oldValue != input.value || (input?.files != null && input?.files?.length != 0))) {
+        input.setAttribute("name", input.id);
+    } else {
+        input.removeAttribute("name");
+    }
+
     return isCorrect;
 }
 
@@ -218,12 +268,13 @@ function setValidatedForm(form) {
     Array.from(inputs).forEach((input, index) => {
         const id = input.id;
 
-        validatedRules[id].placeMsg = errorPlaces[index];
+        // console.log(id, input);
         const rule = validatedRules[id];
+        rule.oldValue = input.value
+        rule.placeMsg = errorPlaces[index];
 
         if (rule.required) {
-
-            const label = form.querySelector(`.field:has(#${input.id}) .label`);
+            const label = form.querySelector(`.field:has(#${id}) .label`);
             label.innerHTML += "<b>*</b>";
         }
 
@@ -243,8 +294,18 @@ function setValidatedForm(form) {
         place.classList.toggle("hidden", place.textContent == "");
     });
 
-    form.addEventListener("submit", () => {
-
+    form.addEventListener("submit", (event) => {
+        let hasUpdate = false;
+        let hasError = false;
+        Array.from(inputs).forEach((input) => {
+            let isCorrect = checkInput(input,  validatedRules[input.id]);
+            if (!isCorrect) {
+                hasError = true;
+            } else if (isCorrect && input?.name){
+                hasUpdate = true;
+            }
+        });
+        if (hasError || !hasUpdate) event.preventDefault();
     });
 }
 setValidatedForm(document.querySelector(".form"));

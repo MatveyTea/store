@@ -2,7 +2,6 @@
 include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 include_once __DIR__ . "/header.php";
-
 ?>
 <script src="js/index.js" defer></script>
 <link rel="stylesheet" href="css/index.css">
@@ -28,9 +27,8 @@ include_once __DIR__ . "/header.php";
             <p class="error server-error"></p>
         </div>
     </form>
-    <h1 class="hidden">Поиск по</h1>
-    <section>
-        <?= getItems(20, 0) ?>
+    <section class="items">
+        <?= getItems(50, 0) ?>
     </section>
 </main>
 

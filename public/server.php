@@ -5,7 +5,7 @@ include_once __DIR__ . "/function.php";
 if (!empty(file_get_contents("php://input"))) {
     $json = json_decode(file_get_contents("php://input"), true);
     $serverType = $json["server_type"] ?? "";
-    $idUser = $_SESSION["id_user"] ?? null;
+    $idUser = getUserID();
     $isAuth = isUserAuth();
 
 
@@ -44,27 +44,61 @@ if (!empty(file_get_contents("php://input"))) {
         } catch (Throwable $e) {
             echo json_encode(["status" => "FAIL"]);
         }
-    } else if ($serverType == "buy_items") { // profile.js Покупка товаров в корзине
+    } else if ($serverType == "buy_items" && $isAuth) { // profile.js Покупка товаров в корзине
         try {
             $datetime = date("y-m-d H:i:s");
-            $link->prepare("UPDATE `baskets` SET `status_id_baskets` = 2, `datetime_baskets` = ? WHERE `users_id_baskets` = ? AND `status_id_baskets` = 1 AND `datetime_baskets` IS NULL ")->execute([$datetime, $idUser]);
+            try {
+                $link->prepare("UPDATE `baskets` SET `status_id_baskets` = 2, `datetime_buy_baskets` = ? WHERE `users_id_baskets` = ? AND `status_id_baskets` = 1 AND `datetime_buy_baskets` IS NULL ")->execute([$datetime, $idUser]);
+
+                $stmt = $link->prepare("SELECT
+                    `baskets`.`id_baskets`,
+                    `baskets`.`count_baskets`,
+                    `baskets`.`users_id_baskets`,
+                    `baskets`.`datetime_buy_baskets`,
+                    `items`.`id_items`,
+                    `items`.`name_items`,
+                    `items`.`image_items`,
+                    `items`.`cost_items`
+                    FROM `baskets`
+                    JOIN `items` ON `items`.`id_items` = `items_id_baskets`
+                    WHERE `users_id_baskets` = ? AND `datetime_buy_baskets` = ?
+                    ORDER BY CASE WHEN `baskets`.`datetime_buy_baskets` IS NULL THEN 0 ELSE 1 END, `baskets`.`datetime_buy_baskets` DESC
+                ");
+                $stmt->execute([$idUser, $datetime]);
+
+                echo json_encode(["status" => "OK", "data" => getBasketHTML($stmt->fetchAll(PDO::FETCH_ASSOC))]);
+            } catch (Throwable $e) {
+                echo json_encode(["status" => "FAIL"]);
+            }
+        } catch (Throwable $e) {
+            echo json_encode(["status" => "FAIL"]);
+        }
+    } else if ($serverType == "delete_items" && isAdmin() && !empty($json["id_item"])) {
+        try {
+            $link->prepare("DELETE FROM `items` WHERE `id_items` = ?")->execute([$json["id_item"]]);
             echo json_encode(["status" => "OK"]);
         } catch (Throwable $e) {
             echo json_encode(["status" => "FAIL"]);
         }
-    } else if ($serverType == "search_items" && !empty($json["offset"])) { // index.php Поиск товаров
+    } else if ($serverType == "search_items" && isset($json["offset"])) { // index.php Поиск товаров
         $offset = $json["offset"];    
         $name = trim($json["name_search_items"] ?? "");
-        $maxCount = $json["min_cost_items"] ?? "";
-        $minCount = $json["max_cost_items"] ?? "";
+        $minCount = $json["min_cost_items"] == "" ? - 1 : intval($json["min_cost_items"]);
+        $maxCount = $json["max_cost_items"] == "" ? 10_000_000 : intval($json["max_cost_items"]);
 
         $where = [];
         if ($name != "") {
             $where[] = "`name_items` LIKE '%$name%'";
         }
-        if ($maxCount != "" && $minCount != "") {
-            $where[] ="`cost_items` <= $maxCount AND `cost_items` >= $minCount";
+        if ($maxCount >= $minCount) {
+            if ($minCount > -1) {
+                $where[] = "`cost_items` >= $minCount";
+            }
+            if ($maxCount < 10_000_000) {
+                $where[] = "`cost_items` <= $maxCount";
+            }
         }
+
         if ($where != []) {
             $where = "WHERE " . join(" AND ",  $where);
         }
@@ -73,7 +107,7 @@ if (!empty(file_get_contents("php://input"))) {
             $where = "";
         }
 
-        $items = getItems(20, $offset, $where);
+        $items = getItems(50, $offset, $where);
         if (!empty($items)) {
             echo json_encode(["status" => "OK", "items" => $items]);
         } else {

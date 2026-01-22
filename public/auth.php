@@ -22,6 +22,7 @@ if (!empty($_POST["submit_button"])) {
                 if ($stmt["id_users"] == 1) {
                     $_SESSION["is_admin"] = true;
                 }
+                unset($_SESSION["data"], $_SESSION["errorField"]);
                 redirect();
             } else {
                 $_SESSION["errorField"]["server"] = "Не верный пароль или почта";

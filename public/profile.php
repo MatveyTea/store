@@ -6,49 +6,55 @@ if (!isUserAuth()) {
     redirect("auth.php");
 }
 
-$userItems = [];
-$userItems = $link->prepare("SELECT `baskets`.`id_baskets`, `baskets`.`items_id_baskets`, `baskets`.`status_id_baskets`, `baskets`.`count_baskets`, `baskets`.`users_id_baskets`, `baskets`.`datetime_baskets`, `items`.`name_items`, `items`.`image_items`, `items`.`cost_items` FROM `baskets` JOIN `items` ON `items`.`id_items` = `items_id_baskets` WHERE `users_id_baskets` = ? ORDER BY CASE WHEN `baskets`.`datetime_baskets` IS NULL THEN 0 ELSE 1 END, `baskets`.`datetime_baskets` DESC");
-$userItems->execute([$_SESSION["id_user"]]);
-$userItems = $userItems->fetchAll(PDO::FETCH_ASSOC);
+if (!empty($_POST["submit_button"])) {
+    unset($_POST["submit_button"]);
+    $validatedData = getValidatedData([...$_POST, ...$_FILES]);
+    $_SESSION["errorField"] = $validatedData["errorField"];
 
-$historyBasket = "";
-$currentBasket = "";
-$resultCurrentBasket = 0;
-$resultHistoryBasket = 0;
-
-$date = null;
-$lastUserItem = end($userItems);
-
-foreach ($userItems as $item) {
-    if ($item["datetime_baskets"] == null) {
-        $currentBasket .= getItemHTML($item);
-        $resultCurrentBasket += $item["cost_items"] * $item["count_baskets"];
-    } else {
-        if ($date != $item["datetime_baskets"]) {
-            if ($date != null) {
-                $historyBasket .= "<p>Всего: {$resultHistoryBasket}р</p></article>";
-                $resultHistoryBasket = 0;
-            }
-            $historyBasket .= "<article class='basket'><h2>Время покупки: " . dateformat($item["datetime_baskets"]) . "</h2>";
-            $date = $item["datetime_baskets"];
-        }
-        $historyBasket .= getItemHTML($item);
-        $resultHistoryBasket += $item["cost_items"] * $item["count_baskets"];
-        if ($item["id_baskets"] == $lastUserItem["id_baskets"]) {
-            $historyBasket .= "<p>Всего: {$resultHistoryBasket}р</p></article>";
+    if ($validatedData["isCorrect"]) {
+        $result = getUpdateSQL($validatedData["data"]);
+        try {
+            $link->prepare("UPDATE `users` SET $result[sql] WHERE `id_users` = ?")->execute([...$result["params"], getUserID()]);
+        } catch (Throwable $e) {
+            $_SESSION["errorField"]["server"] = "Не удалось изменить!";
         }
     }
+    redirect("profile.php");
 }
+
+$userInfo = getUserInfo();
 include_once __DIR__ . "/header.php";
 ?>
-<script src="js/profile.js" defer></script>
-<link rel="stylesheet" href="css/profile.css">
-<section class="current-basket content">
-    <h1><?= $currentBasket == "" ? "Пусто" : "Текущая корзина" ?></h1>
-    <?= $currentBasket == "" ? "" : "<article class='basket'>$currentBasket</article>" ?>
-    <?= $currentBasket == "" ? "" : "<button class='buy'>Оплатить <b>{$resultCurrentBasket}р</b></button>" ?>
-</section>
-<section class="history-basket">
-    <h2><?=  $historyBasket == "" ? "Пусто" : "История покупок" ?></h2>
-    <?= $historyBasket ?>
-</section>
+<main class="content">
+    <form action="profile.php" method="POST" class="form" enctype="multipart/form-data">
+        <legend>Профиль</legend>
+        <div class="field">
+            <label class="label" for="name_users">Имя</label>
+            <input class="input" type="text" placeholder="Введите имя" id="name_users" name="name_users" value="<?= $userInfo["name_users"] ?>" autocomplete="username">
+            <p class="error" data-has-error="<?= $_SESSION["errorField"]["name_users"] ?? 0 ?>"></p>
+        </div>
+        <div class="field">
+            <label class="label" for="avatar_users">Аватар</label>
+            <input class="input" type="file" id="avatar_users" name="avatar_users">
+            <img class="avatar" src="<?= getValidImage(FOLDER_PROFILE, $userInfo["avatar_users"]) ?>">
+            <p class="error" data-has-error="<?= $_SESSION["errorField"]["avatar_users"] ?? 0 ?>"></p>
+        </div>
+        <div class="field">
+            <label class="label" for="password_users">Пароль</label>
+            <input class="input" type="password" placeholder="Введите пароль" id="password_users" name="password_users" autocomplete="new-password">
+            <p class="error" data-has-error="<?= $_SESSION["errorField"]["password_users"] ?? 0 ?>"></p>
+        </div>
+        <div class="field">
+            <label class="label" for="re_password_users">Повтор пароля</label>
+            <input class="input" type="password" placeholder="Введите пароль" id="re_password_users" name="re_password_users" autocomplete="new-password">
+            <p class="error" data-has-error="<?= $_SESSION["errorField"]["re_password_users"] ?? 0 ?>"></p>
+        </div>
+        <div class="field">
+            <p class="error server-error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
+            <input type="submit" id="submit_button" name="submit_button" value="Обновить" class="input button">
+        </div>
+    </form>
+    <a href="basket.php">Корзина</a>
+    <a href='logout.php'>Выйти из аккаунта</a>
+</main>
+<?= clearValidatedSession() ?>
