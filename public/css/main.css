@@ -111,6 +111,11 @@ body main {
 }
 
 
+.textarea {
+    max-height: 150px;
+    resize: vertical;
+}
+
 .avatar {
     height: 50px;
     aspect-ratio:  1 / 1;

@@ -212,6 +212,28 @@ function getValidationRules() {
                 }
                 return false;
             }
+        },
+        "text_comments": {
+            "oldValue": null,
+            "files" : ["aboutItem.php"], 
+            "required" : false,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return false; ///^.{1-255}$/.test(input.value) ? false : "Введите текст до 255 символов";
+            }
+        },
+        "rating_comments": {
+            "oldValue": null,
+            "files" : ["aboutItem.php"], 
+            "required" : true,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return /^[1-5]$/.test(input.value) ? false : "Введите число от 1 до 5";
+            }
         }
     };
 
@@ -264,7 +286,7 @@ function setValidatedForm(form) {
     if (validatedRules == []) return;
 
     const errorPlaces = form.querySelectorAll("p.error");
-    const inputs = form.querySelectorAll("input:not(input[type=submit])");
+    const inputs = form.querySelectorAll(".input:not(input[type=submit])");
     Array.from(inputs).forEach((input, index) => {
         const id = input.id;
 
@@ -282,7 +304,7 @@ function setValidatedForm(form) {
             input.setAttribute("maxlength", rule.length);
         }
 
-        if (errorPlaces[index].dataset.hasError == 1) {
+        if (errorPlaces[index].dataset?.hasError == 1) {
             checkInput(input, rule);
         }
         errorPlaces[index].removeAttribute("data-has-error");

@@ -4,6 +4,7 @@ include_once __DIR__ . "/config/config.php";
 const FOLDER_PROFILE = "profile";
 const FOLDER_INDEX = "index";
 const FOLDER_IMG = "img";
+const FOLDER_MAIN = "main";
 
 function redirect($path = "index.php")
 {
@@ -16,7 +17,7 @@ function redirect($path = "index.php")
 }
 function getValidImage($folder, $img)
 {
-    if (!file_exists(__DIR__ . "/" . FOLDER_IMG . "/$folder/$img")) {
+    if ($img == "" || !file_exists(__DIR__ . "/" . FOLDER_IMG . "/$folder/$img")) {
         return "/" . FOLDER_IMG . "/$folder/default.png";
     }
     return "/" . FOLDER_IMG . "/$folder/$img";
@@ -45,6 +46,31 @@ function getUserID()
 {
     return $_SESSION["id_user"] ?? null;
 }
+
+function makeSelectQuery($query, $params, $getOne = false) {
+    $stmt = $GLOBALS["link"]->prepare($query);
+    try {
+        $stmt->execute($params); 
+    } catch (Throwable $e) {
+        return [];
+    }
+    if ($getOne) {
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+function makeInsertQuery($query, $params) {
+    $stmt = $GLOBALS["link"]->prepare($query);
+    try {
+        $stmt->execute($params);
+        return true;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
 function getItems($limit = 50, $offset = 0, $where = "")
 {
     $result = "";
@@ -258,6 +284,27 @@ function getValidationRules(): array
                 }
                 return false;
             }
+        ],
+        "text_comments" => [
+            "files" => ["server.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/.{1,255}$/", $value);
+            }
+        ],
+        "rating_comments" => [
+            "files" => ["server.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/[1-5]$/", $value);
+            }
+        ],
+        "id_items" => [
+            "files" => ["server.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/[0-9]{1,}$/", $value);
+            }
         ]
     ];
 
@@ -350,7 +397,36 @@ function getUpdateSQL($array) {
     return $result;
 }
 
+function getCommentsHTML($comments)
+{
+    $commentsHTML = "";
+    $star = "<svg width='24' height='24' fill='#FFD700'>
+    <use xlink:href='" . FOLDER_IMG . "/" . FOLDER_MAIN . "/star.svg#star'></use>
+    </svg>";
 
+    foreach ($comments as $comment) {
+        $img = getValidImage(FOLDER_PROFILE, $comment["avatar_users"]);
+        $rating = str_repeat($star, $comment["rating_comments"]);
+        $commentsHTML .= "<div class='comment'>
+            <img class='avatar' src='$img'>
+            <p class='comment-username'>$comment[name_users]</p>
+            <p class='comment-date'>$comment[date_add_comments]</p>
+            <p class='comment-text'>$comment[text_comments]</p>
+            <span class='comment-rating'>$rating</span>
+        </div>";
+    }
+
+    return $commentsHTML;
+}
+
+function getRatingItem($idItem)
+{
+    return makeSelectQuery("SELECT
+        ROUND(AVG(`rating_comments`), 1) AS `rating`
+        FROM `comments`
+        WHERE `items_id_comments` = ?
+    ", [$idItem], true)["rating"];
+}
 
 // На тест
 // function createRandomItem()

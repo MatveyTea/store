@@ -113,6 +113,37 @@ if (!empty(file_get_contents("php://input"))) {
         } else {
             echo json_encode(["status" => "NOTFOUND"]);
         }
+    } else if ($isAuth && $serverType == "add_comment" && !empty($json["id_items"] && !empty($json["rating_comments"]))) {
+        $validatedData = getValidatedData(["id_items" => $json["id_items"], "rating_comments" => $json["rating_comments"], "text_comments" => $json["text_comments"] ?? ""]);
+
+        if ($validatedData["isCorrect"]) {
+            $validatedData = $validatedData["data"];
+            if ($validatedData["rating_comments"] == 0) {
+                echo json_encode(["status" => "FAIL"]);
+            }
+
+            $isSuccess = makeInsertQuery("INSERT INTO
+            `comments` (`users_id_comments`, `text_comments`, `rating_comments`, `date_add_comments`, `items_id_comments`)
+            VALUES (?, ?, ?, ?, ?)",
+            [$idUser, $validatedData["text_comments"], $validatedData["rating_comments"], date("y-m-d"), $validatedData["id_items"]]);
+            if ($isSuccess) {
+                $comment = makeSelectQuery("SELECT
+                    `comments`.`text_comments`,
+                    `comments`.`rating_comments`,
+                    `comments`.`date_add_comments`,
+                    `users`.`name_users`,
+                    `users`.`avatar_users`
+                    FROM `comments`
+                    JOIN `users` ON `comments`.`users_id_comments` = `users`.`id_users`
+                    WHERE `comments`.`id_comments` = ? AND `users`.`id_users` = ?", [$link->lastInsertId(), $idUser], getOne: false);
+                echo json_encode(["status" => "OK", "data" => getCommentsHTML($comment), "rating" => getRatingItem($validatedData["id_items"])]);
+            } else {
+                echo json_encode(["status" => "FAIL"]);
+            }
+        } else {
+            echo json_encode(["status" => "FAIL"]);
+        }
+
     } else {
         echo json_encode(["status" => "FAIL"]);
     }
