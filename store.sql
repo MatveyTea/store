@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Янв 25 2026 г., 18:33
+-- Время создания: Янв 28 2026 г., 20:31
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -64,7 +64,7 @@ CREATE TABLE `items` (
   `image_items` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `cost_items` int NOT NULL,
   `date_add_items` date NOT NULL,
-  `items_type_id_items` int NOT NULL,
+  `items_type_id_items` int NOT NULL DEFAULT '1',
   `description_items` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
@@ -472,6 +472,19 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `items_properties`
+--
+
+CREATE TABLE `items_properties` (
+  `id_items_properties` int NOT NULL,
+  `items_id_items_properties` int NOT NULL,
+  `properties_id_items_properties` int NOT NULL,
+  `description_items_properties` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `items_type`
 --
 
@@ -487,6 +500,25 @@ CREATE TABLE `items_type` (
 INSERT INTO `items_type` (`id_items_type`, `name_items_type`) VALUES
 (1, 'Обычный'),
 (2, 'Сложный');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `properties`
+--
+
+CREATE TABLE `properties` (
+  `id_properties` int NOT NULL,
+  `name_properties` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Дамп данных таблицы `properties`
+--
+
+INSERT INTO `properties` (`id_properties`, `name_properties`) VALUES
+(1, 'емкость'),
+(2, 'цвет');
 
 -- --------------------------------------------------------
 
@@ -559,10 +591,24 @@ ALTER TABLE `items`
   ADD KEY `id_items_type_items` (`items_type_id_items`);
 
 --
+-- Индексы таблицы `items_properties`
+--
+ALTER TABLE `items_properties`
+  ADD PRIMARY KEY (`id_items_properties`),
+  ADD KEY `items_id_items_properties` (`items_id_items_properties`),
+  ADD KEY `properties_id_items_properties` (`properties_id_items_properties`);
+
+--
 -- Индексы таблицы `items_type`
 --
 ALTER TABLE `items_type`
   ADD PRIMARY KEY (`id_items_type`);
+
+--
+-- Индексы таблицы `properties`
+--
+ALTER TABLE `properties`
+  ADD PRIMARY KEY (`id_properties`);
 
 --
 -- Индексы таблицы `status`
@@ -597,13 +643,25 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=401;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=439;
+
+--
+-- AUTO_INCREMENT для таблицы `items_properties`
+--
+ALTER TABLE `items_properties`
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
 --
 ALTER TABLE `items_type`
   MODIFY `id_items_type` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT для таблицы `properties`
+--
+ALTER TABLE `properties`
+  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -615,7 +673,7 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -641,6 +699,13 @@ ALTER TABLE `comments`
 --
 ALTER TABLE `items`
   ADD CONSTRAINT `items_ibfk_1` FOREIGN KEY (`items_type_id_items`) REFERENCES `items_type` (`id_items_type`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Ограничения внешнего ключа таблицы `items_properties`
+--
+ALTER TABLE `items_properties`
+  ADD CONSTRAINT `items_properties_ibfk_1` FOREIGN KEY (`items_id_items_properties`) REFERENCES `items` (`id_items`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  ADD CONSTRAINT `items_properties_ibfk_2` FOREIGN KEY (`properties_id_items_properties`) REFERENCES `properties` (`id_properties`) ON DELETE CASCADE ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

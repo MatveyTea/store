@@ -7,7 +7,6 @@ if (isAuth) {
 
 function clickableItem(item) {
     const basketButton = item.querySelector("button.basket");
-    const deleteButton = item.querySelector("button.delete");
     const counter = item.querySelector("span");
     const minusButton = counter.querySelector("button.minus");
     const counterText = counter.querySelector("p b");
@@ -16,27 +15,6 @@ function clickableItem(item) {
     basketButton.addEventListener("click", async () => {
         changeButtonBasket(basketButton.dataset.type == "add", counter, counterText, basketButton);
         await sendItem(item, counter, counterText, basketButton);
-    });
-    deleteButton?.addEventListener("click", async() => {
-        const dataItem = {
-            "server_type": "delete_items",
-            "id_item": item.dataset.id
-        };
-        item.classList.add("hidden");
-        const result = await fetch("server.php", {
-            "method": "POST",
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "body": JSON.stringify(dataItem)
-        });
-        const dataResult = await result.json();
-
-        if (dataResult["status"] == "OK") {
-            item.remove();
-        } else {
-            item.classList.remove("hidden");
-        }
     });
 
     minusButton.addEventListener("click", async () => {

@@ -117,7 +117,7 @@ function getValidationRules() {
         "cost_items" : {
             "oldValue": null,
             "files" : ["admin.php"], 
-            "required" : false,
+            "required" : true,
             "timer": null,
             "length" : 6,
             "placeMsg": null,
@@ -234,6 +234,39 @@ function getValidationRules() {
             "pattern" : function(input) {
                 return /^[1-5]$/.test(input.value) ? false : "Введите число от 1 до 5";
             }
+        },
+        "items_properties_name": {
+            "oldValue": null,
+            "files" : ["admin.php"], 
+            "required" : true,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return input.selectedIndex > 0 ? false : "Выберите элемент";
+            }
+        },
+        "items_properties_description": {
+            "oldValue": null,
+            "files" : ["admin.php"], 
+            "required" : true,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return /^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/.test(input.value) ? false : "Введите латинские символы, цифры или допустимые символы (-().,:\"'%), 1-40 символов.";
+            }
+        },
+        "items_type_id_items": {
+            "oldValue": null,
+            "files" : ["admin.php"], 
+            "required" : true,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return input.selectedIndex > 0 ? false : "Выберите элемент";
+            }
         }
     };
 
@@ -271,7 +304,7 @@ function checkInput(input, rule) {
     placeMsg.classList.toggle("hidden", isCorrect);
 
     if (isCorrect && (oldValue != input.value || (input?.files != null && input?.files?.length != 0))) {
-        input.setAttribute("name", input.id);
+        input.setAttribute("name", input.name);
     } else {
         input.removeAttribute("name");
     }
@@ -280,6 +313,7 @@ function checkInput(input, rule) {
 }
 
 function setValidatedForm(form) {
+ 
     if (form == null) return;
 
     const validatedRules = getValidationRules();
@@ -288,15 +322,16 @@ function setValidatedForm(form) {
     const errorPlaces = form.querySelectorAll("p.error");
     const inputs = form.querySelectorAll(".input:not(input[type=submit])");
     Array.from(inputs).forEach((input, index) => {
-        const id = input.id;
+        const id = input.name;
 
         // console.log(id, input);
         const rule = validatedRules[id];
+        // console.log(id, input, rule);
         rule.oldValue = input.value
         rule.placeMsg = errorPlaces[index];
 
         if (rule.required) {
-            const label = form.querySelector(`.field:has(#${id}) .label`);
+            const label = form.querySelector(`.field:not(.additional):has(.input[name=${id}]) .label`);
             label.innerHTML += "<b>*</b>";
         }
 
@@ -309,6 +344,10 @@ function setValidatedForm(form) {
         }
         errorPlaces[index].removeAttribute("data-has-error");
 
+        if (input.value != "") {
+            input.setAttribute("name", id);
+        }
+
         input.addEventListener("change", () => checkInput(input, rule));
     });
 
@@ -320,14 +359,15 @@ function setValidatedForm(form) {
         let hasUpdate = false;
         let hasError = false;
         Array.from(inputs).forEach((input) => {
-            let isCorrect = checkInput(input,  validatedRules[input.id]);
+            let isCorrect = checkInput(input,  validatedRules[input.name]);
             if (!isCorrect) {
                 hasError = true;
             } else if (isCorrect && input?.name){
                 hasUpdate = true;
             }
         });
-        if (hasError || !hasUpdate) event.preventDefault();
+        //if (hasError || !hasUpdate) event.preventDefault();
     });
 }
+
 setValidatedForm(document.querySelector(".form"));

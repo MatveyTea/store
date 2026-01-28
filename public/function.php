@@ -121,12 +121,7 @@ function getItems($limit = 50, $offset = 0, $where = "")
         }
 
         if ($basket == "" && isUserAuth()) {
-            $deleteButton = "";
-            if (isAdmin()) {
-                $deleteButton .= "<button class='button delete'>Удалить</button>";
-            }
             $basket = "<button class='button basket' data-type='add'>Добавить в корзину</button>
-            $deleteButton
             <span class='hidden'>
                 <button class='minus'>-</button>
                 <p>В корзине: <b>0</b></p>
@@ -240,7 +235,7 @@ function getValidationRules(): array
             "files" => ["admin.php"], 
             "required" => true,
             "pattern" => function($value) {
-                return preg_match("/^[a-zA-Z0-9 -().,:\"'%]{1,40}$/", $value);
+                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $value);
             }
         ],
         "count_items" => [
@@ -305,6 +300,32 @@ function getValidationRules(): array
             "pattern" => function($value) {
                 return preg_match("/[0-9]{1,}$/", $value);
             }
+        ],
+        "items_properties" => [
+            "files" => ["admin.php"], 
+            "required" => false,
+            "pattern" => function($value) {
+                $isCorrect = true;
+                $properties = json_decode($value, true);
+                foreach ($properties as $property) {
+                    if (!preg_match("/[0-9]{1,}$/", $property["name"]) ||
+                        !preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $property["description"])) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $properties;
+                }
+                return false;
+            }
+        ],
+        "items_type_id_items" => [
+            "files" => ["admin.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return preg_match("/[0-9]{1,}$/", $value);
+            }
         ]
     ];
 
@@ -337,7 +358,7 @@ function getValidatedData($array): array
 
         $rule = $validationRules[$key];
 
-        if (($key == "image_items" || $key == "avatar_users") && is_callable($rule["pattern"])) {  
+        if (($key == "image_items" || $key == "avatar_users" || $key == "items_properties") && is_callable($rule["pattern"])) {  
             $image = $rule["pattern"]($value);
             if ($image !== false) {
                 $result["errorField"][$key] = 0;
@@ -345,6 +366,9 @@ function getValidatedData($array): array
                 $currentCountCorrect++;
             } else {
                 $result["errorField"][$key] = 1;
+                if ($key == "items_properties") {
+                    $result["data"][$key] = json_decode($value, true);
+                }
             }
             continue;
         }
@@ -372,7 +396,16 @@ function getValidatedData($array): array
         $currentCountCorrect++;
     }
 
-    $result["isCorrect"] = $currentCountCorrect == count($array);
+
+    $hasAllRule = true;
+    foreach ($validationRules as $key => $rule) {
+        if (!key_exists($key, $array) && $rule["required"]) {
+            $result["errorField"][$key] = 1;
+            $hasAllRule = false;
+        }
+    }
+
+    $result["isCorrect"] = $currentCountCorrect == count($array) && $hasAllRule;
     return $result;
 }
 
@@ -396,6 +429,32 @@ function getUpdateSQL($array) {
     
     return $result;
 }
+
+function getInsertSQL($array)
+{
+    $result = [
+        "question" => [],
+        "params" => [],
+        "sql" => []
+    ];
+
+    foreach ($array as $key => $value) {
+        if (!empty($value)) {
+            $result["params"][] = $value;
+        } else {
+            $result["params"][] = 123;
+        }
+        $result["question"][] = "?";
+
+        $result["sql"][] = "`$key`";
+    }
+
+    $result["question"] = join(",", $result['question']);
+    $result["sql"] = join(",", $result["sql"]);
+    
+    return $result;
+}
+
 
 function getCommentsHTML($comments)
 {

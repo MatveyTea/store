@@ -64,5 +64,6 @@ include_once __DIR__ . "/header.php";
         </form>
         <?php } echo getCommentsHTML($comments)  ?>
     </section>
+    <button class="delete button">Удалить товар</button>
 </main>
 <?php include_once __DIR__ . "/footer.php"; ?>

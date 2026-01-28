@@ -27,7 +27,7 @@ if (!empty($_POST["submit_button"])) {
             $_SESSION["errorField"]["server"] = "Не удалось вставить пользователя";
         }
     }
-    redirect("reg.php");
+   redirect("reg.php");
 }
 
 include_once __DIR__ . "/header.php";

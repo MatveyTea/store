@@ -114,7 +114,7 @@ if (!empty(file_get_contents("php://input"))) {
             echo json_encode(["status" => "NOTFOUND"]);
         }
     } else if ($isAuth && $serverType == "add_comment" && !empty($json["id_items"] && !empty($json["rating_comments"]))) {
-        $validatedData = getValidatedData(["id_items" => $json["id_items"], "rating_comments" => $json["rating_comments"], "text_comments" => $json["text_comments"] ?? ""]);
+        $validatedData = getValidatedData(array: ["id_items" => $json["id_items"], "rating_comments" => $json["rating_comments"], "text_comments" => $json["text_comments"] ?? ""]);
 
         if ($validatedData["isCorrect"]) {
             $validatedData = $validatedData["data"];
