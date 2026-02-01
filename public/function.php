@@ -232,28 +232,28 @@ function getValidationRules(): array
             }
         ],
         "name_items" => [
-            "files" => ["admin.php"], 
+            "files" => ["adminAddItem.php"], 
             "required" => true,
             "pattern" => function($value) {
                 return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $value);
             }
         ],
         "count_items" => [
-            "files" => ["admin.php"], 
+            "files" => ["adminAddItem.php"], 
             "required" => true,
             "pattern" => function($value) {
                 return preg_match("/^[0-9]{1,6}$/", $value);
             }
         ],
         "cost_items" => [
-            "files" => ["admin.php"], 
+            "files" => ["adminAddItem.php"], 
             "required" => true,
             "pattern" => function($value) {
                 return preg_match("/^[0-9]{1,6}$/", $value);
             }
         ],
         "image_items" => [
-            "files" => ["admin.php"],
+            "files" => ["adminAddItem.php"],
             "required" => false,
             "pattern" => function($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
@@ -302,11 +302,12 @@ function getValidationRules(): array
             }
         ],
         "items_properties" => [
-            "files" => ["admin.php"], 
+            "files" => ["adminAddItem.php"], 
             "required" => false,
             "pattern" => function($value) {
                 $isCorrect = true;
                 $properties = json_decode($value, true);
+                if (empty($properties)) return true;
                 foreach ($properties as $property) {
                     if (!preg_match("/[0-9]{1,}$/", $property["name"]) ||
                         !preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $property["description"])) {
@@ -321,10 +322,33 @@ function getValidationRules(): array
             }
         ],
         "items_type_id_items" => [
-            "files" => ["admin.php"], 
+            "files" => ["adminAddItem.php"], 
             "required" => true,
             "pattern" => function($value) {
                 return preg_match("/[0-9]{1,}$/", $value);
+            }
+        ],
+
+        
+        "table" => [
+            "files" => ["adminTable.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return true;
+            }
+        ],
+        "id_properties" => [
+            "files" => ["adminTable.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return true;
+            }
+        ],
+        "name_properties" => [
+            "files" => ["adminTable.php"], 
+            "required" => true,
+            "pattern" => function($value) {
+                return true;
             }
         ]
     ];
@@ -415,9 +439,6 @@ function getUpdateSQL($array) {
         "params" => [],
         "sql" => []
     ];
-
-
-    if ($array == null) return $result;
 
     foreach ($array as $key => $value) {
         if (empty($value)) continue;

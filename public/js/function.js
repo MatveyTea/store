@@ -83,7 +83,7 @@ function getValidationRules() {
         },
         "name_items" : {
             "oldValue": null,
-            "files" : ["admin.php"], 
+            "files" : ["adminAddItem.php"], 
             "required" : true,
             "timer": null,
             "length" : 40,
@@ -105,7 +105,7 @@ function getValidationRules() {
         },
         "count_items" : {
             "oldValue": null,
-            "files" : ["admin.php"], 
+            "files" : ["adminAddItem.php"], 
             "required" : true,
             "timer": null,
             "length" : 6,
@@ -116,7 +116,7 @@ function getValidationRules() {
         },
         "cost_items" : {
             "oldValue": null,
-            "files" : ["admin.php"], 
+            "files" : ["adminAddItem.php"], 
             "required" : true,
             "timer": null,
             "length" : 6,
@@ -149,7 +149,7 @@ function getValidationRules() {
         },
         "image_items" : {
             "oldValue": null,
-            "files" : ["admin.php"], 
+            "files" : ["adminAddItem.php"], 
             "required" : false,
             "timer": null,
             "length" : 1,
@@ -237,7 +237,7 @@ function getValidationRules() {
         },
         "items_properties_name": {
             "oldValue": null,
-            "files" : ["admin.php"], 
+            "files" : ["adminAddItem.php"], 
             "required" : true,
             "timer": null,
             "length" : 255,
@@ -248,7 +248,7 @@ function getValidationRules() {
         },
         "items_properties_description": {
             "oldValue": null,
-            "files" : ["admin.php"], 
+            "files" : ["adminAddItem.php"], 
             "required" : true,
             "timer": null,
             "length" : 255,
@@ -259,13 +259,46 @@ function getValidationRules() {
         },
         "items_type_id_items": {
             "oldValue": null,
-            "files" : ["admin.php"], 
+            "files" : ["adminAddItem.php"], 
             "required" : true,
             "timer": null,
             "length" : 255,
             "placeMsg": null,
             "pattern" : function(input) {
                 return input.selectedIndex > 0 ? false : "Выберите элемент";
+            }
+        },
+        "table": {
+            "oldValue": null,
+            "files" : ["adminTable.php"], 
+            "required" : true,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return false;
+            }
+        },
+        "id_properties": {
+            "oldValue": null,
+            "files" : ["adminTable.php"], 
+            "required" : true,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return false;
+            }
+        },
+        "name_properties": {
+            "oldValue": null,
+            "files" : ["adminTable.php"], 
+            "required" : true,
+            "timer": null,
+            "length" : 255,
+            "placeMsg": null,
+            "pattern" : function(input) {
+                return false;
             }
         }
     };
