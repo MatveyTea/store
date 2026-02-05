@@ -72,6 +72,10 @@ body main {
     gap: 15px;
 }
 
+.form .field.hidden {
+    display: none;
+}
+
 .form .field:has(input.button) {
     width: 100%;
     justify-content: center;

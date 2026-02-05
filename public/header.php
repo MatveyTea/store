@@ -20,7 +20,6 @@ if (isUserAuth()) {
     </span>";
 }
 
-
 $currentFileName = pathinfo($_SERVER["SCRIPT_NAME"], PATHINFO_FILENAME);
 $links = "";
 
@@ -47,9 +46,7 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
     <header>
         <nav class="content">
             <a href="/">Каталог</a>
-            <a href="/">Тест 2</a>
-            <a href="/">Тест 3</a>
-            <a href="/">Тест 4</a>
+            <a href="basket.php">Корзина</a>
             <?= $partHeader ?>
         </nav>
     </header>

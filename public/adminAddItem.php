@@ -2,10 +2,6 @@
 include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
-if (!isUserAuth() || !isAdmin()) {
-    redirect();
-}
-
 if (!empty($_POST["submit_button"])) {
     unset($_POST["submit_button"]);
     $validatedData = getValidatedData(array_merge($_POST, $_FILES));
@@ -43,7 +39,7 @@ if (!empty($_POST["submit_button"])) {
         }
     }
 
-    redirect("adminAddItem.php");
+    redirect("admin.php");
 }
 
 $stmt = $link->query("SELECT * FROM `properties`");
@@ -88,7 +84,7 @@ foreach ($types as $type) {
 include_once __DIR__ . "/header.php";
 ?>
 <main class="content">
-    <form action="adminAddItem.php" method="POST" class="form" enctype="multipart/form-data">
+    <form action="admin.php" method="POST" class="form" enctype="multipart/form-data">
         <legend>Добавление товара</legend>
         <div class="field">
             <label class="label" for="name_items">Имя товара</label>
@@ -108,7 +104,7 @@ include_once __DIR__ . "/header.php";
         <div class="field">
             <label class="label" for="image_items">Изображение</label>
             <input class="input" type="file" id="image_items" name="image_items">
-            <img src="" class="hidden">
+            <img src="">
             <p class="error" data-has-error="<?= $_SESSION["errorField"]["image_items"] ?? 0 ?>"></p>
         </div>
         <div class="field">

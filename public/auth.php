@@ -19,9 +19,6 @@ if (!empty($_POST["submit_button"])) {
             $stmt = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!empty($stmt) && password_verify($validatedData["data"]["password_users"], $stmt["password_users"])) {
                 $_SESSION["id_user"] = $stmt["id_users"];
-                if ($stmt["id_users"] == 1) {
-                    $_SESSION["is_admin"] = true;
-                }
                 unset($_SESSION["data"], $_SESSION["errorField"]);
                 redirect();
             } else {

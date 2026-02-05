@@ -8,8 +8,7 @@ if (!empty(file_get_contents("php://input"))) {
     $idUser = getUserID();
     $isAuth = isUserAuth();
 
-
-    if ($serverType == "basket" && $isAuth) { // index.js - Добавление/Удаление вещей в корзине
+    if ($serverType == "basket" && $isAuth) { // index.js/aboutItem.js - Добавление/Удаление вещей в корзине
         if (empty($json["id_item"]) || !isset($json["count_item"]) || empty($json["action_item"]) || !in_array($json["action_item"], ["add", "remove"])) {
             echo json_encode(["status" => "FAIL"]);
             exit;
@@ -42,7 +41,7 @@ if (!empty(file_get_contents("php://input"))) {
                 echo json_encode(["status" => "FAIL"]);
             }
         } catch (Throwable $e) {
-            echo json_encode(["status" => "FAIL"]);
+            echo json_encode(["status" => "FAIL", $e]);
         }
     } else if ($serverType == "buy_items" && $isAuth) { // profile.js Покупка товаров в корзине
         try {
@@ -143,7 +142,13 @@ if (!empty(file_get_contents("php://input"))) {
         } else {
             echo json_encode(["status" => "FAIL"]);
         }
-
+    } else if (isAdmin() && $serverType == "delete_item_properties" && !empty($json["id_items_properties"])) {
+        try {
+            $link->prepare("DELETE FROM `items_properties` WHERE `id_items_properties` = ?")->execute([$json["id_items_properties"]]);
+            echo json_encode(["status" => "OK"]);
+        } catch (Throwable $e) {
+            echo json_encode(["status" => "FAIL", $e]);
+        }
     } else {
         echo json_encode(["status" => "FAIL"]);
     }

@@ -6,8 +6,6 @@ if (empty($_GET["id_item"])) {
     redirect();
 }
 
-
-
 $item = makeSelectQuery("SELECT
     `items`.`name_items`,
     `items`.`count_items`,
@@ -20,6 +18,14 @@ $item = makeSelectQuery("SELECT
     JOIN `items_type` ON `items_type`.`id_items_type` = `items`.`items_type_id_items`
     WHERE `items`.`id_items` = ?
 ", [$_GET["id_item"]], true);
+
+$itemProperties = makeSelectQuery("SELECT
+    `items_properties`.`description_items_properties`,
+    `properties`.`name_properties`
+    FROM `items_properties`
+    JOIN `properties` ON `properties`.`id_properties` = `items_properties`.`properties_id_items_properties`
+    WHERE `items_properties`.`items_id_items_properties` = ?
+", [$_GET["id_item"]], false);
 
 if (empty($item)) {
     redirect();
@@ -37,13 +43,53 @@ $comments = makeSelectQuery("SELECT
     ORDER BY `comments`.`date_add_comments` DESC
 ", [$_GET["id_item"]], false);
 
-$itemHTML = "";
+$itemHTML = "
+    <h1>$item[name_items], $item[name_items_type], $item[cost_items] p</h1>
+    <h2>Рейтинг: <b>" . getRatingItem($_GET["id_item"]) . "</b></h2>
+    <img src='" . getValidImage(FOLDER_INDEX, $item["image_items"]) ."'>
+    <p>" . ($item["description_items"] ?? "Товар без описания") . "</p>
+";
+
+if (isUserAuth()) {
+    $basket = makeSelectQuery("SELECT
+    *
+    FROM `baskets`
+    WHERE `status_id_baskets` = ? AND `items_id_baskets` = ? AND `users_id_baskets` = ?", [1, $_GET["id_item"], getUserID()], true);
+    if ($basket == []) {
+        $itemHTML .= "<span class='item' data-id='$_GET[id_item]' data-count='$item[count_items]'>
+            <button class='button basket' data-type='add'>Добавить в корзину</button>
+            <span class='hidden counter-wrapper'>
+                <button class='button minus'>-</button>
+                <p class='counter'>В корзине: <b class='counterText'>0</b></p>
+                <button class='button plus'>+</button>
+            </span>
+        </span>";
+    } else {
+        $itemHTML .= "<span class='item' data-id='$_GET[id_item]' data-count='$item[count_items]'>
+            <button class='button basket' data-type='remove'>Убрать из корзины</button>
+            <span class='counter-wrapper'>
+                <button class='button minus'>-</button>
+                <p class='counter'>В корзине: <b class='counterText'>$basket[count_baskets]</b></p>
+                <button class='button plus'>+</button>
+            </span>
+        </span>";
+    }
+}
+    
+foreach ($itemProperties ?? [] as $property) {
+    $itemHTML .= "
+        <span>
+            <p>$property[name_properties]</p>
+            <p>$property[description_items_properties]</p>
+        </span>
+    ";
+}
 
 include_once __DIR__ . "/header.php";
 ?>
 <main class="content">
     <section class="about">
-        <h1>Рейтинг: <b><?= getRatingItem($_GET["id_item"]) ?></b></h1>
+        <?= $itemHTML ?>
     </section>
     <section class="comments">
         <?php if (isUserAuth()) { ?>
@@ -64,6 +110,11 @@ include_once __DIR__ . "/header.php";
         </form>
         <?php } echo getCommentsHTML($comments)  ?>
     </section>
-    <button class="delete button">Удалить товар</button>
+    <?php 
+        if (isAdmin()) {
+            echo "<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>
+            <button class='delete button'>Удалить товар</button>";
+        }
+    ?>
 </main>
 <?php include_once __DIR__ . "/footer.php"; ?>

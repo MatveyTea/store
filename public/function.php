@@ -6,12 +6,13 @@ const FOLDER_INDEX = "index";
 const FOLDER_IMG = "img";
 const FOLDER_MAIN = "main";
 
-function redirect($path = "index.php")
+function redirect($path = "index.php", $params = "")
 {
     if (!file_exists(__DIR__ . "/$path")) {
         header("Location: /");
     } else {
-        header("Location: $path");
+        $fullPath = $params == "" ? $path : "$path?$params";
+        header("Location: $fullPath");
     }
     exit;
 }
@@ -52,7 +53,7 @@ function makeSelectQuery($query, $params, $getOne = false) {
     try {
         $stmt->execute($params); 
     } catch (Throwable $e) {
-        return [];
+        return [$e];
     }
     if ($getOne) {
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -105,16 +106,15 @@ function getItems($limit = 50, $offset = 0, $where = "")
     }
 
     foreach ($items as $item) {
-        $img = getValidImage(FOLDER_INDEX, $item["image_items"]);
         $basket = "";
 
         foreach ($userItems as $userItem) {
             if ($userItem["items_id_baskets"] == $item["id_items"]) {
-                $basket = "<button class='basket' data-type='remove'>Убрать из корзины</button>
-                <span class=''>
-                    <button class='minus'>-</button>
-                    <p>В корзине: <b>$userItem[count_baskets]</b></p>
-                    <button class='plus'>+</button>
+                $basket = "<button class='basket button' data-type='remove'>Убрать из корзины</button>
+                <span class='counter-wrapper'>
+                    <button class='minus button'>-</button>
+                    <p class='counter'>В корзине: <b class='counterText'>$userItem[count_baskets]</b></p>
+                    <button class='plus button'>+</button>
                 </span>";
                 break;
             }
@@ -122,21 +122,22 @@ function getItems($limit = 50, $offset = 0, $where = "")
 
         if ($basket == "" && isUserAuth()) {
             $basket = "<button class='button basket' data-type='add'>Добавить в корзину</button>
-            <span class='hidden'>
-                <button class='minus'>-</button>
-                <p>В корзине: <b>0</b></p>
-                <button class='plus'>+</button>
+            <span class='hidden counter-wrapper'>
+                <button class='minus button'>-</button>
+                <p class='counter'>В корзине: <b class='counterText'>0</b></p>
+                <button class='plus button'>+</button>
             </span>";
         }
 
-        $result .= "<a href ='aboutItem.php?id_item=$item[id_items]' data-id='$item[id_items]' data-count='$item[count_items]'>
-        <p>ID: $item[id_items]<p>
-            <img src='$img'>
-            <p>$item[name_items]</p>
-            <p>Количество: $item[count_items]</p>
-            <p>Стоимость: $item[cost_items]р</p>
+        $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
+            <a href ='aboutItem.php?id_item=$item[id_items]' class='item_link' >
+                <img src='" . getValidImage(FOLDER_INDEX, $item["image_items"]) . "' class='item_image''>
+                <p class='item_name'>$item[name_items]</p>
+                <p class='item_count'>Количество: $item[count_items]</p>
+                <p class='item_cost'>Стоимость: $item[cost_items]р</p>
+            </a>
             $basket
-        </a>";
+        </span>";
     }
 
     return $result;
@@ -206,6 +207,7 @@ function getValidationRules(): array
         "name_users" => [
             "files" => ["reg.php", "profile.php"], 
             "required" => true,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 return preg_match("/^[а-яёА-Я Ё-]{1,30}$/u", $value);
             }
@@ -213,6 +215,7 @@ function getValidationRules(): array
         "email_users" => [
             "files" => ["reg.php", "auth.php"], 
             "required" => true,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/", $value);
             },
@@ -220,6 +223,7 @@ function getValidationRules(): array
         "password_users" => [
             "files" => ["reg.php", "auth.php"], 
             "required" => true,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
             }
@@ -227,34 +231,39 @@ function getValidationRules(): array
         "re_password_users" => [
             "files" => ["reg.php"], 
             "required" => true,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
             }
         ],
         "name_items" => [
-            "files" => ["adminAddItem.php"], 
+            "files" => ["adminEditItem.php", "adminAddItem.php"], 
             "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
             "pattern" => function($value) {
                 return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $value);
             }
         ],
         "count_items" => [
-            "files" => ["adminAddItem.php"], 
+            "files" => ["adminEditItem.php", "adminAddItem.php"], 
             "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
             "pattern" => function($value) {
                 return preg_match("/^[0-9]{1,6}$/", $value);
             }
         ],
         "cost_items" => [
-            "files" => ["adminAddItem.php"], 
+            "files" => ["adminEditItem.php", "adminAddItem.php"], 
             "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
             "pattern" => function($value) {
                 return preg_match("/^[0-9]{1,6}$/", $value);
             }
         ],
         "image_items" => [
-            "files" => ["adminAddItem.php"],
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => false,
+            "canUpdate" => $file == "adminEditItem.php",
             "pattern" => function($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
                 if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
@@ -266,9 +275,46 @@ function getValidationRules(): array
                 return false;
             }
         ],
+        "items_properties" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"], 
+            "required" => false,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function($value) {
+                $isCorrect = true;
+                $properties = json_decode($value, true);
+                foreach ($properties as $property) {
+                    $id =  empty($property["id_items_properties"]) ? "!" : $property["id_items_properties"];
+                    $name =  empty($property["properties_id_items_properties"]) ? "!" : $property["properties_id_items_properties"];
+                    $description = empty($property["description_items_properties"]) ? "!" : $property["description_items_properties"];
+                    echo "$id | $name | $description <br>";
+                    var_dump( !preg_match("/^[0-9]{1,}$/", "1"));
+                    if ($name == "!" && $description == "!" ||
+                        $id != "!" && ($name == "!" || $description == "!") ||
+                        !preg_match("/[0-9]{1,}$/", $name) ||
+                        !preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $description) ||
+                        !preg_match("/[0-9]{1,}/", $id)) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $properties;
+                }
+                return false;
+            }
+        ],
+        "items_type_id_items" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"], 
+            "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function($value) {
+                return preg_match("/[0-9]{1,}$/", $value);
+            }
+        ],
         "avatar_users" => [
             "files" => ["profile.php"],
             "required" => false,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
                 if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
@@ -283,6 +329,7 @@ function getValidationRules(): array
         "text_comments" => [
             "files" => ["server.php"], 
             "required" => true,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 return preg_match("/.{1,255}$/", $value);
             }
@@ -290,6 +337,7 @@ function getValidationRules(): array
         "rating_comments" => [
             "files" => ["server.php"], 
             "required" => true,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 return preg_match("/[1-5]$/", $value);
             }
@@ -297,58 +345,9 @@ function getValidationRules(): array
         "id_items" => [
             "files" => ["server.php"], 
             "required" => true,
+            "canUpdate" => true,
             "pattern" => function($value) {
                 return preg_match("/[0-9]{1,}$/", $value);
-            }
-        ],
-        "items_properties" => [
-            "files" => ["adminAddItem.php"], 
-            "required" => false,
-            "pattern" => function($value) {
-                $isCorrect = true;
-                $properties = json_decode($value, true);
-                if (empty($properties)) return true;
-                foreach ($properties as $property) {
-                    if (!preg_match("/[0-9]{1,}$/", $property["name"]) ||
-                        !preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $property["description"])) {
-                        $isCorrect = false;
-                        break;
-                    }
-                }
-                if ($isCorrect) {
-                    return $properties;
-                }
-                return false;
-            }
-        ],
-        "items_type_id_items" => [
-            "files" => ["adminAddItem.php"], 
-            "required" => true,
-            "pattern" => function($value) {
-                return preg_match("/[0-9]{1,}$/", $value);
-            }
-        ],
-
-        
-        "table" => [
-            "files" => ["adminTable.php"], 
-            "required" => true,
-            "pattern" => function($value) {
-                return true;
-            }
-        ],
-        "id_properties" => [
-            "files" => ["adminTable.php"], 
-            "required" => true,
-            "pattern" => function($value) {
-                return true;
-            }
-        ],
-        "name_properties" => [
-            "files" => ["adminTable.php"], 
-            "required" => true,
-            "pattern" => function($value) {
-                return true;
             }
         ]
     ];
@@ -423,7 +422,7 @@ function getValidatedData($array): array
 
     $hasAllRule = true;
     foreach ($validationRules as $key => $rule) {
-        if (!key_exists($key, $array) && $rule["required"]) {
+        if (!key_exists($key, $array) && $rule["required"] && !$rule["canUpdate"]) {
             $result["errorField"][$key] = 1;
             $hasAllRule = false;
         }
@@ -505,7 +504,7 @@ function getRatingItem($idItem)
         ROUND(AVG(`rating_comments`), 1) AS `rating`
         FROM `comments`
         WHERE `items_id_comments` = ?
-    ", [$idItem], true)["rating"];
+    ", [$idItem], true)["rating"] ?? 0.0;
 }
 
 // На тест

@@ -3,8 +3,6 @@ include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 include_once __DIR__ . "/header.php";
 ?>
-<script src="js/index.js" defer></script>
-<link rel="stylesheet" href="css/index.css">
 <main class="content">
     <form action="/" method="POST" class="search form">
         <legend>Поиск</legend>

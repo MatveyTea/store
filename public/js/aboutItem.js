@@ -52,3 +52,5 @@ deleteButton?.addEventListener("click", async () => {
 
     }
 });
+
+clickableItem(document.querySelector(".about .item"));
