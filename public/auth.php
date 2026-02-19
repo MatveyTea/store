@@ -19,7 +19,7 @@ if (!empty($_POST["submit_button"])) {
             $stmt = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!empty($stmt) && password_verify($validatedData["data"]["password_users"], $stmt["password_users"])) {
                 $_SESSION["id_user"] = $stmt["id_users"];
-                unset($_SESSION["data"], $_SESSION["errorField"]);
+                clearValidatedSession();
                 redirect();
             } else {
                 $_SESSION["errorField"]["server"] = "Не верный пароль или почта";
@@ -28,30 +28,30 @@ if (!empty($_POST["submit_button"])) {
             $_SESSION["errorField"]["server"] = "Не удалось найти пользователя";
         }
     }
-    redirect("auth.php");
+    redirectYourself();
 }
 
 include_once __DIR__ . "/header.php";
 ?>
+
 <main class="content">
     <form action="auth.php" method="POST" class="form">
-        <legend>Вход</legend>
+        <legend class="legend">Вход</legend>
         <div class="field">
-            <label class="label" for="email_users">Почта</label>
-            <input class="input" type="text" placeholder="Введите почту" id="email_users" name="email_users" autocomplete="username" value="<?= $_SESSION["data"]["email_users"] ?? "" ?>">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["email_users"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="text" value="<?= $_SESSION["data"]["email_users"] ?? "" ?>" data-name="email_users" data-is-insert-server="<?= empty($_SESSION["data"]["email_users"]) ? 1 : 0 ?>" autocomplete="username">
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="password_users">Пароль</label>
-            <input class="input" type="password" placeholder="Введите логин" id="password_users" name="password_users" autocomplete="current-password">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["password_users"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="password" data-name="password_users" data-is-insert-server="0" autocomplete="current-password">
+            <p class="error"></p>
         </div>
         <div class="field">
             <p class="error server-error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
-            <input type="submit" id="submit_button" name="submit_button" value="Войти" class="input button">
+            <input class="input button" type="submit" name="submit_button" value="Войти">
         </div>
     </form>
 </main>
 
-<?php unset($_SESSION["data"], $_SESSION["errorField"]); ?>
-<?php include_once __DIR__ . "/footer.php"; ?>
+<?php clearValidatedSession(); include_once __DIR__ . "/footer.php"; ?>

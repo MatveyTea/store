@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Янв 28 2026 г., 20:31
+-- Время создания: Фев 19 2026 г., 21:47
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -47,7 +47,7 @@ CREATE TABLE `comments` (
   `users_id_comments` int NOT NULL,
   `text_comments` varchar(255) DEFAULT NULL,
   `rating_comments` int NOT NULL,
-  `date_add_comments` date NOT NULL,
+  `date_add_comments` datetime NOT NULL,
   `items_id_comments` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
@@ -512,14 +512,6 @@ CREATE TABLE `properties` (
   `name_properties` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
---
--- Дамп данных таблицы `properties`
---
-
-INSERT INTO `properties` (`id_properties`, `name_properties`) VALUES
-(1, 'емкость'),
-(2, 'цвет');
-
 -- --------------------------------------------------------
 
 --
@@ -549,8 +541,8 @@ CREATE TABLE `users` (
   `id_users` int NOT NULL,
   `email_users` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `password_users` varchar(150) NOT NULL,
-  `name_users` varchar(150) NOT NULL,
-  `date_create_users` date NOT NULL,
+  `name_users` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `date_create_users` date DEFAULT NULL,
   `avatar_users` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
@@ -559,8 +551,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`) VALUES
-(1, 'admin@admin.com', '$2y$12$6.CT7YD60.ZxJFebVuXBr.N2b7R0V/AFjNlryfQH.rpKPLmFkyXgy', 'тестпп', '2025-11-30', NULL),
-(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'user', '2025-11-30', NULL);
+(1, 'admin@admin.com', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'админ', '2025-11-30', NULL),
+(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL);
 
 --
 -- Индексы сохранённых таблиц
@@ -631,25 +623,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=439;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=459;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -661,7 +653,7 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `properties`
 --
 ALTER TABLE `properties`
-  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -673,7 +665,7 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц

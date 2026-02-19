@@ -9,7 +9,7 @@ section span {
     width: calc(20% - 40px - (15px * 2));
 }
 
-section a[data-id] {
+section span[data-id] a{
     width: 100%;
     height: 175px;
     display: flex;
@@ -17,18 +17,18 @@ section a[data-id] {
     justify-content: space-between;
     padding: 15px;
 }
-section a[data-id]:has(.basket) {
+section span[data-id]:has(.basket) {
     height: 250px !important;
 }
 
-section a[data-id] img {
+section span[data-id] img {
     width: 60%;
     max-width: 200px;
     user-select: none;
     align-self: center;
 }
 
-section a[data-id] button.basket {
+section span[data-id] button.basket {
     width: 100%;
     height: 40px;
     cursor: pointer;
@@ -36,18 +36,18 @@ section a[data-id] button.basket {
     transition: 0.4s background-color;
     border-radius: 15px;
 }
-section a[data-id] button.basket:hover,
-section a[data-id] button.basket:focus {
+section span[data-id] button.basket:hover,
+section span[data-id] button.basket:focus {
     background-color: coral
 }
 
-section a[data-id] span {
+section span[data-id] span {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-section a[data-id] span button {
+section span[data-id] span button {
     width: 15%;
     height: 30px;
     cursor: pointer;
@@ -55,17 +55,17 @@ section a[data-id] span button {
     background-color: rgba(135, 222, 155, 0.7);
     transition: 0.4s background-color;
 }
-section a[data-id] span button:hover,
-section a[data-id] span button:focus {
+section span[data-id] span button:hover,
+section span[data-id] span button:focus {
     background-color: rgba(135, 222, 155, 1);
 }
-section a[data-id] span p {
+section span[data-id] span p {
     width: 60%;
     text-align: center;
 }
 
 @media (max-width: 1440px) {
-    section a[data-id] {
+    section span[data-id] {
         width: calc(25% - 40px - (15px * 2));
     }
 }

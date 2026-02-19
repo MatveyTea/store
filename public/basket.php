@@ -33,15 +33,14 @@ if (!empty($currentHTML)) {
 }
 
 if (!empty($historyHTML)) {
-    $historyHTML = "<h2>История покупок</ah2>
-        $historyHTML
-    ";
+    $historyHTML = "<h2>История покупок</h2>$historyHTML";
 } else {
     $historyHTML = "<h2>У вас не было покупок</h2>";
 }
 
 include_once __DIR__ . "/header.php";
 ?>
+
 <main class="content">
     <section class="current-basket">
         <?= $currentHTML ?>
@@ -50,4 +49,5 @@ include_once __DIR__ . "/header.php";
         <?= $historyHTML ?>
     </section>
 </main>
+
 <?php include_once __DIR__ . "/footer.php"; ?>

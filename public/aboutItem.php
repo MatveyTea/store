@@ -84,9 +84,10 @@ foreach ($itemProperties ?? [] as $property) {
         </span>
     ";
 }
-
+echo getModalHTML();
 include_once __DIR__ . "/header.php";
 ?>
+
 <main class="content">
     <section class="about">
         <?= $itemHTML ?>
@@ -95,26 +96,26 @@ include_once __DIR__ . "/header.php";
         <?php if (isUserAuth()) { ?>
         <form class="form add-comment" method="POST" data-id="<?= $_GET["id_item"] ?>">
             <div class="field">
-                <label class="label" for="text_comments">Отзыв</label>
-                <textarea class="input textarea" name="text_comments" id="text_comments" placeholder="Введите комментарий" maxlength="256"></textarea>
+                <label class="label"></label>
+                <textarea class="input textarea" data-name="text_comments" data-is-server-insert="1"></textarea>
                 <p class="error"></p>
             </div>
             <div class="field">
-                <label class="label" for="rating_comments">Рейтинг</label>
-                <input type="number" class="input" name="rating_comments" id="rating_comments" placeholder="Введите оценку от 1 до 5">
+                <label class="label"></label>
+                <input type="number" class="input" data-name="rating_comments" data-is-server-insert="1">
                 <p class="error"></p>
             </div>
             <div class="field">
-                <button class="button">Отправить</button>
+                <input type="submit" class="input button">
             </div>
         </form>
         <?php } echo getCommentsHTML($comments)  ?>
     </section>
     <?php 
         if (isAdmin()) {
-            echo "<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>
-            <button class='delete button'>Удалить товар</button>";
+            echo "<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
         }
     ?>
 </main>
+
 <?php include_once __DIR__ . "/footer.php"; ?>

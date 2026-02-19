@@ -124,7 +124,7 @@ if (!empty(file_get_contents("php://input"))) {
             $isSuccess = makeInsertQuery("INSERT INTO
             `comments` (`users_id_comments`, `text_comments`, `rating_comments`, `date_add_comments`, `items_id_comments`)
             VALUES (?, ?, ?, ?, ?)",
-            [$idUser, $validatedData["text_comments"], $validatedData["rating_comments"], date("y-m-d"), $validatedData["id_items"]]);
+            [$idUser, $validatedData["text_comments"], $validatedData["rating_comments"], date("y-m-d H:i:s"), $validatedData["id_items"]]);
             if ($isSuccess) {
                 $comment = makeSelectQuery("SELECT
                     `comments`.`text_comments`,
@@ -149,6 +149,16 @@ if (!empty(file_get_contents("php://input"))) {
         } catch (Throwable $e) {
             echo json_encode(["status" => "FAIL", $e]);
         }
+    } else if (isAdmin() && $serverType == "delete_from_table" && !empty($json["id"]) && !empty($json["table"])) {
+        $tableName = makeSelectQuery("SELECT `TABLE_NAME` FROM `INFORMATION_SCHEMA`.`TABLES` WHERE `TABLE_NAME` = ?", [$json["table"]], true)["TABLE_NAME"];
+        if (in_array($tableName, ["properties", "status", "items_type"])) {
+            if (makeInsertQuery("DELETE FROM `$tableName` WHERE `id_$tableName` = ?", [$json["id"]])) {
+                echo json_encode(["status" => "OK"]);
+            } else {
+                echo json_encode(["status" => "FAIL"]);
+            }
+        }
+
     } else {
         echo json_encode(["status" => "FAIL"]);
     }

@@ -25,29 +25,7 @@ commentButton?.addEventListener("click", async (event) => {
         textComment.textContent = "";
         ratingComment.textContent = "";
         addComment.insertAdjacentHTML("afterend", resultData["data"]);
-        document.querySelector(".about h1 b").innerHTML = resultData["rating"];
-    } else {
-
-    }
-});
-
-const deleteButton = document.querySelector(".button.delete");
-deleteButton?.addEventListener("click", async () => {
-    const dataItem = {
-        "server_type": "delete_items",
-        "id_item": document.querySelector(".form").dataset.id
-    };
-    const result = await fetch("server.php", {
-        "method": "POST",
-        "headers": {
-            "Content-Type": "application/json"
-        },
-        "body": JSON.stringify(dataItem)
-    });
-    const dataResult = await result.json();
-
-    if (dataResult["status"] == "OK") {
-        window.location.href = "/";
+        document.querySelector(".about h2 b").innerHTML = resultData["rating"];
     } else {
 
     }

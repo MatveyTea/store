@@ -5,14 +5,13 @@ include_once __DIR__ . "/function.php";
 $partHeader = "";
 
 if (isUserAuth()) {
-    $userData = $link->prepare("SELECT `name_users`, `avatar_users` FROM `users` WHERE `id_users` = ?");
-    $userData->execute([getUserID()]);
-    $userData = $userData->fetch(PDO::FETCH_ASSOC);
-    if (!empty($_SESSION["is_admin"])) {
+    if (isAdmin()) {
         $partHeader .= "<a href='admin.php'>Админ панель</a>";
     }
     $img = getValidImage(FOLDER_PROFILE, getUserInfo()["avatar_users"]);
-    $partHeader .= "<a href='profile.php'><img class='avatar' src=$img></a>";
+    $partHeader .= "<a href='basket.php'>Корзина</a>
+        <a href='profile.php'><img class='avatar' src=$img></a>
+    ";
 } else {
     $partHeader = "<span>
         <a href='auth.php'>Войти</a>
@@ -31,6 +30,7 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
     $links .= "<link rel='stylesheet' href='/css/$currentFileName.css'>";
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,10 +43,9 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
     <?= $links ?>
 </head>
 <body>
-    <header>
+    <header class="header">
         <nav class="content">
             <a href="/">Каталог</a>
-            <a href="basket.php">Корзина</a>
             <?= $partHeader ?>
         </nav>
     </header>

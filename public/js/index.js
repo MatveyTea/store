@@ -8,9 +8,9 @@ async function getSearchItems() {
         "body": JSON.stringify({
             "server_type": "search_items",
             "offset": isResetSearch ? 0 : offset,
-            "name_search_items": searchSection.querySelector("input[id=name_search_items]").value,
-            "min_cost_items": searchSection.querySelector("input[id=min_cost_items]").value,
-            "max_cost_items": searchSection.querySelector("input[id=max_cost_items]").value
+            "name_search_items": searchSection.querySelector("input[data-name=name_search_items]").value,
+            "min_cost_items": searchSection.querySelector("input[data-name=min_cost_items]").value,
+            "max_cost_items": searchSection.querySelector("input[data-name=max_cost_items]").value
         })
     });
     const dataResult = await result.json();
@@ -29,7 +29,7 @@ async function getSearchItems() {
             itemsSection.appendChild(item);
             offset++;
         });
-    } else if (dataResult["status"] == "NOTFOUND") {
+    } else if (dataResult["status"] == "NOTFOUND" && isResetSearch) {
         itemsSection.innerHTML = "<p class='notfound'>Ничего не найдено<p>";
     }
     maxScroll = document.documentElement.offsetHeight - window.innerHeight - items[0]?.clientHeight;

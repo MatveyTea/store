@@ -12,49 +12,52 @@ if (!empty($_POST["submit_button"])) {
     $_SESSION["errorField"] = $validatedData["errorField"];
 
     if ($validatedData["isCorrect"]) {
-        $result = getUpdateSQL($validatedData["data"]);
+        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["re_password_users" => true]));
         try {
             $link->prepare("UPDATE `users` SET $result[sql] WHERE `id_users` = ?")->execute([...$result["params"], getUserID()]);
         } catch (Throwable $e) {
-            $_SESSION["errorField"]["server"] = "Не удалось изменить!";
+            $_SESSION["errorField"]["server"] = "Не удалось обновить информацию" . $e->getMessage();
         }
     }
-    redirect("profile.php");
+    redirectYourself();
 }
 
 $userInfo = getUserInfo();
 include_once __DIR__ . "/header.php";
 ?>
+
 <main class="content">
-    <form action="profile.php" method="POST" class="form" enctype="multipart/form-data">
-        <legend>Профиль</legend>
+    <form action="profile.php" method="POST" enctype="multipart/form-data" class="form">
+        <legend class="legend">Профиль</legend>
         <div class="field">
-            <label class="label" for="name_users">Имя</label>
-            <input class="input" type="text" placeholder="Введите имя" id="name_users" name="name_users" value="<?= $userInfo["name_users"] ?>" autocomplete="username">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["name_users"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="text" value="<?= $userInfo["name_users"] ?>" data-name="name_users" data-is-insert-server="<?= !empty($userInfo["name_users"]) ? 1 : 0 ?>" autocomplete="username">
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="avatar_users">Аватар</label>
-            <input class="input" type="file" id="avatar_users" name="avatar_users">
+            <label class="label"></label>
+            <input class="input" type="file" data-name="avatar_users" data-is-insert-server="0">
             <img class="avatar" src="<?= getValidImage(FOLDER_PROFILE, $userInfo["avatar_users"]) ?>">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["avatar_users"] ?? 0 ?>"></p>
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="password_users">Пароль</label>
-            <input class="input" type="password" placeholder="Введите пароль" id="password_users" name="password_users" autocomplete="new-password">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["password_users"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="password" data-name="password_users" data-is-insert-server="0" autocomplete="new-password">
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="re_password_users">Повтор пароля</label>
-            <input class="input" type="password" placeholder="Введите пароль" id="re_password_users" name="re_password_users" autocomplete="new-password">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["re_password_users"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="password" data-name="re_password_users" data-is-insert-server="0" autocomplete="new-password">
+            <p class="error"></p>
         </div>
         <div class="field">
             <p class="error server-error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
-            <input type="submit" id="submit_button" name="submit_button" value="Обновить" class="input button">
+            <input type="submit" class="input button" name="submit_button" value="Обновить">
         </div>
     </form>
-    <a href="basket.php">Корзина</a>
-    <a href='logout.php'>Выйти из аккаунта</a>
+    <div>
+        <a href='logout.php'>Выйти из аккаунта</a>
+    </div>
 </main>
-<?= clearValidatedSession() ?>
+
+<?php clearValidatedSession(); include_once __DIR__ . "/footer.php";  ?>

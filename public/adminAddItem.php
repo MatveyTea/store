@@ -2,76 +2,81 @@
 include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
-if (!empty($_POST["submit_button"])) {
+if (!isAdmin()) {
+    redirect();
+}
+
+if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     unset($_POST["submit_button"]);
     $validatedData = getValidatedData(array_merge($_POST, $_FILES));
     $_SESSION["data"] = $validatedData["data"];
-    $_SESSION["errorField"] = $validatedData["errorField"];
 
     if ($validatedData["isCorrect"]) {
-        $properties = $validatedData["data"]["items_properties"];
-        unset($validatedData["data"]["items_properties"]);
-        $result = getInsertSQL($validatedData["data"]);
-        $result["sql"] .= ",`date_add_items`";
-        $result["params"][] = date("y-m-d");
-        $result["question"] .= ",?";
+        $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true]), ["date_add_items" => date("y-m-d")]));
+        $isSucceedItem = makeInsertQuery("INSERT INTO `items` ($tempSQL[sql]) VALUES ($tempSQL[question])", $tempSQL["params"]);
+        $id = $link->lastInsertId();
 
-        try {
-            $link->prepare("INSERT INTO `items` ($result[sql]) VALUES ($result[question])")->execute($result["params"]);
-            $id = $link->lastInsertId();
-            $insertSql = "";
-            $insetParams = [];
-            foreach ($properties as $property) {
-                $insertSql .= "INSERT INTO `items_properties`
-                    (`items_id_items_properties`, `properties_id_items_properties`, `description_items_properties`)
-                    VALUES (?, ?, ?);
-                ";
-                array_push($insetParams, $id, $property["name"], $property["description"]);
-            }
-            if ($insertSql != "" && $insetParams != []) {
-                $link->prepare($insertSql)->execute($insetParams);
-            }
-            
-            unset($_SESSION["data"], $_SESSION["errorField"]);
-            $_SESSION["errorField"]["server"] = "Товар добавлен";
-        } catch (Throwable $e) {
-            $_SESSION["errorField"]["server"] = "Не удалось добавить товар " . $e->getMessage();
+        $sql = "";
+        $params = [];
+
+        $itemProperties = $validatedData["data"]["items_properties"] ?? [];
+        $maxProperties = makeSelectQuery("SELECT COUNT(*) as `max_count` FROM `properties`", [], true)["max_count"];
+        foreach ($itemProperties as $property) {
+            $tempSQL = getInsertSQL(array_merge($property, ["items_id_items_properties" => $id]));
+            $sql .= "INSERT INTO `items_properties` ($tempSQL[sql]) VALUES ($tempSQL[question]);";
+            array_push($params, ...$tempSQL);
         }
+
+        clearValidatedSession();
+        if ($sql != "" && $params != []) {
+            if (makeInsertQuery($sql, $params)) {
+                $_SESSION["server"] = "Товар добавлен";
+            } else {
+                $_SESSION["server"] = "Не удалось добавить товар";
+            }
+        } else if ($isSucceedItem) {
+            $_SESSION["server"] = "Товар добавлен";
+        } else {
+            $_SESSION["server"] = "Не удалось добавить товар";
+        }
+    } else {
+        $_SESSION["server"] = "Не удалось добавить товар";
     }
 
-    redirect("admin.php");
+    redirectYourself();
 }
 
-$stmt = $link->query("SELECT * FROM `properties`");
-$stmt->execute();
-$stmt = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$selectName = "";
-foreach ($stmt as $option) {
-    $selectName .= "<option value='$option[id_properties]'>$option[name_properties]</option>";
+$allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
+$allPropertiesHTML = "";
+foreach ($allProperties as $option) {
+    $allPropertiesHTML .= "<option value='$option[id_properties]'>$option[name_properties]</option>";
 }
 
-$propertiesHTML = "";
-$count = 0;
-foreach ($_SESSION["data"]["items_properties"] ?? [] as $key => $property) {
-    $selectSelected = substr($selectName, 0, strpos($selectName, "value='$property[name]'")) . "selected " . substr($selectName, strpos($selectName, "value='$property[name]'"));
+$itemProperties = $_SESSION["data"]["items_properties"] ?? [];
+$itemPropertiesHTML = "";
+foreach ($itemProperties as $key => $property) {
+    $selectSelected = substr($allPropertiesHTML, 0, strpos($allPropertiesHTML, "value='$property[properties_id_items_properties]'")) . "selected " . substr($allPropertiesHTML, strpos($allPropertiesHTML, "value='$property[properties_id_items_properties]'"));
     $no = $key + 1;
-    $propertiesHTML .= "<div class='field additional'>
+    $itemPropertiesHTML .= "<div class='field additional'>
+        <h2>№<b>$no</b></h2>
         <div class='field'>
-            <label class='label'>Имя $no</label>
-            <select class='input' name='items_properties_name'>
+            <label class='label'></label>
+            <select class='input' data-name='properties_id_items_properties' data-is-insert-server='1'>
                 <option value='' disabled selected>Выбрать</option>
                 $selectSelected
             </select>
             <p class='error'></p>
         </div>
         <div class='field'>
-            <label class='label'>Описание $no</label>
-            <input class='input' name='items_properties_description' type='text' placeholder='Введите описание' value='$property[description]'>
-            <p class='error' data-has-error=" . ($_SESSION["errorField"]["items_properties"] ?? 0) . "></p>
+            <label class='label'></label>
+            <input class='input'type='text' value='$property[description_items_properties]' data-name='description_items_properties'  data-is-insert-server='1'>
+            <p class='error'></p>
+        </div>
+        <div class='field'>
+            <span class='button'>Удалить</span>
         </div>
     </div>
     ";
-    $count++;
 }
 
 $types = $link->query("SELECT * FROM `items_type`")->fetchAll(PDO::FETCH_ASSOC);
@@ -81,67 +86,63 @@ foreach ($types as $type) {
     $typesHTML .= "<option value='$type[id_items_type]' $selected>$type[name_items_type]</option>";
 }
 
+$data = $_SESSION["data"] ?? [];
+
+
+echo getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, false) . getModalHTML($_SESSION["server"] ?? "");
+clearValidatedSession();
+
 include_once __DIR__ . "/header.php";
 ?>
+
 <main class="content">
-    <form action="admin.php" method="POST" class="form" enctype="multipart/form-data">
-        <legend>Добавление товара</legend>
+    <form action="adminAddItem.php" method="POST" class="form" enctype="multipart/form-data">
+        <legend class="legend">Добавление товара</legend>
         <div class="field">
-            <label class="label" for="name_items">Имя товара</label>
-            <input class="input" type="text" placeholder="Введите имя товара" id="name_items" name="name_items" value="<?= $_SESSION["data"]["name_items"] ?? "" ?>">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["name_items"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="text" value="<?= $data["name_items"] ?? "" ?>" data-name="name_items" data-is-insert-server="<?= empty($data["name_items"]) ? 1 : 0 ?>">
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="count_items">Количество</label>
-            <input class="input" type="number" placeholder="Введите количество" id="count_items" name="count_items" value="<?= $_SESSION["data"]["count_items"] ?? "" ?>">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["count_items"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="number" value="<?= $data["count_items"] ?? "" ?>" data-name="count_items" data-is-insert-server="<?= empty($data["count_items"]) ? 1 : 0 ?>">
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="cost_items">Цена</label>
-            <input class="input" type="number" placeholder="Введите цену" id="cost_items" name="cost_items" value="<?= $_SESSION["data"]["cost_items"] ?? "" ?>">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["cost_items"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="number" value="<?= $data["cost_items"] ?? "" ?>" data-name="cost_items" data-is-insert-server="<?= empty($data["cost_items"]) ? 1 : 0 ?>">
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="image_items">Изображение</label>
-            <input class="input" type="file" id="image_items" name="image_items">
-            <img src="">
-            <p class="error" data-has-error="<?= $_SESSION["errorField"]["image_items"] ?? 0 ?>"></p>
+            <label class="label"></label>
+            <input class="input" type="text" value="<?= $data["description_items"] ?? "" ?>" data-name="description_items" data-is-insert-server="<?= empty($data["description_items"]) ? 1 : 0 ?>">
+            <p class="error"></p>
         </div>
         <div class="field">
-            <label class="label" for="items_type_id_items">Тип товара</label>
-            <select class="input" name="items_type_id_items" id="items_type_id_items">
+            <label class="label"></label>
+            <input class="input" type="file" data-name="image_items" data-is-insert-server="0">
+            <img src="<?= getValidImage(FOLDER_INDEX, "") ?>">
+            <p class="error"></p>
+        </div>
+        <div class="field">
+            <label class="label"></label>
+            <select class="input" data-name="items_type_id_items" data-is-insert-server="<?= empty($data["name_items"]) ? 1 : 0 ?>">
                 <option value="" disabled selected>Выбрать</option>
                 <?= $typesHTML ?>
             </select>
             <p class="error"></p>
         </div>
         <div class="field">
-            <input type="hidden" class="hidden" name="items_properties" id="items_properties">
+            <label class="label hidden"></label>
+            <input type="hidden" class="hidden input" data-name="items_properties" data-is-insert-server="0">
+            <p class="error"></p>
             <button class="additional button">Добавить дополнительное описание</button>
         </div>
-        <?= $propertiesHTML ?>
+        <?= $itemPropertiesHTML ?>
         <div class="field">
-            <p class="error server-error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
-            <input type="submit" id="submit_button" name="submit_button" value="Добавить" class="input button">
+            <input type="submit" class="input button" name="submit_button" value="Добавить">
         </div>
     </form>
 </main>
 
-<div class="field additional hidden" data-count="<?= $count ?>">
-    <div class="field">
-        <label class="label">Имя</label>
-        <select class="input">
-            <option value="" disabled>Выбрать</option>
-            <?= $selectName ?>
-        </select>
-        <p class="error"></p>
-    </div>
-    <div class="field">
-        <label class="label">Описание</label>
-        <input class="input" type="text" placeholder="Введите описание">
-        <p class="error"></p>
-    </div>
-</div>
-
-<?php unset($_SESSION["data"], $_SESSION["errorField"]); ?>
 <?php include_once __DIR__ . "/footer.php"; ?>
