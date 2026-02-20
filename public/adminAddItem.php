@@ -13,28 +13,30 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
 
     if ($validatedData["isCorrect"]) {
         $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true]), ["date_add_items" => date("y-m-d")]));
-        $isSucceedItem = makeInsertQuery("INSERT INTO `items` ($tempSQL[sql]) VALUES ($tempSQL[question])", $tempSQL["params"]);
+        $isSucceedItem = makeSafeQuery("INSERT INTO `items` ($tempSQL[sql]) VALUES ($tempSQL[question])", $tempSQL["params"]);
         $id = $link->lastInsertId();
 
         $sql = "";
         $params = [];
 
         $itemProperties = $validatedData["data"]["items_properties"] ?? [];
-        $maxProperties = makeSelectQuery("SELECT COUNT(*) as `max_count` FROM `properties`", [], true)["max_count"];
+        $maxProperties = makeSelectQuery("SELECT COUNT(*) as `max_count` FROM `properties`", [], true);
+        
+        if ($maxProperties === "FAIL") {
+            $_SESSION["server"] = "Не удалось выполнить запрос";
+            redirectYourself();
+        }
+
+        $maxProperties = $maxProperties["max_count"];
+
         foreach ($itemProperties as $property) {
             $tempSQL = getInsertSQL(array_merge($property, ["items_id_items_properties" => $id]));
             $sql .= "INSERT INTO `items_properties` ($tempSQL[sql]) VALUES ($tempSQL[question]);";
-            array_push($params, ...$tempSQL);
+            array_push($params, ...$tempSQL["params"]);
         }
 
-        clearValidatedSession();
-        if ($sql != "" && $params != []) {
-            if (makeInsertQuery($sql, $params)) {
-                $_SESSION["server"] = "Товар добавлен";
-            } else {
-                $_SESSION["server"] = "Не удалось добавить товар";
-            }
-        } else if ($isSucceedItem) {
+        if ($sql != "" && $params != [] && makeSafeQuery($sql, $params) || $isSucceedItem) {
+            clearValidatedSession();
             $_SESSION["server"] = "Товар добавлен";
         } else {
             $_SESSION["server"] = "Не удалось добавить товар";
@@ -47,6 +49,11 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
 }
 
 $allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
+
+if ($allProperties === "FAIL") {
+    redirect();
+}
+
 $allPropertiesHTML = "";
 foreach ($allProperties as $option) {
     $allPropertiesHTML .= "<option value='$option[id_properties]'>$option[name_properties]</option>";
@@ -88,9 +95,8 @@ foreach ($types as $type) {
 
 $data = $_SESSION["data"] ?? [];
 
-
-echo getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, false) . getModalHTML($_SESSION["server"] ?? "");
-clearValidatedSession();
+echo getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, false);
+getModalHTML();
 
 include_once __DIR__ . "/header.php";
 ?>
@@ -121,7 +127,7 @@ include_once __DIR__ . "/header.php";
         <div class="field">
             <label class="label"></label>
             <input class="input" type="file" data-name="image_items" data-is-insert-server="0">
-            <img src="<?= getValidImage(FOLDER_INDEX, "") ?>">
+            <img src="<?= getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, "") ?>">
             <p class="error"></p>
         </div>
         <div class="field">

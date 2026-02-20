@@ -1,14 +1,17 @@
 <?php
 include_once __DIR__ . "/config/config.php";
 
-const FOLDER_PROFILE = "profile";
-const FOLDER_INDEX = "index";
 const FOLDER_IMG = "img";
 const FOLDER_MAIN = "main";
+const FOLDER_UPLOAD = "upload";
+const FOLDER_AVATARS = "profile";
+const FOLDER_ITEMS = "items";
 
-function getModalHTML($text = "")
+function getModalHTML()
 {
-    return "<template data-is-show-modal='" . ($text == "" ? 0 : 1) . "' data-text='$text'>
+    $text = $_SESSION["server"] ?? "";
+    clearValidatedSession();
+    echo "<template data-is-show-modal='" . ($text == "" ? 0 : 1) . "' data-text='$text'>
         <div class='modal hidden invisible'>
             <span>
                 <h1>Уведомление</h1>
@@ -19,7 +22,8 @@ function getModalHTML($text = "")
     </template>";
 }
 
-function getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, $needFieldID) {
+function getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, $needFieldID)
+{
     $html = "<template data-max-count='" . count($allProperties) . "'data-count='" . count($itemProperties) . "'>
         <div class='field additional'>
             <h2>№<b></b></h2>";
@@ -66,14 +70,15 @@ function redirect($path = "index.php", $params = "")
     exit;
 }
 
-function redirectYourself($params = "") {
+function redirectYourself($params = "")
+{
     redirect(basename($_SERVER["SCRIPT_FILENAME"]), $params);
 }
 
 function getValidImage($folder, $img)
 {
     if ($img == "" || !file_exists(__DIR__ . "/" . FOLDER_IMG . "/$folder/$img")) {
-        return "/" . FOLDER_IMG . "/$folder/default.png";
+        return "/" . FOLDER_IMG . "/" . FOLDER_MAIN . "/default.png";
     }
     return "/" . FOLDER_IMG . "/$folder/$img";
 }
@@ -90,15 +95,8 @@ function isAdmin()
 
 function getUserInfo()
 {
-    $result = [];
-    $stmt = $GLOBALS["link"]->prepare("SELECT * FROM `users` WHERE `id_users` = ?");
-    try {
-        $stmt->execute([getUserID()]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    } catch (Throwable $e) {
-
-    }
-    return $result;
+    $userInfo = makeSelectQuery("SELECT * FROM `users` WHERE `id_users` = ?", [getUserID()], true);
+    return $userInfo == "FAIL" ? [] : $userInfo;
 }
 
 function clearValidatedSession()
@@ -111,12 +109,13 @@ function getUserID()
     return $_SESSION["id_user"] ?? null;
 }
 
-function makeSelectQuery($query, $params = [], $getOne = false) {
+function makeSelectQuery($query, $params = [], $getOne = false)
+{
     $stmt = $GLOBALS["link"]->prepare($query);
     try {
-        $stmt->execute($params); 
+        $stmt->execute($params);
     } catch (Throwable $e) {
-        return [$e];
+        return "FAIL";
     }
     if ($getOne) {
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -125,20 +124,11 @@ function makeSelectQuery($query, $params = [], $getOne = false) {
     }
 }
 
-function makeInsertQuery($query, $params) {
-    $stmt = $GLOBALS["link"]->prepare($query);
+function makeSafeQuery($query, $params)
+{
+    if ($query == "") return false;
     try {
-        $stmt->execute($params);
-        return true;
-    } catch (Throwable $e) {
-        return false;
-    }
-}
-
-function makeUpdateQuery($query, $params) {
-    $stmt = $GLOBALS["link"]->prepare($query);
-    try {
-        $stmt->execute($params);
+        $GLOBALS["link"]->prepare($query)->execute($params);
         return true;
     } catch (Throwable $e) {
         return false;
@@ -168,14 +158,16 @@ function getItems($limit = 50, $offset = 0, $where = "")
         $items->bindParam(':offset', $offset, PDO::PARAM_INT);
         $items->execute();
         $items = $items->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Throwable $e) {}
+    } catch (Throwable $e) {
+    }
 
     if (isUserAuth()) {
         try {
             $userItems = $GLOBALS["link"]->prepare("SELECT `items_id_baskets`, `count_baskets` FROM `baskets` WHERE `users_id_baskets` = ? AND `status_id_baskets` = 1");
             $userItems->execute([getUserID()]);
             $userItems = $userItems->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+        }
     }
 
     foreach ($items as $item) {
@@ -204,7 +196,7 @@ function getItems($limit = 50, $offset = 0, $where = "")
 
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
             <a href ='aboutItem.php?id_item=$item[id_items]' class='item_link' >
-                <img src='" . getValidImage(FOLDER_INDEX, $item["image_items"]) . "' class='item_image''>
+                <img src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]) . "' class='item_image''>
                 <p class='item_name'>$item[name_items]</p>
                 <p class='item_count'>Количество: $item[count_items]</p>
                 <p class='item_cost'>Стоимость: $item[cost_items]р</p>
@@ -220,7 +212,7 @@ function getItemHTML($item)
 {
     $result = "";
     if ($item == null) return $result;
-    $img = getValidImage(FOLDER_INDEX, $item["image_items"]);
+    $img = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]);
     $result .= "<div class='item' data-id='$item[id_items]' data-count='$item[count_baskets]'>
         <img src='$img'>
         <p>$item[name_items]</p>
@@ -278,28 +270,29 @@ function getValidationRules(): array
     $file = basename($_SERVER["SCRIPT_NAME"]);
 
     $rules = [
+        // Пользователь
         "name_users" => [
-            "files" => ["reg.php", "profile.php"], 
+            "files" => ["reg.php", "profile.php"],
             "required" => true,
             "canUpdate" => true,
-            "pattern" => function($value) {
+            "pattern" => function ($value) {
                 return preg_match("/^[а-яёА-Я Ё-]{1,30}$/u", $value);
             }
         ],
         "email_users" => [
-            "files" => ["reg.php", "auth.php"], 
+            "files" => ["reg.php", "auth.php"],
             "required" => true,
-            "canUpdate" => true,
-            "pattern" => function($value) {
+            "canUpdate" => false,
+            "pattern" => function ($value) {
                 return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/", $value);
             },
         ],
         "password_users" => [
-            "files" => ["reg.php", "auth.php", "profile.php"], 
+            "files" => ["reg.php", "auth.php", "profile.php"],
             "required" => true,
             "canUpdate" => true,
             "link_key" => in_array($file, ["reg.php", "profile.php"]) ? "re_password_users" : null,
-            "pattern" => function($value) use ($file) {
+            "pattern" => function ($value) use ($file) {
                 if (preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value)) {
                     return $file == "auth.php" ? $value : password_hash($value, PASSWORD_DEFAULT);
                 }
@@ -307,87 +300,153 @@ function getValidationRules(): array
             }
         ],
         "re_password_users" => [
-            "files" => ["reg.php", "profile.php"], 
+            "files" => ["reg.php", "profile.php"],
             "required" => true,
             "canUpdate" => true,
             "link_key" => in_array($file, ["reg.php", "profile.php"]) ? "password_users" : null,
-            "pattern" => function($value) use ($file) {
-                if (preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value)) {
-                    return $file == "auth.php" ? $value : password_hash($value, PASSWORD_DEFAULT);
-                }
-                return false;
+            "pattern" => function ($value) use ($file) {
+                return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
             }
         ],
-        "name_items" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"], 
-            "required" => true,
-            "canUpdate" => $file == "adminEditItem.php",
-            "pattern" => function($value) {
-                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $value);
-            }
-        ],
-        "count_items" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"], 
-            "required" => true,
-            "canUpdate" => $file == "adminEditItem.php",
-            "pattern" => function($value) {
-                return preg_match("/^[0-9]{1,6}$/", $value);
-            }
-        ],
-        "cost_items" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"], 
-            "required" => true,
-            "canUpdate" => $file == "adminEditItem.php",
-            "pattern" => function($value) {
-                return preg_match("/^[0-9]{1,6}$/", $value);
-            }
-        ],
-        "description_items" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"], 
+        "avatar_users" => [
+            "files" => ["profile.php"],
             "required" => false,
-            "canUpdate" => $file == "adminEditItem.php",
-            "pattern" => function($value) {
-                return true;
-            }
-        ],
-        "image_items" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"],
-            "required" => false,
-            "canUpdate" => $file == "adminEditItem.php",
-            "pattern" => function($value) {
+            "canUpdate" => true,
+            "pattern" => function ($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
-                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
-                    $datetime = date("Y-m-d-H-i-s") . ".$extension";
-                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/img/index/$datetime")) {
+                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
+                    $datetime = date("y-m-d-H-i-s") . ".$extension";
+                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/" . FOLDER_IMG . "/" . FOLDER_UPLOAD . "/" . FOLDER_AVATARS . "/$datetime")) {
                         return $datetime;
                     }
                 }
                 return false;
             }
         ],
-        "id_items_properties" => [
-            "files" => ["adminEditItem.php"],
+        // Товар
+        "id_items" => [
+            "files" => ["server.php"],
             "required" => true,
-            "canUpdate" => true,
-            "pattern" => function($value) {
-                return preg_match("/[0-9]{1,}$/", $value);
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/[0-9]{1,7}$/", $value);
             }
         ],
-        "items_properties" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"], 
+        "name_items" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
+            "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function ($value) {
+                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+            }
+        ],
+        "count_items" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
+            "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
+        "cost_items" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
+            "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
+        "image_items" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => false,
             "canUpdate" => $file == "adminEditItem.php",
-            "pattern" => function($value) {
+            "pattern" => function ($value) {
+                $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
+                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
+                    $datetime = date("Y-m-d-H-i-s") . ".$extension";
+                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/" . FOLDER_IMG . "/" . FOLDER_UPLOAD . "/" . FOLDER_ITEMS . "/$datetime")) {
+                        return $datetime;
+                    }
+                }
+                return false;
+            }
+        ],
+        "items_type_id_items" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
+            "required" => true,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function ($value) {
+                return preg_match("/[0-9]{1,7}$/", $value);
+            }
+        ],
+        "description_items" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
+            "required" => false,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function ($value) {
+                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+            }
+        ],
+        // Поиск товара
+        "name_search_items" => [
+            "files" => ["server.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+            }
+        ],
+        "min_cost_items" => [
+            "files" => ["server.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
+        "max_cost_items" => [
+            "files" => ["server.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
+        // Комментарии
+        "text_comments" => [
+            "files" => ["server.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+            }
+        ],
+        "rating_comments" => [//>5
+            "files" => ["server.php"],
+            "required" => true,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[1-5]$/", $value);
+            }
+        ],
+        // Свойство у товаров
+        "items_properties" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
+            "required" => false,
+            "canUpdate" => $file == "adminEditItem.php",
+            "pattern" => function ($value) {
                 $isCorrect = true;
                 $properties = json_decode($value, true) ?? [];
                 foreach ($properties as $property) {
                     $isCorrectId = preg_match("/^[0-9]{1,}$/", $property["id_items_properties"] ?? "0");
                     $isCorrectName = preg_match("/^[0-9]{1,}$/", $property["properties_id_items_properties"] ?? "!");
-                    $isCorrectDescription= preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/",$property["description_items_properties"] ?? "!");
+                    $isCorrectDescription = preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $property["description_items_properties"] ?? "!");
                     $count = count($property);
-                    if ($count < 1 ||
+                    if (
+                        $count < 1 ||
                         $count == 2 && !$isCorrectId && ($isCorrectName || $isCorrectDescription) ||
-                        $count == 3 && !$isCorrectId && !$isCorrectName && !$isCorrectDescription) {
+                        $count == 3 && !$isCorrectId && !$isCorrectName && !$isCorrectDescription
+                    ) {
                         $isCorrect = false;
                         break;
                     }
@@ -398,67 +457,55 @@ function getValidationRules(): array
                 return false;
             }
         ],
-        "items_type_id_items" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"], 
-            "required" => true,
-            "canUpdate" => $file == "adminEditItem.php",
-            "pattern" => function($value) {
-                return preg_match("/[0-9]{1,}$/", $value);
-            }
-        ],
-        "avatar_users" => [
-            "files" => ["profile.php"],
-            "required" => false,
-            "canUpdate" => true,
-            "pattern" => function($value) {
-                $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
-                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
-                    $datetime = date("y-m-d-H-i-s") . ".$extension";
-                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/img/profile/$datetime")) {
-                        return $datetime;
-                    }
-                }
-                return false;
-            }
-        ],
-        "text_comments" => [
-            "files" => ["server.php"], 
-            "required" => true,
-            "canUpdate" => true,
-            "pattern" => function($value) {
-                return preg_match("/.{1,255}$/", $value);
-            }
-        ],
-        "rating_comments" => [
-            "files" => ["server.php"], 
-            "required" => true,
-            "canUpdate" => false,
-            "pattern" => function($value) {
-                return preg_match("/^[1-5]{1}$/", $value);
-            }
-        ],
-        "id_items" => [
-            "files" => ["server.php"], 
-            "required" => true,
-            "canUpdate" => true,
-            "pattern" => function($value) {
-                return preg_match("/[0-9]{1,}$/", $value);
-            }
-        ],
+        // Свойства товаров
         "id_properties" => [
-            "files" => ["adminEditTable.php"], 
+            "files" => ["adminEditTable.php"],
             "required" => false,
             "canUpdate" => false,
-            "pattern" => function($value) {
-                return preg_match("/[0-9]{1,}$/", $value);
+            "pattern" => function ($value) {
+                return preg_match("/[0-9]{1,7}$/", $value);
             }
         ],
         "name_properties" => [
-            "files" => ["adminEditTable.php"], 
-            "required" => true,
+            "files" => ["adminEditTable.php"],
+            "required" => false,
             "canUpdate" => true,
-            "pattern" => function($value) {
-                return $value != "";
+            "pattern" => function ($value) {
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+            }
+        ],
+        // Типы товаров
+        "id_items_type" => [
+            "files" => ["adminEditTable.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/[0-9]{1,7}$/", $value);
+            }
+        ],
+        "name_items_type" => [
+            "files" => ["adminEditTable.php"],
+            "required" => false,
+            "canUpdate" => true,
+            "pattern" => function ($value) {
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+            }
+        ],
+        // Статус покупки
+        "id_status" => [
+            "files" => ["adminEditTable.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/[0-9]{1,7}$/", $value);
+            }
+        ],
+        "name_status" => [
+            "files" => ["adminEditTable.php"],
+            "required" => false,
+            "canUpdate" => true,
+            "pattern" => function ($value) {
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
         ]
     ];
@@ -493,10 +540,11 @@ function getValidatedData($array): array
         $rule = $validationRules[$key];
 
         if ($key == "password_users" || $key == "re_password_users") {
-            if (!empty($array["re_password_users"]) && !empty($array["password_users"]) &&
+            if (
+                !empty($array["re_password_users"]) && !empty($array["password_users"]) &&
                 ($key == "re_password_users" && $value != $array["password_users"] ||
-                 $key == "password_users" && $value != $array["re_password_users"] ||
-                !empty($rule["link_key"]) && empty($array[$rule["link_key"]]))
+                    $key == "password_users" && $value != $array["re_password_users"] ||
+                    !empty($rule["link_key"]) && empty($array[$rule["link_key"]]))
             ) {
                 $result["data"][$key] = $value;
                 $result["errorField"][$key] = 1;
@@ -508,11 +556,11 @@ function getValidatedData($array): array
             continue;
         }
 
-        if (($key == "image_items" || $key == "avatar_users" || $key == "items_properties") && is_callable($rule["pattern"])) {  
+        if (($key == "image_items" || $key == "avatar_users" || $key == "items_properties") && is_callable($rule["pattern"])) {
             $image = $rule["pattern"]($value);
             if ($image !== false) {
                 $result["errorField"][$key] = 0;
-             
+
                 $result["data"][$key] = $image;
                 $currentCountCorrect++;
             } else {
@@ -555,7 +603,8 @@ function getValidatedData($array): array
     return $result;
 }
 
-function getUpdateSQL($array) {
+function getUpdateSQL($array)
+{
     $result = [
         "params" => [],
         "sql" => []
@@ -572,7 +621,7 @@ function getUpdateSQL($array) {
     }
 
     $result["sql"] = join(",", $result["sql"]);
-    
+
     return $result;
 }
 
@@ -597,7 +646,7 @@ function getInsertSQL($array)
 
     $result["question"] = join(",", $result['question']);
     $result["sql"] = join(",", $result["sql"]);
-    
+
     return $result;
 }
 
@@ -605,11 +654,16 @@ function getCommentsHTML($comments)
 {
     $commentsHTML = "";
     $star = "<svg width='24' height='24' fill='#FFD700'>
-    <use xlink:href='" . FOLDER_IMG . "/" . FOLDER_MAIN . "/star.svg#star'></use>
+        <use xlink:href='" . FOLDER_IMG . "/" . FOLDER_MAIN . "/star.svg#star'></use>
     </svg>";
 
     foreach ($comments as $comment) {
-        $img = getValidImage(FOLDER_PROFILE, $comment["avatar_users"]);
+        $deleteButton = "";
+        if ($comment["users_id_comments"] == getUserID() || isAdmin()) {
+            $deleteButton .= "<button class='button' data-id='$comment[id_comments]'>Удалить</button>";
+        }
+
+        $img = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, $comment["avatar_users"]);
         $rating = str_repeat($star, $comment["rating_comments"]);
         $commentsHTML .= "<div class='comment'>
             <img class='avatar' src='$img'>
@@ -617,6 +671,7 @@ function getCommentsHTML($comments)
             <p class='comment-date'>" . dateformat($comment["date_add_comments"]) . "</p>
             <p class='comment-text'>$comment[text_comments]</p>
             <span class='comment-rating'>$rating</span>
+            $deleteButton
         </div>";
     }
 
@@ -625,9 +680,163 @@ function getCommentsHTML($comments)
 
 function getRatingItem($idItem)
 {
-    return makeSelectQuery("SELECT
+    $rating = makeSelectQuery("SELECT
         ROUND(AVG(`rating_comments`), 1) AS `rating`
         FROM `comments`
-        WHERE `items_id_comments` = ?
-    ", [$idItem], true)["rating"] ?? 0.0;
+       params:  WHERE `items_id_comments` = ?
+    ", [$idItem], true);
+    return $rating == "FAIL" ? 0.0 : $rating["rating"];
+}
+
+function setAnswer($status, $data = [])
+{
+    echo json_encode(["status" => $status, "data" => $data]);
+    exit;
+}
+
+function changeBasket($idItem, $countItem, $actionItem)
+{
+    $item = makeSelectQuery("SELECT `count_items` FROM `items` WHERE `id_items` = ?", [$idItem], true);
+
+    if ($item == "FAIL" || empty($item)) setAnswer("FAIL");
+
+    if ($actionItem == "add" && $item["count_items"] >= $countItem) {
+        $check = makeSelectQuery("SELECT `id_baskets` FROM `baskets` WHERE `items_id_baskets` = ? AND `status_id_baskets` = ? AND `users_id_baskets` = ?", [$idItem, 1, getUserID()], true);
+
+        if ($check == "FAIL") setAnswer("FAIL");
+
+        $isSuccess = false;
+        if (!empty($check["id_baskets"])) {
+            $isSuccess = makeSafeQuery("UPDATE `baskets` SET `count_baskets` = ? WHERE `id_baskets` = ?", [$countItem, $check["id_baskets"]]);
+        } else {
+            $isSuccess = makeSafeQuery("INSERT INTO `baskets` (`items_id_baskets`, `count_baskets`, `status_id_baskets`, `users_id_baskets`) VALUES (?, ?, ?, ?)", [$idItem, $countItem, 1, getUserID()]);
+        }
+        setAnswer($isSuccess ? "OK" : "FAIL");
+    } else if ($actionItem == "remove") {
+        $isSuccess = makeSafeQuery("DELETE FROM `baskets` WHERE `items_id_baskets` = ? AND `status_id_baskets` = ? AND `users_id_baskets` = ?", [$idItem, 1, getUserID()]);
+        setAnswer($isSuccess ? "OK" : "FAIL");
+    } else {
+        setAnswer("FAIL");
+    }
+}
+
+function buyItems()
+{
+    $datetime = date("y-m-d H:i:s");
+    $isSuccess = makeSafeQuery("UPDATE `baskets` SET `status_id_baskets` = ?, `datetime_buy_baskets` = ? WHERE `users_id_baskets` = ? AND `status_id_baskets` = ? AND `datetime_buy_baskets` IS NULL ", [2, $datetime, 1, getUserID()]);
+
+    if (!$isSuccess) setAnswer("FAIL");
+
+    $basketInfo = makeSelectQuery("SELECT
+        `baskets`.`id_baskets`,
+        `baskets`.`count_baskets`,
+        `baskets`.`users_id_baskets`,
+        `baskets`.`datetime_buy_baskets`,
+        `items`.`id_items`,
+        `items`.`name_items`,
+        `items`.`image_items`,
+        `items`.`cost_items`
+        FROM `baskets`
+        JOIN `items` ON `items`.`id_items` = `items_id_baskets`
+        WHERE `users_id_baskets` = ? AND `status_id_baskets` = ? AND `datetime_buy_baskets` = ?
+    ", [getUserID(), 2, $datetime], false);
+
+    if ($basketInfo == "FAIL" || empty($basketInfo)) setAnswer("FAIL");
+
+    setAnswer("OK", getBasketHTML($basketInfo));
+}
+
+function deleteItem($idItem)
+{
+    $isSuccess = makeSafeQuery("DELETE FROM `items` WHERE `id_items` = ?", [$idItem]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function searchItems($offset, $nameItems, $minCost, $maxCost)
+{
+    $where = [];
+    if ($nameItems != "") {
+        $where[] = "`name_items` LIKE '%$nameItems%'";
+    }
+
+    if ($maxCost >= $minCost) {
+        if ($minCost > -1) {
+            $where[] = "`cost_items` >= $minCost";
+        }
+        if ($maxCost < 10_000_000) {
+            $where[] = "`cost_items` <= $maxCost";
+        }
+    }
+
+    if ($where != []) {
+        $where = "WHERE " . join(" AND ",  $where);
+    } else {
+        $where = "";
+    }
+
+    $items = getItems(50, $offset, $where);
+    setAnswer(empty($items) ? "NOTFOUND" : "OK", $items);
+}
+
+function addComment($idItem, $rating, $text)
+{
+    $validatedData = getValidatedData(["id_items" => $idItem, "rating_comments" => $rating, "text_comments" => $text]);
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $validatedData = $validatedData["data"];
+    $dateTime = date("y-m-d H:i:s");
+    $isSuccess = makeSafeQuery(
+        "INSERT INTO `comments`
+        (`users_id_comments`, `text_comments`, `rating_comments`, `date_add_comments`, `items_id_comments`)
+        VALUES (?, ?, ?, ?, ?)
+        ",
+        [getUserID(), $validatedData["text_comments"], $validatedData["rating_comments"], $dateTime, $validatedData["id_items"]]
+    );
+
+    if (!$isSuccess) setAnswer("FAIL");
+
+    $comment = makeSelectQuery(
+        "SELECT
+        `comments`.`users_id_comments`,
+        `comments`.`id_comments`,
+        `comments`.`text_comments`,
+        `comments`.`rating_comments`,
+        `comments`.`date_add_comments`,
+        `users`.`name_users`,
+        `users`.`avatar_users`
+        FROM `comments`
+        JOIN `users` ON `comments`.`users_id_comments` = `users`.`id_users`
+        WHERE `comments`.`date_add_comments` = ? AND `users`.`id_users` = ?
+        ",
+        [$dateTime, getUserID()],
+        false
+    );
+
+    if ($comment == "FAIL") setAnswer("FAI5L");
+
+    setAnswer("OK", ["comments" => getCommentsHTML($comment), "rating" => getRatingItem($validatedData["id_items"])]);
+}
+
+function deleteItemProperties($idItemsProperties)
+{
+    $isSuccess = makeSafeQuery("DELETE FROM `items_properties` WHERE `id_items_properties` = ?", [$idItemsProperties]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function deleteFromTable($table, $id)
+{
+    if (!in_array($table, ["properties", "status", "items_type"])) setAnswer("FAIL");
+    $isSuccess = makeSafeQuery("DELETE FROM `$table` WHERE `id_$table` = ?", [$id]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function deleteComment($id)
+{
+    $check = makeSelectQuery("SELECT `users_id_comments` FROM `comments` WHERE `id_comments` = ?", [$id], true);
+
+    if ($check == "FAIL" || $check["users_id_comments"] != getUserID() || !isAdmin()) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("DELETE FROM `comments` WHERE `id_comments` = ?", [$id]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
 }

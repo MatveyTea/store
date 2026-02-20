@@ -157,8 +157,8 @@ function getValidationRules() {
                 if (input.files.length > 0) {
                     let extension = input.files[0].name.split(".");
                     extension = extension[extension.length - 1];
-                    if (input.files[0].size > 2_000_000) {
-                        return "Размер файла не должен превышать 2МБ";
+                    if (input.files[0].size > 3_000_000) {
+                        return "Размер файла не должен превышать 3МБ";
                     }
                     if (!["jpg", "png", "webp"].includes(extension)) {
                         return "Некорректный тип файла. Файл должен быть jpg, png или webp";
@@ -281,8 +281,8 @@ function getValidationRules() {
                 if (input.files.length > 0) {
                     let extension = input.files[0].name.split(".");
                     extension = extension[extension.length - 1];
-                    if (input.files[0].size > 2_000_000) {
-                        return "Размер файла не должен превышать 2МБ";
+                    if (input.files[0].size > 3_000_000) {
+                        return "Размер файла не должен превышать 3МБ";
                     }
 
                     if (!["jpg", "png", "webp"].includes(extension)) {
@@ -447,7 +447,7 @@ function getValidationRules() {
                 return /^[1-5]$/.test(input.value) ? false : "Введите число от 1 до 5";
             }
         },
-        // Свойства товаров у товаров
+        // Свойство у товаров
         "items_properties": {
             "hasName": true,
             "connectedRules": null,
@@ -574,6 +574,92 @@ function getValidationRules() {
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
             }
         },
+        // Типы товаров
+        "id_items_type": {
+            "hasName": true,
+            "connectedRules": ["name_items_type"],
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": null,
+            "inputs": null,
+            "nameRule": "id_items_type",
+            "oldValue": null,
+            "files": ["adminEditTable.php"],
+            "required": true,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[0-9]{1,7}$/.test(input.value)) {
+                    return false;
+                }
+                return  "Введите число до 9 999 999";
+            }
+        },
+        "name_items_type": {
+            "hasName": true,
+            "connectedRules": ["id_items_type"],
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "свойство",
+            "inputs": null,
+            "nameRule": "name_items_type",
+            "oldValue": null,
+            "files": ["adminEditTable.php"],
+            "required": true,
+            "timerId": null,
+            "length": 80,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+            }
+        },
+        // Статус покупки
+        "id_status": {
+            "hasName": true,
+            "connectedRules": ["name_status"],
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": null,
+            "inputs": null,
+            "nameRule": "id_status",
+            "oldValue": null,
+            "files": ["adminEditTable.php"],
+            "required": true,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[0-9]{1,7}$/.test(input.value)) {
+                    return false;
+                }
+                return  "Введите число до 9 999 999";
+            }
+        },
+        "name_status": {
+            "hasName": true,
+            "connectedRules": ["id_status"],
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "свойство",
+            "inputs": null,
+            "nameRule": "name_status",
+            "oldValue": null,
+            "files": ["adminEditTable.php"],
+            "required": true,
+            "timerId": null,
+            "length": 80,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+            }
+        }
     };
 
     for (const key in rules) {

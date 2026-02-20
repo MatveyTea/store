@@ -10,34 +10,34 @@ if (!empty($_POST["submit_button"])) {
     unset($_POST["submit_button"]);
     $validatedData = getValidatedData($_POST);
     $_SESSION["data"] = $validatedData["data"];
-    $_SESSION["errorField"] = $validatedData["errorField"];
-
-
-    echo "<pre>";
-    print_r($validatedData);
 
     if ($validatedData["isCorrect"]) {
-        try {
-            $stmt = $link->prepare("SELECT `id_users` FROM `users` WHERE `email_users` = ?");
-            $stmt->execute([$validatedData["data"]["email_users"]]);
-            if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
-                $result = getInsertSQL(array_merge($validatedData["data"], ["date_create_users" => date("y-m-d")]));
-                $link->prepare("INSERT INTO `users` ($result[sql]) VALUES ($result[question])")->execute($result["params"]);
+        $checkEmail = makeSelectQuery("SELECT `id_users` FROM `users` WHERE `email_users` = ?", [$validatedData["data"]["email_users"]], true);
+        if ($maxProperties === "FAIL") {
+            $_SESSION["server"] = "Не удалось вставить пользователя";
+        } else if (empty($checkEmail)) {
+            $result = getInsertSQL(array_merge($validatedData["data"], ["date_create_users" => date("y-m-d")]));
+            $isSuccess = makeSafeQuery("INSERT INTO `users` ($result[sql]) VALUES ($result[question])", $result["params"]);
+            if ($isSuccess) {
                 clearValidatedSession();
                 redirect("auth.php");
             } else {
-                $_SESSION["errorField"]["server"] = "Такая почта занята";
+                $_SESSION["server"] = "Не удалось вставить пользователя";
             }
-        } catch (Throwable $e) {
-            $_SESSION["errorField"]["server"] = "Не удалось вставить пользователя";
+        } else if (!empty($checkEmail)) {
+            $_SESSION["server"] = "Такая почта занята";
         }
     } else if ($validatedData["errorField"]["password_users"] == 1) {
-        $_SESSION["errorField"]["server"] = "Пароли должны совпадать";
+        $_SESSION["server"] = "Пароли должны совпадать";
+    } else {
+        $_SESSION["server"] = "Не корректные данные";
     }
     redirectYourself();
 }
 
 $data = $_SESSION["data"] ?? [];
+getModalHTML();
+
 include_once __DIR__ . "/header.php";
 ?>
 
@@ -65,10 +65,9 @@ include_once __DIR__ . "/header.php";
             <p class="error"></p>
         </div>
         <div class="field">
-            <p class="error server-error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
             <input class="input button" type="submit" name="submit_button" value="Зарегистрироваться">
         </div>
     </form>
 </main>
 
-<?php clearValidatedSession(); include_once __DIR__ . "/footer.php";  ?>
+<?php include_once __DIR__ . "/footer.php";  ?>

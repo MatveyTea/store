@@ -23,7 +23,6 @@ include_once __DIR__ . "/header.php";
             <p class="error"></p>
         </div>
         <div class="field">
-            <p class="error server-error"></p>
             <input class="button input" type="submit" value="Найти" id="search_button" name="submit_button">
         </div>
     </form>

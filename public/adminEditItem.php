@@ -20,14 +20,21 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $itemProperties = $validatedData["data"]["items_properties"] ?? [];
         $itemPropertiesDB = makeSelectQuery("SELECT `id_items_properties`, `properties_id_items_properties` FROM `items_properties` WHERE `items_id_items_properties` = ?", [$idItem], false);
         $countPropertiesDB = count($itemPropertiesDB);
-        $maxProperties = makeSelectQuery("SELECT COUNT(*) as `max_count` FROM `properties`", [], true)["max_count"];
+        $maxProperties = makeSelectQuery("SELECT COUNT(*) as `max_count` FROM `properties`", [], true);
+
+        if ($itemPropertiesDB === "FAIL" || $maxProperties === "FAIL") {
+            $_SESSION["server"] = "Не удалось выполнить запрос";
+            redirectYourself("id_item=$idItem");
+        }
+
+        $maxProperties = $maxProperties["max_count"];
 
         foreach ($itemProperties as $property) {
             if (empty($property["id_items_properties"]) && $maxProperties > $countPropertiesDB && !in_array($property["properties_id_items_properties"], $itemPropertiesDB)) {
                 $countPropertiesDB++;
                 $tempSQL = getInsertSQL(array_merge($property, ["items_id_items_properties" => $idItem]));
                 $sql .= "INSERT INTO `items_properties` ($tempSQL[sql]) VALUES ($tempSQL[question]);";
-                array_push($insetParams, $tempSQL);
+                array_push($params, ...$tempSQL["params"]);
             } else if (!empty($property["id_items_properties"]) && in_array($property["id_items_properties"], $itemPropertiesDB)) {
                 $tempSQL = getUpdateSQL(array_diff_key($property, ["id_items_properties" => true]));
                 $sql .= "UPDATE `items_properties` SET $tempSQL[sql] WHERE `id_items_properties` = ?;";
@@ -45,18 +52,28 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
 
         if ($sql != "" && $params != []) {
             clearValidatedSession();
-            if (makeUpdateQuery($sql, $params)) {
+            if (makeSafeQuery($sql, $params)) {
                 $_SESSION["server"] = "Товар изменен";
             } else {
                 $_SESSION["server"] = "Не удалось обновить товар";
             }
+        } else {
+            $_SESSION["server"] = "Не удалось выполнить запрос";
+            redirectYourself("id_item=$idItem");
         }
+    } else {
+        $_SESSION["server"] = "Не корректные данные";
     }
 
     redirectYourself("id_item=$idItem");
 }
 
 $allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
+
+if ($allProperties === "FAIL") {
+    redirect();
+}
+
 $allPropertiesHTML = "";
 foreach ($allProperties as $option) {
     $allPropertiesHTML .= "<option value='$option[id_properties]'>$option[name_properties]</option>";
@@ -75,13 +92,24 @@ $itemInfo = makeSelectQuery("SELECT
     WHERE `id_items` = ?
 ", [$idItem], true);
 
+if ($itemInfo === "FAIL" || empty($itemInfo)) {
+    redirect();
+}
+
 $itemProperties = makeSelectQuery("SELECT
     `id_items_properties`,
     `properties_id_items_properties`,
     `description_items_properties`
     FROM `items_properties`
     JOIN `properties` ON `properties`.`id_properties` = `items_properties`.`properties_id_items_properties`
-    WHERE `items_properties`.`items_id_items_properties` = ?", [$idItem], false);
+    WHERE `items_properties`.`items_id_items_properties` = ?
+    ", [$idItem], false
+);
+
+if ($itemProperties === "FAIL") {
+    redirect();
+}
+
 $itemPropertiesHTML = "";
 
 foreach ($itemProperties as $key => $property) {
@@ -116,14 +144,19 @@ foreach ($itemProperties as $key => $property) {
 }
 
 $types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
+
+if ($types === "FAIL") {
+    redirect();
+}
+
 $typesHTML = "";
 foreach ($types as $type) {
     $selected = $type["id_items_type"] == $itemInfo["items_type_id_items"] ? "selected" : "";
     $typesHTML .= "<option value='$type[id_items_type]' $selected>$type[name_items_type]</option>";
 }
 
-echo getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, false) . getModalHTML($_SESSION["server"] ?? "");
-clearValidatedSession();
+echo getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, false);
+getModalHTML();
 
 include_once __DIR__ . "/header.php";
 ?>
@@ -154,7 +187,7 @@ include_once __DIR__ . "/header.php";
         <div class="field">
             <label class="label"></label>
             <input class="input" type="file" data-name="image_items" data-is-insert-server="0">
-            <img src="<?= getValidImage(FOLDER_INDEX, $itemInfo["image_items"]) ?>">
+            <img src="<?= getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $itemInfo["image_items"]) ?>">
             <p class="error"></p>
         </div>
         <div class="field">
@@ -179,6 +212,9 @@ include_once __DIR__ . "/header.php";
             <button class='delete button'>Удалить товар</button>
         </div>
     </form>
+    <div>
+        <a href="aboutItem.php?id_item=<?= $idItem ?>" class="button">Перейти к товару</a>
+    </div>
 </main>
 
 <?php include_once __DIR__ . "/footer.php"; ?>

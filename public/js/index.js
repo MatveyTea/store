@@ -14,9 +14,10 @@ async function getSearchItems() {
         })
     });
     const dataResult = await result.json();
+
     if (dataResult["status"] == "OK") {
         const tempContainer = document.createElement("div");
-        tempContainer.innerHTML = dataResult["items"];
+        tempContainer.innerHTML = dataResult["data"];
         if (isResetSearch) {
             itemsSection.innerHTML = "";
             offset = countGetMaxItems;

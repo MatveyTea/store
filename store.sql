@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Фев 19 2026 г., 21:47
+-- Время создания: Фев 20 2026 г., 20:53
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -623,25 +623,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=459;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=396;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -653,7 +653,7 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `properties`
 --
 ALTER TABLE `properties`
-  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -665,7 +665,7 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц

@@ -24,11 +24,28 @@ commentButton?.addEventListener("click", async (event) => {
         document.querySelector(".form").reset();
         textComment.textContent = "";
         ratingComment.textContent = "";
-        addComment.insertAdjacentHTML("afterend", resultData["data"]);
-        document.querySelector(".about h2 b").innerHTML = resultData["rating"];
+        addComment.insertAdjacentHTML("afterend", resultData["data"]["comments"]);
+        document.querySelector(".about h2 b").innerHTML = resultData["data"]["rating"];
     } else {
-
+        showModal("Не удалось добавить комментарий");
     }
 });
 
 clickableItem(document.querySelector(".about .item"));
+
+document.querySelectorAll("div .button[data-id]").forEach((button) => {
+    button.addEventListener("click", async () => {
+        const parent = document.querySelector(`div:has(.button[data-id='${button.dataset.id}'])`);
+        parent.classList.add("hidden");
+        const resultData = await sendToServer({
+            "server_type": "delete_comment",
+            "id_comment": button.dataset.id
+        });
+        if (resultData["status"] == "OK") {
+            parent.remove();
+        } else {
+            showModal("Не удалось удалить комментарий");
+            parent.classList.remove("hidden");
+        }
+    });
+});

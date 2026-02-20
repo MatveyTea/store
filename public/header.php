@@ -8,7 +8,7 @@ if (isUserAuth()) {
     if (isAdmin()) {
         $partHeader .= "<a href='admin.php'>Админ панель</a>";
     }
-    $img = getValidImage(FOLDER_PROFILE, getUserInfo()["avatar_users"]);
+    $img = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, getUserInfo()["avatar_users"]);
     $partHeader .= "<a href='basket.php'>Корзина</a>
         <a href='profile.php'><img class='avatar' src=$img></a>
     ";

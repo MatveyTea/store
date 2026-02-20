@@ -10,27 +10,25 @@ if (!empty($_POST["submit_button"])) {
     unset($_POST["submit_button"]);
     $validatedData = getValidatedData($_POST);
     $_SESSION["data"] = $validatedData["data"];
-    $_SESSION["errorField"] = $validatedData["errorField"];
 
     if ($validatedData["isCorrect"]) {
-        try {
-            $stmt = $link->prepare("SELECT `id_users`, `password_users` FROM `users` WHERE `email_users` = ?");
-            $stmt->execute([$validatedData["data"]["email_users"]]);
-            $stmt = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!empty($stmt) && password_verify($validatedData["data"]["password_users"], $stmt["password_users"])) {
-                $_SESSION["id_user"] = $stmt["id_users"];
-                clearValidatedSession();
-                redirect();
-            } else {
-                $_SESSION["errorField"]["server"] = "Не верный пароль или почта";
-            }
-        } catch (Throwable $e) {
-            $_SESSION["errorField"]["server"] = "Не удалось найти пользователя";
+        $userInfo = makeSelectQuery("SELECT `id_users`, `password_users` FROM `users` WHERE `email_users` = ?", [$validatedData["data"]["email_users"]], true);
+        if ($userInfo === "FAIL") {
+            $_SESSION["server"] = "Не удалось найти пользователя";
+        } else if (!empty($userInfo) && password_verify($validatedData["data"]["password_users"], $userInfo["password_users"])) {
+            $_SESSION["id_user"] = $userInfo["id_users"];
+            clearValidatedSession();
+            redirect();
+        } else {
+            $_SESSION["server"] = "Не верный пароль или почта";
         }
+    } else {
+        $_SESSION["server"] = "Не корректные данные";
     }
     redirectYourself();
 }
 
+getModalHTML();
 include_once __DIR__ . "/header.php";
 ?>
 
@@ -48,10 +46,9 @@ include_once __DIR__ . "/header.php";
             <p class="error"></p>
         </div>
         <div class="field">
-            <p class="error server-error"><?= $_SESSION["errorField"]["server"] ?? "" ?></p>
             <input class="input button" type="submit" name="submit_button" value="Войти">
         </div>
     </form>
 </main>
 
-<?php clearValidatedSession(); include_once __DIR__ . "/footer.php"; ?>
+<?php include_once __DIR__ . "/footer.php"; ?>

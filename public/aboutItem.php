@@ -19,6 +19,10 @@ $item = makeSelectQuery("SELECT
     WHERE `items`.`id_items` = ?
 ", [$_GET["id_item"]], true);
 
+if ($item === false || empty($item)) {
+    redirect();
+}
+
 $itemProperties = makeSelectQuery("SELECT
     `items_properties`.`description_items_properties`,
     `properties`.`name_properties`
@@ -27,11 +31,14 @@ $itemProperties = makeSelectQuery("SELECT
     WHERE `items_properties`.`items_id_items_properties` = ?
 ", [$_GET["id_item"]], false);
 
-if (empty($item)) {
+
+if ($itemProperties === "FAIL") {
     redirect();
 }
 
 $comments = makeSelectQuery("SELECT
+    `comments`.`users_id_comments`,
+    `comments`.`id_comments`,
     `comments`.`text_comments`,
     `comments`.`rating_comments`,
     `comments`.`date_add_comments`,
@@ -43,19 +50,26 @@ $comments = makeSelectQuery("SELECT
     ORDER BY `comments`.`date_add_comments` DESC
 ", [$_GET["id_item"]], false);
 
+if ($comments === "FAIL") {
+    redirect();
+}
+
+
 $itemHTML = "
     <h1>$item[name_items], $item[name_items_type], $item[cost_items] p</h1>
     <h2>Рейтинг: <b>" . getRatingItem($_GET["id_item"]) . "</b></h2>
-    <img src='" . getValidImage(FOLDER_INDEX, $item["image_items"]) ."'>
+    <img src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]) ."'>
     <p>" . ($item["description_items"] ?? "Товар без описания") . "</p>
 ";
 
 if (isUserAuth()) {
-    $basket = makeSelectQuery("SELECT
-    *
-    FROM `baskets`
-    WHERE `status_id_baskets` = ? AND `items_id_baskets` = ? AND `users_id_baskets` = ?", [1, $_GET["id_item"], getUserID()], true);
-    if ($basket == []) {
+    $basket = makeSelectQuery("SELECT `count_baskets` FROM `baskets`
+        WHERE `status_id_baskets` = ? AND `items_id_baskets` = ? AND `users_id_baskets` = ?
+        ", [1, $_GET["id_item"], getUserID()], true
+    );
+    if ($basket === "FAIL") {
+        redirect();
+    } else if ($basket == []) {
         $itemHTML .= "<span class='item' data-id='$_GET[id_item]' data-count='$item[count_items]'>
             <button class='button basket' data-type='add'>Добавить в корзину</button>
             <span class='hidden counter-wrapper'>
@@ -76,7 +90,7 @@ if (isUserAuth()) {
     }
 }
     
-foreach ($itemProperties ?? [] as $property) {
+foreach ($itemProperties as $property) {
     $itemHTML .= "
         <span>
             <p>$property[name_properties]</p>
@@ -84,7 +98,7 @@ foreach ($itemProperties ?? [] as $property) {
         </span>
     ";
 }
-echo getModalHTML();
+getModalHTML();
 include_once __DIR__ . "/header.php";
 ?>
 
@@ -109,7 +123,7 @@ include_once __DIR__ . "/header.php";
                 <input type="submit" class="input button">
             </div>
         </form>
-        <?php } echo getCommentsHTML($comments)  ?>
+        <?php } echo getCommentsHTML($comments) ?>
     </section>
     <?php 
         if (isAdmin()) {
