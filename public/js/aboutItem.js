@@ -49,3 +49,13 @@ document.querySelectorAll("div .button[data-id]").forEach((button) => {
         }
     });
 });
+
+const idItem = window.location.search.split("?id_item=")[1];
+addEventListener("DOMContentLoaded", async () => {
+    if (performance.getEntriesByType("navigation")[0].type != "reload") {
+        await sendToServer({
+            "server_type": "add_view",
+            "id_item": idItem
+        });
+    }
+});

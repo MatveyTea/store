@@ -28,6 +28,7 @@ if (!empty($_POST["submit_button"])) {
     redirectYourself();
 }
 
+$data = $_SESSION["data"] ?? [];
 getModalHTML();
 include_once __DIR__ . "/header.php";
 ?>
@@ -37,7 +38,7 @@ include_once __DIR__ . "/header.php";
         <legend class="legend">Вход</legend>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="text" value="<?= $_SESSION["data"]["email_users"] ?? "" ?>" data-name="email_users" data-is-insert-server="<?= empty($_SESSION["data"]["email_users"]) ? 1 : 0 ?>" autocomplete="username">
+            <input class="input" type="text" value="<?= $data ["email_users"] ?? "" ?>" data-name="email_users" data-is-insert-server="<?= empty($data ["email_users"]) ? 1 : 0 ?>" autocomplete="username">
             <p class="error"></p>
         </div>
         <div class="field">

@@ -10,7 +10,7 @@ $idItem = $_GET["id_item"];
 
 if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     unset($_POST["submit_button"]);
-    $validatedData = getValidatedData(array_merge($_POST, $_FILES));
+    $validatedData = getValidatedData(array_merge($_POST, $_FILES, ["id_items" => $idItem]));
     $_SESSION["data"] = $validatedData["data"];
 
     if ($validatedData["isCorrect"]) {

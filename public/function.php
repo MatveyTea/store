@@ -264,10 +264,12 @@ function dateformat($datetime = null)
     return "$array[4]:$array[5], " . intval($array[3]) . " " . $months[$array[2] - 1] . " $array[1]";
 }
 
-function getValidationRules(): array
+function getValidationRules($file = "")
 {
     $result = [];
-    $file = basename($_SERVER["SCRIPT_NAME"]);
+    if ($file == "") {
+        $file = basename($_SERVER["SCRIPT_NAME"]);
+    }
 
     $rules = [
         // Пользователь
@@ -325,8 +327,8 @@ function getValidationRules(): array
         ],
         // Товар
         "id_items" => [
-            "files" => ["server.php"],
-            "required" => true,
+            "files" => ["index.php", "adminEditItem.php", "aboutItem.php"],
+            "required" => false,
             "canUpdate" => false,
             "pattern" => function ($value) {
                 return preg_match("/[0-9]{1,7}$/", $value);
@@ -341,8 +343,8 @@ function getValidationRules(): array
             }
         ],
         "count_items" => [
-            "files" => ["adminEditItem.php", "adminAddItem.php"],
-            "required" => true,
+            "files" => ["index.php", "adminEditItem.php", "adminAddItem.php"],
+            "required" => "index.php" != $file,
             "canUpdate" => $file == "adminEditItem.php",
             "pattern" => function ($value) {
                 return preg_match("/^[0-9]{1,7}$/", $value);
@@ -389,7 +391,7 @@ function getValidationRules(): array
         ],
         // Поиск товара
         "name_search_items" => [
-            "files" => ["server.php"],
+            "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
             "pattern" => function ($value) {
@@ -397,7 +399,7 @@ function getValidationRules(): array
             }
         ],
         "min_cost_items" => [
-            "files" => ["server.php"],
+            "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
             "pattern" => function ($value) {
@@ -405,7 +407,15 @@ function getValidationRules(): array
             }
         ],
         "max_cost_items" => [
-            "files" => ["server.php"],
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
+        "offset_search_items" => [
+            "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
             "pattern" => function ($value) {
@@ -413,16 +423,24 @@ function getValidationRules(): array
             }
         ],
         // Комментарии
+        "id_comments" => [
+            "files" => ["aboutItem.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
         "text_comments" => [
-            "files" => ["server.php"],
+            "files" => ["aboutItem.php"],
             "required" => false,
             "canUpdate" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
         ],
-        "rating_comments" => [//>5
-            "files" => ["server.php"],
+        "rating_comments" => [
+            "files" => ["aboutItem.php"],
             "required" => true,
             "canUpdate" => false,
             "pattern" => function ($value) {
@@ -430,6 +448,14 @@ function getValidationRules(): array
             }
         ],
         // Свойство у товаров
+        "id_items_properties" => [
+            "files" => ["adminEditItem.php", "adminAddItem.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
         "items_properties" => [
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => false,
@@ -517,23 +543,23 @@ function getValidationRules(): array
     }
     return $result;
 }
-function getValidatedData($array): array
+function getValidatedData($array, $file = ""): array
 {
     $result = [
         "data" => [],
-        "errorField" => [], // дебаг
+        "errorField" => [],
         "isCorrect" => false
     ];
 
     if ($array == null) return $result;
 
-    $validationRules = getValidationRules();
+    $validationRules = getValidationRules($file);
     if (empty($validationRules)) return $result;
 
     $currentCountCorrect = 0;
     foreach ($array as $key => $value) {
         if (empty($validationRules[$key])) {
-            $result["emptyRule"] = $key; // дебаг
+            $result["emptyRule"] = $key;
             continue;
         }
 
@@ -575,13 +601,14 @@ function getValidatedData($array): array
         $value = trim($value);
         $result["data"][$key] = $value;
 
+
         if (!$rule["required"] && $value == "") {
             $currentCountCorrect++;
             $result["errorField"][$key] = 0;
             continue;
         }
 
-        if ($rule["required"] && $value == "" && !$rule["pattern"]($value)) {
+        if (!$rule["pattern"]($value)) {
             $result["errorField"][$key] = 1;
             continue;
         } else {
@@ -696,6 +723,11 @@ function setAnswer($status, $data = [])
 
 function changeBasket($idItem, $countItem, $actionItem)
 {
+    $validatedData = getValidatedData(["id_items" => $idItem, "count_items" => $countItem], "index.php");
+
+    print_r($validatedData);
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
     $item = makeSelectQuery("SELECT `count_items` FROM `items` WHERE `id_items` = ?", [$idItem], true);
 
     if ($item == "FAIL" || empty($item)) setAnswer("FAIL");
@@ -748,19 +780,29 @@ function buyItems()
 
 function deleteItem($idItem)
 {
+    $validatedData = getValidatedData(["id_items" => $idItem,  "name_items" => 1, "count_items" => 1, "cost_items" => 1, "items_type_id_items" => 1], "adminEditItem.php");
+
+    print_r($validatedData);
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
     $isSuccess = makeSafeQuery("DELETE FROM `items` WHERE `id_items` = ?", [$idItem]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
 function searchItems($offset, $nameItems, $minCost, $maxCost)
 {
+    $validatedData = getValidatedData(["offset_search_items" => $offset, "name_search_items" => $nameItems, "min_cost_items" => $minCost, "max_cost_items" => $maxCost], "index.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
     $where = [];
     if ($nameItems != "") {
         $where[] = "`name_items` LIKE '%$nameItems%'";
     }
 
     if ($maxCost >= $minCost) {
-        if ($minCost > -1) {
+        if ($minCost >= 1) {
             $where[] = "`cost_items` >= $minCost";
         }
         if ($maxCost < 10_000_000) {
@@ -780,7 +822,7 @@ function searchItems($offset, $nameItems, $minCost, $maxCost)
 
 function addComment($idItem, $rating, $text)
 {
-    $validatedData = getValidatedData(["id_items" => $idItem, "rating_comments" => $rating, "text_comments" => $text]);
+    $validatedData = getValidatedData(["id_items" => $idItem, "rating_comments" => $rating, "text_comments" => $text], "aboutItem.php");
 
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
@@ -813,19 +855,27 @@ function addComment($idItem, $rating, $text)
         false
     );
 
-    if ($comment == "FAIL") setAnswer("FAI5L");
+    if ($comment == "FAIL") setAnswer("FAIL");
 
     setAnswer("OK", ["comments" => getCommentsHTML($comment), "rating" => getRatingItem($validatedData["id_items"])]);
 }
 
 function deleteItemProperties($idItemsProperties)
 {
+    $validatedData = getValidatedData(["id_items_properties" => $idItemsProperties], "adminEditItem.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
     $isSuccess = makeSafeQuery("DELETE FROM `items_properties` WHERE `id_items_properties` = ?", [$idItemsProperties]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
 function deleteFromTable($table, $id)
 {
+    $validatedData = getValidatedData(["id_$table" => $id], "adminEditTable.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
     if (!in_array($table, ["properties", "status", "items_type"])) setAnswer("FAIL");
     $isSuccess = makeSafeQuery("DELETE FROM `$table` WHERE `id_$table` = ?", [$id]);
     setAnswer($isSuccess ? "OK" : "FAIL");
@@ -833,10 +883,24 @@ function deleteFromTable($table, $id)
 
 function deleteComment($id)
 {
+    $validatedData = getValidatedData(["id_comments" => $id, "id_items" => 1, "rating_comments" => 1], "aboutItem.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
     $check = makeSelectQuery("SELECT `users_id_comments` FROM `comments` WHERE `id_comments` = ?", [$id], true);
 
     if ($check == "FAIL" || $check["users_id_comments"] != getUserID() || !isAdmin()) setAnswer("FAIL");
 
     $isSuccess = makeSafeQuery("DELETE FROM `comments` WHERE `id_comments` = ?", [$id]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function addView($idItem)
+{
+    $validatedData = getValidatedData(["id_items" => $idItem, "rating_comments" => 1], "aboutItem.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `items` SET `views_items` = `views_items` + 1 WHERE `id_items` = ?", [$idItem]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }

@@ -12,7 +12,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     $_SESSION["data"] = $validatedData["data"];
 
     if ($validatedData["isCorrect"]) {
-        $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true]), ["date_add_items" => date("y-m-d")]));
+        $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true]), ["date_add_items" => date("y-m-d"), "views_items" => 0]));
         $isSucceedItem = makeSafeQuery("INSERT INTO `items` ($tempSQL[sql]) VALUES ($tempSQL[question])", $tempSQL["params"]);
         $id = $link->lastInsertId();
 
