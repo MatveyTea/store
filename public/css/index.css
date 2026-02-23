@@ -1,24 +1,25 @@
 section {
     display: flex;
+    justify-content: space-between;
     flex-wrap: wrap;
     gap: 40px;
     margin: 50px auto;
 }
 
-section span {
+section span[data-id] {
     width: calc(20% - 40px - (15px * 2));
 }
 
-section span[data-id] a{
+section span[data-id] a {
     width: 100%;
-    height: 175px;
+    height: 275px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     padding: 15px;
 }
 section span[data-id]:has(.basket) {
-    height: 250px !important;
+    height: max-content !important;
 }
 
 section span[data-id] img {
@@ -66,6 +67,18 @@ section span[data-id] span p {
 
 @media (max-width: 1440px) {
     section span[data-id] {
-        width: calc(25% - 40px - (15px * 2));
+        width: calc(33% - 30px);
+    }
+}
+
+@media (max-width: 767px) {
+    section span[data-id] {
+        width: calc(50% - 20px);
+    }
+}
+
+@media (max-width: 360px) {
+    section span[data-id] {
+        width: 100%;
     }
 }

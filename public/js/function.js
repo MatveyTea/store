@@ -365,6 +365,24 @@ function getValidationRules() {
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
             }
         },
+        "items_type_id_search_items": {
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "тип товара",
+            "inputs": null,
+            "nameRule": "items_type_id_search_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": 7,
+            "placeMsg": null,
+            "check": function (input) {
+                return false;
+            }
+        },
         "min_cost_items": {
             "hasName": true,
             "connectedRules": null,
@@ -405,6 +423,84 @@ function getValidationRules() {
                     return false;
                 }
                 return  "Введите число до 9 999 999";
+            }
+        },
+        "min_count_items": {
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "мин. количество",
+            "inputs": null,
+            "nameRule": "min_count_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": 7,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[0-9]{1,7}$/.test(input.value)) {
+                    return false;
+                }
+                return  "Введите число до 9 999 999";
+            }
+        },
+        "max_count_items": {
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "макс. количество",
+            "inputs": null,
+            "nameRule": "max_cost_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": 7,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[0-9]{1,7}$/.test(input.value)) {
+                    return false;
+                }
+                return  "Введите число до 9 999 999";
+            }
+        },
+        "strict_search": {
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "искать товары подходящие по всем фильтрам",
+            "inputs": null,
+            "nameRule": "strict_search",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                return false;
+            }
+        },
+        "popular_items": {
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "искать только среди популярных товаров",
+            "inputs": null,
+            "nameRule": "popular_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                return false;
             }
         },
         // Комментарии

@@ -73,6 +73,10 @@ body main {
     gap: 15px;
 }
 
+form .field:has(.input[type=checkbox]) {
+    display: block;
+}
+
 .form .field.hidden {
     display: none;
 }
@@ -96,6 +100,10 @@ body main {
     border-bottom: 1px solid black;
 }
 
+.form .field .input[type=checkbox] {
+    width: 10%;
+}
+
 .form .field input.button {
     width: 50%;
     height: 50px;
@@ -111,10 +119,6 @@ body main {
     color: crimson;
 }
 
-.form .field .server-error {
-    text-align: center;
-}
-
 
 .form .field .textarea {
     max-height: 150px;
@@ -128,6 +132,7 @@ body main {
 .avatar {
     height: 50px;
     aspect-ratio:  1 / 1;
+    object-fit: cover;
     border-radius: 50%;
     border: 1px solid black;
 }

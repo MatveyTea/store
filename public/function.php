@@ -135,76 +135,85 @@ function makeSafeQuery($query, $params)
     }
 }
 
-function getItems($limit = 50, $offset = 0, $where = "")
+function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItems = false)
 {
     $result = "";
     $items = [];
     $userItems = [];
 
-    try {
-        $items = $GLOBALS["link"]->prepare("SELECT
-            `id_items`,
-            `name_items`,
-            `count_items`,
-            `image_items`,
-            `cost_items`
-            FROM `items`
-            $where
-            ORDER BY `id_items` DESC, `id_items` DESC
-            LIMIT :limit
-            OFFSET :offset
-        ");
-        $items->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $items->bindParam(':offset', $offset, PDO::PARAM_INT);
-        $items->execute();
-        $items = $items->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Throwable $e) {
-    }
+    $orderBy = $isPopularItems ? "`views_items` DESC," : "";
+
+    $items = makeSelectQuery(
+        "SELECT
+        `id_items`,
+        `name_items`,
+        `count_items`,
+        `image_items`,
+        `cost_items`
+        FROM `items`
+        $whereSQL
+        ORDER BY $orderBy `id_items` DESC
+        LIMIT 50 OFFSET $offset
+        ", $whereParams, false
+    );
+    if ($items == "FAIL") return $result;
 
     if (isUserAuth()) {
-        try {
-            $userItems = $GLOBALS["link"]->prepare("SELECT `items_id_baskets`, `count_baskets` FROM `baskets` WHERE `users_id_baskets` = ? AND `status_id_baskets` = 1");
-            $userItems->execute([getUserID()]);
-            $userItems = $userItems->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Throwable $e) {
-        }
+        $userItems = makeSelectQuery(
+            "SELECT
+            `items_id_baskets`, `count_baskets`
+            FROM `baskets`
+            WHERE `users_id_baskets` = ? AND `status_id_baskets` = ?
+            ", [getUserID(), 1], false
+        );
+        if ($userItems == "FAIL") return $result;
     }
 
+    $result = getItemsHTML($items, $userItems);
+
+    return $result;
+}
+
+function getItemsHTML($items, $userItems)
+{
+    $result = "";
     foreach ($items as $item) {
         $basket = "";
-
         foreach ($userItems as $userItem) {
             if ($userItem["items_id_baskets"] == $item["id_items"]) {
                 $basket = "<button class='basket button' data-type='remove'>Убрать из корзины</button>
-                <span class='counter-wrapper'>
-                    <button class='minus button'>-</button>
-                    <p class='counter'>В корзине: <b class='counterText'>$userItem[count_baskets]</b></p>
-                    <button class='plus button'>+</button>
-                </span>";
+                    <span class='counter-wrapper'>
+                        <button class='minus button'>-</button>
+                        <p class='counter'>В корзине: <b class='counterText'>$userItem[count_baskets]</b></p>
+                        <button class='plus button'>+</button>
+                    </span>
+                ";
                 break;
             }
         }
 
         if ($basket == "" && isUserAuth()) {
             $basket = "<button class='button basket' data-type='add'>Добавить в корзину</button>
-            <span class='hidden counter-wrapper'>
-                <button class='minus button'>-</button>
-                <p class='counter'>В корзине: <b class='counterText'>0</b></p>
-                <button class='plus button'>+</button>
-            </span>";
+                <span class='hidden counter-wrapper'>
+                    <button class='minus button'>-</button>
+                    <p class='counter'>В корзине: <b class='counterText'>0</b></p>
+                    <button class='plus button'>+</button>
+                </span>
+            ";
         }
 
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
-            <a href ='aboutItem.php?id_item=$item[id_items]' class='item_link' >
-                <img src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]) . "' class='item_image''>
-                <p class='item_name'>$item[name_items]</p>
-                <p class='item_count'>Количество: $item[count_items]</p>
-                <p class='item_cost'>Стоимость: $item[cost_items]р</p>
-            </a>
-            $basket
-        </span>";
+                <a href ='aboutItem.php?id_item=$item[id_items]' class='item_link' >
+                    <p>№ $item[id_items]</p>
+                    <img src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]) . "' class='item_image''>
+                    <p class='item_name'>$item[name_items]</p>
+                    <p class='item_count'>Количество: $item[count_items]</p>
+                    <p class='item_cost'>Стоимость: $item[cost_items]р</p>
+                </a>
+                $basket
+            </span>
+        ";
     }
-
     return $result;
 }
 
@@ -277,6 +286,7 @@ function getValidationRules($file = "")
             "files" => ["reg.php", "profile.php"],
             "required" => true,
             "canUpdate" => true,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[а-яёА-Я Ё-]{1,30}$/u", $value);
             }
@@ -285,6 +295,7 @@ function getValidationRules($file = "")
             "files" => ["reg.php", "auth.php"],
             "required" => true,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/", $value);
             },
@@ -293,7 +304,7 @@ function getValidationRules($file = "")
             "files" => ["reg.php", "auth.php", "profile.php"],
             "required" => true,
             "canUpdate" => true,
-            "link_key" => in_array($file, ["reg.php", "profile.php"]) ? "re_password_users" : null,
+            "returned_value" => false,
             "pattern" => function ($value) use ($file) {
                 if (preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value)) {
                     return $file == "auth.php" ? $value : password_hash($value, PASSWORD_DEFAULT);
@@ -305,8 +316,8 @@ function getValidationRules($file = "")
             "files" => ["reg.php", "profile.php"],
             "required" => true,
             "canUpdate" => true,
-            "link_key" => in_array($file, ["reg.php", "profile.php"]) ? "password_users" : null,
-            "pattern" => function ($value) use ($file) {
+            "returned_value" => false,
+            "pattern" => function ($value) {
                 return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
             }
         ],
@@ -314,6 +325,7 @@ function getValidationRules($file = "")
             "files" => ["profile.php"],
             "required" => false,
             "canUpdate" => true,
+            "returned_value" => true,
             "pattern" => function ($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
                 if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
@@ -330,6 +342,7 @@ function getValidationRules($file = "")
             "files" => ["index.php", "adminEditItem.php", "aboutItem.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/[0-9]{1,7}$/", $value);
             }
@@ -338,6 +351,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => true,
             "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
@@ -346,6 +360,7 @@ function getValidationRules($file = "")
             "files" => ["index.php", "adminEditItem.php", "adminAddItem.php"],
             "required" => "index.php" != $file,
             "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[0-9]{1,7}$/", $value);
             }
@@ -354,6 +369,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => true,
             "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[0-9]{1,7}$/", $value);
             }
@@ -362,6 +378,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => false,
             "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => false,
             "pattern" => function ($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
                 if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
@@ -377,6 +394,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => true,
             "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/[0-9]{1,7}$/", $value);
             }
@@ -385,6 +403,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => false,
             "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
@@ -394,32 +413,90 @@ function getValidationRules($file = "")
             "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => true,
             "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+                if (preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value)) {
+                    return ["sql" => "`name_items` LIKE ?", "param" => "%$value%"];
+                }
+                return false;
             }
         ],
         "min_cost_items" => [
             "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => true,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
+                if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                    return ["sql" => "`cost_items` > ?", "param" => $value];
+                }
+                return false;
             }
         ],
         "max_cost_items" => [
             "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => true,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
+                    if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                    return ["sql" => "`cost_items` < ?", "param" => $value];
+                }
+                return false;
+            }
+        ],
+        "min_count_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                    return ["sql" => "`count_items` > ?", "param" => $value];
+                }
+                return false;
+            }
+        ],
+        "max_count_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                    if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                    return ["sql" => "`count_items` < ?", "param" => $value];
+                }
+                return false;
             }
         ],
         "offset_search_items" => [
             "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
+        "strict_search" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return $value == "on";
+            }
+        ],
+        "popular_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if ($value == "on") {
+                    return ["sql" => "`views_items` > ?", "param" => 0];
+                }
+                return false;
             }
         ],
         // Комментарии
@@ -427,6 +504,7 @@ function getValidationRules($file = "")
             "files" => ["aboutItem.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[0-9]{1,7}$/", $value);
             }
@@ -435,6 +513,7 @@ function getValidationRules($file = "")
             "files" => ["aboutItem.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
@@ -443,6 +522,7 @@ function getValidationRules($file = "")
             "files" => ["aboutItem.php"],
             "required" => true,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[1-5]$/", $value);
             }
@@ -452,6 +532,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[0-9]{1,7}$/", $value);
             }
@@ -460,6 +541,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditItem.php", "adminAddItem.php"],
             "required" => false,
             "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => true,
             "pattern" => function ($value) {
                 $isCorrect = true;
                 $properties = json_decode($value, true) ?? [];
@@ -488,6 +570,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditTable.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/[0-9]{1,7}$/", $value);
             }
@@ -496,6 +579,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditTable.php"],
             "required" => false,
             "canUpdate" => true,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
@@ -505,6 +589,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditTable.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/[0-9]{1,7}$/", $value);
             }
@@ -513,6 +598,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditTable.php"],
             "required" => false,
             "canUpdate" => true,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
@@ -522,6 +608,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditTable.php"],
             "required" => false,
             "canUpdate" => false,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/[0-9]{1,7}$/", $value);
             }
@@ -530,6 +617,7 @@ function getValidationRules($file = "")
             "files" => ["adminEditTable.php"],
             "required" => false,
             "canUpdate" => true,
+            "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
             }
@@ -565,29 +653,15 @@ function getValidatedData($array, $file = ""): array
 
         $rule = $validationRules[$key];
 
-        if ($key == "password_users" || $key == "re_password_users") {
-            if (
-                !empty($array["re_password_users"]) && !empty($array["password_users"]) &&
-                ($key == "re_password_users" && $value != $array["password_users"] ||
-                    $key == "password_users" && $value != $array["re_password_users"] ||
-                    !empty($rule["link_key"]) && empty($array[$rule["link_key"]]))
-            ) {
-                $result["data"][$key] = $value;
-                $result["errorField"][$key] = 1;
-            } else {
-                $result["errorField"][$key] = 0;
-                $result["data"][$key] = $rule["pattern"]($value);
-                $currentCountCorrect++;
-            }
-            continue;
-        }
-
-        if (($key == "image_items" || $key == "avatar_users" || $key == "items_properties") && is_callable($rule["pattern"])) {
-            $image = $rule["pattern"]($value);
-            if ($image !== false) {
-                $result["errorField"][$key] = 0;
-
-                $result["data"][$key] = $image;
+        if ($value != "" && $rule["returned_value"]) {
+            $returnedValue = $rule["pattern"]($value);
+            if ($returnedValue !== false) {
+                if ($key == "password_users" && !empty($array["re_password_users"]) && $value != $array["re_password_users"]) {
+                    $result["errorField"][$key] = 1;
+                } else {
+                    $result["errorField"][$key] = 0;
+                }
+                $result["data"][$key] = $returnedValue;
                 $currentCountCorrect++;
             } else {
                 $result["errorField"][$key] = 1;
@@ -600,7 +674,6 @@ function getValidatedData($array, $file = ""): array
 
         $value = trim($value);
         $result["data"][$key] = $value;
-
 
         if (!$rule["required"] && $value == "") {
             $currentCountCorrect++;
@@ -725,7 +798,6 @@ function changeBasket($idItem, $countItem, $actionItem)
 {
     $validatedData = getValidatedData(["id_items" => $idItem, "count_items" => $countItem], "index.php");
 
-    print_r($validatedData);
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
     $item = makeSelectQuery("SELECT `count_items` FROM `items` WHERE `id_items` = ?", [$idItem], true);
@@ -782,41 +854,47 @@ function deleteItem($idItem)
 {
     $validatedData = getValidatedData(["id_items" => $idItem,  "name_items" => 1, "count_items" => 1, "cost_items" => 1, "items_type_id_items" => 1], "adminEditItem.php");
 
-    print_r($validatedData);
-
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
     $isSuccess = makeSafeQuery("DELETE FROM `items` WHERE `id_items` = ?", [$idItem]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
-function searchItems($offset, $nameItems, $minCost, $maxCost)
+function searchItems($json)
 {
-    $validatedData = getValidatedData(["offset_search_items" => $offset, "name_search_items" => $nameItems, "min_cost_items" => $minCost, "max_cost_items" => $maxCost], "index.php");
+    unset($json["server_type"]);
+    $data = getValidatedData($json, "index.php");
+    if (!$data["isCorrect"]) setAnswer("FAIL");
 
-    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+    $data = $data["data"];
+    $isPopularItems = !empty($data["popular_items"]);
+    $offset = $data["offset_search_items"];
+    $strictType = empty($data["strict_search"]) ? "OR" : "AND";
+    unset($data["offset_search_items"], $data["strict_search"]);
 
-    $where = [];
-    if ($nameItems != "") {
-        $where[] = "`name_items` LIKE '%$nameItems%'";
-    }
-
-    if ($maxCost >= $minCost) {
-        if ($minCost >= 1) {
-            $where[] = "`cost_items` >= $minCost";
+    $whereSQL = "";
+    $whereParams = [];
+    if (!empty($data)) {
+        $whereSQL = "WHERE ";
+        $isSpecificSearch = count($data) > 1 && $isPopularItems;
+        if ($isSpecificSearch) {
+            $whereSQL .= $data["popular_items"]["sql"] . " AND (";
+            $whereParams[] = $data["popular_items"]["param"];
+            unset($data["popular_items"]);
         }
-        if ($maxCost < 10_000_000) {
-            $where[] = "`cost_items` <= $maxCost";
+        $lastKey = array_key_last($data);
+        foreach ($data as $key => $value) {
+            $whereSQL .= $value["sql"];
+            $whereParams[] = $value["param"];
+            if ($key != $lastKey) {
+                $whereSQL .= " $strictType ";
+            }
+        }
+        if ($isSpecificSearch) {
+            $whereSQL .= ")";
         }
     }
-
-    if ($where != []) {
-        $where = "WHERE " . join(" AND ",  $where);
-    } else {
-        $where = "";
-    }
-
-    $items = getItems(50, $offset, $where);
+    $items = getItems($offset, $whereSQL, $whereParams, $isPopularItems);
     setAnswer(empty($items) ? "NOTFOUND" : "OK", $items);
 }
 

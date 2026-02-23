@@ -7,6 +7,7 @@ if (!empty(file_get_contents("php://input"))) {
     $serverType = $json["server_type"] ?? "";
     $isAuth = isUserAuth();
     $isAdmin = isAdmin();
+  
 
     if ($isAuth && $serverType == "basket" && !empty($json["id_item"]) && isset($json["count_item"]) && !empty($json["action_item"])) { // index.js и aboutItem.js - Добавление и удаление товаров в корзине
         changeBasket($json["id_item"], $json["count_item"], $json["action_item"]);
@@ -14,10 +15,8 @@ if (!empty(file_get_contents("php://input"))) {
         buyItems();
     } else if ($isAdmin && $serverType == "delete_items" && !empty($json["id_item"])) { // adminEditItem.js - Удаление товара++
         deleteItem($json["id_item"]);
-    } else if ($serverType == "search_items" && isset($json["offset"])) { // index.js - Поиск товаров
-        $minCount = $json["min_cost_items"] == "" ? 1 : intval($json["min_cost_items"]);
-        $maxCount = $json["max_cost_items"] == "" ? 10_000_000 : intval($json["max_cost_items"]);
-        searchItems($json["offset"], trim($json["name_search_items"]), $minCount, $maxCount);
+    } else if ($serverType == "search_items" && isset($json["offset_search_items"])) { // index.js - Поиск товаров
+        searchItems($json);
     } else if ($isAuth && $serverType == "add_comment" && !empty($json["id_items"] && !empty($json["rating_comments"]))) { // aboutItem.js - Добавление комментария о товаре
         addComment($json["id_items"], $json["rating_comments"], $json["text_comments"] ?? "");
     } else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_items_properties"])) { // adminEditItem.js - Удаление свойства у товара

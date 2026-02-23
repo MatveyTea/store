@@ -21,6 +21,7 @@ buttons.forEach((button) => {
         if (resultData["status"] == "OK") {
             form.remove();
         } else {
+            showModal("Не удалось выполнить запрос")
             form.classList.remove("hidden");
         }
     })
