@@ -10,7 +10,7 @@ $idItem = $_GET["id_item"];
 
 if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     unset($_POST["submit_button"]);
-    $validatedData = getValidatedData(array_merge($_POST, $_FILES, ["id_items" => $idItem]));
+    $validatedData = getValidatedData(array_merge($_POST, $_FILES));
     $_SESSION["data"] = $validatedData["data"];
 
     if ($validatedData["isCorrect"]) {
@@ -18,32 +18,40 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $params = [];
 
         $itemProperties = $validatedData["data"]["items_properties"] ?? [];
-        $itemPropertiesDB = makeSelectQuery("SELECT `id_items_properties`, `properties_id_items_properties` FROM `items_properties` WHERE `items_id_items_properties` = ?", [$idItem], false);
-        $countPropertiesDB = count($itemPropertiesDB);
-        $maxProperties = makeSelectQuery("SELECT COUNT(*) as `max_count` FROM `properties`", [], true);
-
-        if ($itemPropertiesDB === "FAIL" || $maxProperties === "FAIL") {
+        $itemPropertiesDB = makeSelectQuery(
+            "SELECT
+            `attributes_id_items_properties`
+            FROM `items_properties`
+            JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
+            WHERE `items_id_items_properties` = ?
+            ",
+            [$idItem],
+            false
+        );
+        if ($itemPropertiesDB == "FAIL") {
             $_SESSION["server"] = "Не удалось выполнить запрос";
             redirectYourself("id_item=$idItem");
         }
 
-        $maxProperties = $maxProperties["max_count"];
-
         foreach ($itemProperties as $property) {
-            if (empty($property["id_items_properties"]) && $maxProperties > $countPropertiesDB && !in_array($property["properties_id_items_properties"], $itemPropertiesDB)) {
-                $countPropertiesDB++;
-                $tempSQL = getInsertSQL(array_merge($property, ["items_id_items_properties" => $idItem]));
-                $sql .= "INSERT INTO `items_properties` ($tempSQL[sql]) VALUES ($tempSQL[question]);";
-                array_push($params, ...$tempSQL["params"]);
-            } else if (!empty($property["id_items_properties"]) && in_array($property["id_items_properties"], $itemPropertiesDB)) {
-                $tempSQL = getUpdateSQL(array_diff_key($property, ["id_items_properties" => true]));
-                $sql .= "UPDATE `items_properties` SET $tempSQL[sql] WHERE `id_items_properties` = ?;";
-                $tempSQL["params"][] = $property["id_items_properties"];
-                array_push($params, ...$tempSQL["params"]);
+            if ($property["type"] == "remove") {
+                $sql .= "DELETE FROM `items_properties` WHERE `attributes_id_items_properties` = ? AND `items_id_items_properties` = ?;";
+                array_push($params, $property["id"], $idItem);
+            } else if ($property["type"] == "add") {
+                $canInsert = true;
+                foreach ($itemPropertiesDB as $propertyDB) {
+                    if ($propertyDB["attributes_id_items_properties"] == $property["id"]) {
+                        $canInsert = false;
+                    }
+                }
+                if ($canInsert) {
+                    $sql .= "INSERT INTO `items_properties` (`items_id_items_properties`, `attributes_id_items_properties`) VALUES (?, ?);";
+                    array_push($params, $idItem, $property["id"]);
+                }
             }
         }
 
-        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["items_properties" => true, "id_items_properties" => true]));
+        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["items_properties" => true]));
         if ($result["sql"] != "") {
             $sql .= "UPDATE `items` SET $result[sql] WHERE `id_items` = ?;";
             $result["params"][] = $idItem;
@@ -59,24 +67,12 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
             }
         } else {
             $_SESSION["server"] = "Не удалось выполнить запрос";
-            redirectYourself("id_item=$idItem");
         }
     } else {
         $_SESSION["server"] = "Не корректные данные";
     }
 
     redirectYourself("id_item=$idItem");
-}
-
-$allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
-
-if ($allProperties === "FAIL") {
-    redirect();
-}
-
-$allPropertiesHTML = "";
-foreach ($allProperties as $option) {
-    $allPropertiesHTML .= "<option value='$option[id_properties]'>$option[name_properties]</option>";
 }
 
 $itemInfo = makeSelectQuery("SELECT
@@ -91,74 +87,101 @@ $itemInfo = makeSelectQuery("SELECT
     JOIN `items_type` ON `items_type`.`id_items_type` = `items`.`items_type_id_items`
     WHERE `id_items` = ?
 ", [$idItem], true);
-
 if ($itemInfo === "FAIL" || empty($itemInfo)) {
     redirect();
 }
 
-$itemProperties = makeSelectQuery("SELECT
-    `id_items_properties`,
-    `properties_id_items_properties`,
-    `description_items_properties`
-    FROM `items_properties`
-    JOIN `properties` ON `properties`.`id_properties` = `items_properties`.`properties_id_items_properties`
-    WHERE `items_properties`.`items_id_items_properties` = ?
-    ", [$idItem], false
-);
+$allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
+if ($allProperties === "FAIL") {
+    redirect();
+}
+$allPropertiesHTML = "";
+foreach ($allProperties as $option) {
+    $allPropertiesHTML .= "<option value='$option[id_properties]'>$option[name_properties]</option>";
+}
 
-if ($itemProperties === "FAIL") {
+$allAttributes = makeSelectQuery("SELECT * FROM `attributes`", [], false);
+if ($allAttributes == "FAIL") {
+    redirect();
+}
+$allAttributesHTML = "";
+foreach ($allAttributes as $attribute) {
+    $allAttributesHTML .= "<label class='hidden'>$attribute[value_attributes]<input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_select_value' data-is-insert-server='1'></label>";
+}
+
+$dataValue = [];
+$attributesHTML = "";
+$propertyID = null;
+$attributesItem = makeSelectQuery(
+    "SELECT 
+    `attributes`.`id_attributes`,
+    `attributes`.`value_attributes`,
+    `properties`.`id_properties`,
+    `attributes_id_items_properties`,
+    `properties`.`name_properties`
+    FROM `items_properties`
+    LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
+    LEFT JOIN `properties` ON `properties_id_attributes` = `id_properties`
+    WHERE `items_id_items_properties` = ?
+    ORDER BY `properties_id_attributes`
+    ",
+    [$idItem],
+    false
+);
+if ($attributesItem === "FAIL") {
     redirect();
 }
 
-$itemPropertiesHTML = "";
-
-foreach ($itemProperties as $key => $property) {
-    $startIndexValue = strpos($allPropertiesHTML, "value='$property[properties_id_items_properties]'");
-    $selectSelected = substr($allPropertiesHTML, 0, $startIndexValue) . "selected " . substr($allPropertiesHTML, $startIndexValue);
-    $no = $key + 1;
-    $itemPropertiesHTML .= "<div class='field additional'>
-        <h2>№<b>$no</b></h2>
-        <div class='field hidden'>
-            <label class='label'></label>
-            <input class='hidden input' type='text' value='$property[id_items_properties]' data-name='id_items_properties' data-is-insert-server='1'>
-            <p class='error'></p>
-        </div>
-        <div class='field'>
-            <label class='label'></label>
-            <select class='input' data-name='properties_id_items_properties' data-is-insert-server='1'>
-                <option value='' disabled selected>Выбрать</option>
-                $selectSelected
-            </select>
-            <p class='error'></p>
-        </div>
-        <div class='field'>
-            <label class='label'></label>
-            <input class='input' type='text' value='$property[description_items_properties]' data-name='description_items_properties' data-is-insert-server='1'>
-            <p class='error'></p>
-        </div>
-        <div class='field' data-id='$property[id_items_properties]'>
-            <span class='button'>Удалить</span>
-        </div>
-    </div>
-    ";
+if (!empty($attributesItem)) {
+    foreach ($attributesItem as $key => $attribute) {
+        if ($key == 0) {
+            $dataValue[] = $attribute["id_attributes"];
+            continue;
+        }
+        if ($propertyID != $attribute["id_properties"] && $propertyID != null) {
+            $attributesHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[$key - 1]["id_properties"], $dataValue);
+            $dataValue = [];
+        }
+        $propertyID = $attribute["id_properties"];
+        $dataValue[] = $attribute["id_attributes"];
+    }
+    $attributesHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
 }
 
-$types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
+$attributes = makeSelectQuery(
+    "SELECT 
+    `attributes`.`id_attributes`,
+    `attributes`.`value_attributes`,
+    `properties`.`id_properties`,
+    `properties`.`name_properties`
+    FROM `attributes`
+    JOIN `properties` ON `properties`.`id_properties` = `attributes`.`properties_id_attributes`
+    ORDER BY `properties`.`id_properties`
+    ",
+    [],
+    false
+);
+if ($attributes == "FAIL") redirect();
+$dependencies = [];
+foreach ($attributes as $attribute) {
+    $dependencies[$attribute["id_properties"]][] = $attribute["id_attributes"];
+}
+$dependencies = json_encode($dependencies);
 
+$types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
 if ($types === "FAIL") {
     redirect();
 }
-
 $typesHTML = "";
 foreach ($types as $type) {
     $selected = $type["id_items_type"] == $itemInfo["items_type_id_items"] ? "selected" : "";
     $typesHTML .= "<option value='$type[id_items_type]' $selected>$type[name_items_type]</option>";
 }
 
-echo getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, false);
-getModalHTML();
-
 include_once __DIR__ . "/header.php";
+getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $idItem);
+getModalHTML();
+echo "<template id='dependencies'>$dependencies</template>";
 ?>
 
 <main class="content">
@@ -199,12 +222,11 @@ include_once __DIR__ . "/header.php";
             <p class="error"></p>
         </div>
         <div class="field">
-            <label class='label hidden'></label>
             <input type="hidden" class="hidden input" data-name="items_properties">
-            <button class="additional button">Добавить дополнительное описание</button>
+            <button class="additional button">Добавить свойства</button>
             <p class="error"></p>
         </div>
-        <?= $itemPropertiesHTML ?>
+        <?= $attributesHTML ?>
         <div class="field">
             <input type="submit" class="input button" name="submit_button" value="Обновить">
         </div>

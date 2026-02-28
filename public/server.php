@@ -19,8 +19,8 @@ if (!empty(file_get_contents("php://input"))) {
         searchItems($json);
     } else if ($isAuth && $serverType == "add_comment" && !empty($json["id_items"] && !empty($json["rating_comments"]))) { // aboutItem.js - Добавление комментария о товаре
         addComment($json["id_items"], $json["rating_comments"], $json["text_comments"] ?? "");
-    } else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_items_properties"])) { // adminEditItem.js - Удаление свойства у товара
-        deleteItemProperties($json["id_items_properties"]);
+    } else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_properties"])) { // adminEditItem.js - Удаление свойства у товара
+        deleteItemProperties($json["id_properties"]);
     } else if ($isAdmin && $serverType == "delete_from_table" && !empty($json["id"]) && !empty($json["table"])) { // adminEditTable.js - Удаление поля из таблиц ("properties" или "status" или "items_type")
         deleteFromTable($json["table"], $json["id"]);
     } else if ($isAuth && $serverType == "delete_comment" && !empty($json["id_comment"])) {

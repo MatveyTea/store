@@ -26,3 +26,27 @@ buttons.forEach((button) => {
         }
     })
 });
+
+
+document.querySelectorAll(".form").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+        const ids = form.querySelectorAll(".input[data-name='id_attributes']");
+        const values = form.querySelectorAll(".input[data-name='value_attributes']");
+        const result = [];
+        for (let i = 0; i < ids.length; i++) {
+            let array = {};
+            if (ids[i] && ids[i].value != "") {
+                array["id_attributes"] = ids[i].value;
+            }
+            if (values[i].value != "" && values[i].dataset.isInsertServer == 0) {
+                array["value_attributes"] = values[i].value;
+            }
+            result.push(array);
+        }
+        if (result.length > 0) {
+            const attributes = form.querySelector(".input[data-name='attributes']");
+            attributes.value = JSON.stringify(result);
+            attributes.setAttribute("name", attributes.dataset.name);
+        }
+    });
+});

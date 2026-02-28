@@ -20,19 +20,9 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $params = [];
 
         $itemProperties = $validatedData["data"]["items_properties"] ?? [];
-        $maxProperties = makeSelectQuery("SELECT COUNT(*) as `max_count` FROM `properties`", [], true);
-        
-        if ($maxProperties === "FAIL") {
-            $_SESSION["server"] = "Не удалось выполнить запрос";
-            redirectYourself();
-        }
-
-        $maxProperties = $maxProperties["max_count"];
-
         foreach ($itemProperties as $property) {
-            $tempSQL = getInsertSQL(array_merge($property, ["items_id_items_properties" => $id]));
-            $sql .= "INSERT INTO `items_properties` ($tempSQL[sql]) VALUES ($tempSQL[question]);";
-            array_push($params, ...$tempSQL["params"]);
+            $sql .= "INSERT INTO `items_properties` (`items_id_items_properties`, `attributes_id_items_properties`) VALUES (?, ?);";
+            array_push($params, $id, $property["id"]);
         }
 
         if ($sql != "" && $params != [] && makeSafeQuery($sql, $params) || $isSucceedItem) {
@@ -49,42 +39,63 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
 }
 
 $allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
-
 if ($allProperties === "FAIL") {
     redirect();
 }
-
 $allPropertiesHTML = "";
 foreach ($allProperties as $option) {
     $allPropertiesHTML .= "<option value='$option[id_properties]'>$option[name_properties]</option>";
 }
 
-$itemProperties = $_SESSION["data"]["items_properties"] ?? [];
-$itemPropertiesHTML = "";
-foreach ($itemProperties as $key => $property) {
-    $selectSelected = substr($allPropertiesHTML, 0, strpos($allPropertiesHTML, "value='$property[properties_id_items_properties]'")) . "selected " . substr($allPropertiesHTML, strpos($allPropertiesHTML, "value='$property[properties_id_items_properties]'"));
-    $no = $key + 1;
-    $itemPropertiesHTML .= "<div class='field additional'>
-        <h2>№<b>$no</b></h2>
-        <div class='field'>
-            <label class='label'></label>
-            <select class='input' data-name='properties_id_items_properties' data-is-insert-server='1'>
-                <option value='' disabled selected>Выбрать</option>
-                $selectSelected
-            </select>
-            <p class='error'></p>
-        </div>
-        <div class='field'>
-            <label class='label'></label>
-            <input class='input'type='text' value='$property[description_items_properties]' data-name='description_items_properties'  data-is-insert-server='1'>
-            <p class='error'></p>
-        </div>
-        <div class='field'>
-            <span class='button'>Удалить</span>
-        </div>
-    </div>
-    ";
+$allAttributes = makeSelectQuery("SELECT * FROM `attributes`", [], false);
+if ($allAttributes == "FAIL") {
+    redirect();
 }
+$allAttributesHTML = "";
+foreach ($allAttributes as $attribute) {
+    $allAttributesHTML .= "<label class='hidden'>$attribute[value_attributes]<input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_select_value' data-is-insert-server='1'></label>";
+}
+
+$dataValue = [];
+$propertyID = null;
+$attributesItem = $_SESSION["data"]["item_properties"] ?? [];
+$attributesItemHTML = "";
+if (!empty($attributesItem)) {
+    foreach ($attributesItem as $key => $attribute) {
+        if ($key == 0) {
+            $dataValue[] = $attribute["id_attributes"];
+            continue;
+        }
+        if ($propertyID != $attribute["id_properties"] && $propertyID != null) {
+            $attributesItemHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[$key - 1]["id_properties"], $dataValue);
+            $dataValue = [];
+        }
+        $propertyID = $attribute["id_properties"];
+        $dataValue[] = $attribute["id_attributes"];
+    }
+    $attributesItemHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
+}
+
+
+$attributes = makeSelectQuery(
+    "SELECT 
+    `attributes`.`id_attributes`,
+    `attributes`.`value_attributes`,
+    `properties`.`id_properties`,
+    `properties`.`name_properties`
+    FROM `attributes`
+    JOIN `properties` ON `properties`.`id_properties` = `attributes`.`properties_id_attributes`
+    ORDER BY `properties`.`id_properties`
+    ",
+    [],
+    false
+);
+if ($attributes == "FAIL") redirect();
+$dependencies = [];
+foreach ($attributes as $attribute) {
+    $dependencies[$attribute["id_properties"]][] = $attribute["id_attributes"];
+}
+$dependencies = json_encode($dependencies);
 
 $types = $link->query("SELECT * FROM `items_type`")->fetchAll(PDO::FETCH_ASSOC);
 $typesHTML = "";
@@ -95,10 +106,10 @@ foreach ($types as $type) {
 
 $data = $_SESSION["data"] ?? [];
 
-echo getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, false);
-getModalHTML();
-
 include_once __DIR__ . "/header.php";
+getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML);
+getModalHTML();
+echo "<template id='dependencies'>$dependencies</template>";
 ?>
 
 <main class="content">
@@ -142,9 +153,9 @@ include_once __DIR__ . "/header.php";
             <label class="label hidden"></label>
             <input type="hidden" class="hidden input" data-name="items_properties" data-is-insert-server="0">
             <p class="error"></p>
-            <button class="additional button">Добавить дополнительное описание</button>
+            <button class="additional button">Добавить свойства</button>
         </div>
-        <?= $itemPropertiesHTML ?>
+        <?= $attributesItemHTML ?>
         <div class="field">
             <input type="submit" class="input button" name="submit_button" value="Добавить">
         </div>

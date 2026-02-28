@@ -23,19 +23,6 @@ if ($item === false || empty($item)) {
     redirect();
 }
 
-$itemProperties = makeSelectQuery("SELECT
-    `items_properties`.`description_items_properties`,
-    `properties`.`name_properties`
-    FROM `items_properties`
-    JOIN `properties` ON `properties`.`id_properties` = `items_properties`.`properties_id_items_properties`
-    WHERE `items_properties`.`items_id_items_properties` = ?
-", [$_GET["id_item"]], false);
-
-
-if ($itemProperties === "FAIL") {
-    redirect();
-}
-
 $comments = makeSelectQuery("SELECT
     `comments`.`users_id_comments`,
     `comments`.`id_comments`,
@@ -89,15 +76,38 @@ if (isUserAuth()) {
         </span>";
     }
 }
-    
-foreach ($itemProperties as $property) {
-    $itemHTML .= "
-        <span>
-            <p>$property[name_properties]</p>
-            <p>$property[description_items_properties]</p>
-        </span>
-    ";
+
+$attributes = makeSelectQuery("SELECT 
+    `attributes`.`id_attributes`,
+    `attributes`.`value_attributes`,
+    `properties`.`id_properties`,
+    `properties`.`name_properties`
+    FROM `items_properties`
+    LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
+    LEFT JOIN `properties` ON `properties_id_attributes` = `id_properties`
+    WHERE `items_id_items_properties` = ?
+    ORDER BY `properties`.`id_properties`
+    ", [$_GET["id_item"]], false
+);
+
+if ($attributes == "FAIL") redirect();
+
+$currentAttributeID = null;
+foreach  ($attributes as $index => $attribute) {
+    if ($currentAttributeID != $attribute["id_properties"]) {
+        if ($currentAttributeID != null) {
+            $itemHTML .= "</p>";
+        } 
+        $itemHTML .= "<p>$attribute[name_properties] | ";
+        $currentAttributeID = $attribute["id_properties"];
+    }
+    $itemHTML .= $attribute["value_attributes"];
+    if ($index + 1 < count($attributes) && $attribute["id_properties"] == $attributes[$index + 1]["id_properties"]) {
+        $itemHTML .= ", ";
+    }
 }
+$itemHTML .= "</p>";
+
 getModalHTML();
 include_once __DIR__ . "/header.php";
 ?>

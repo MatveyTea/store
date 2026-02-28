@@ -9,8 +9,36 @@ if ($types == "FAIL") redirect();
 
 $typesHTML = "";
 foreach ($types as $type) {
-    $typesHTML .= "<input  value='$type[id_items_type]'>$type[name_items_type]</p>";
+    $typesHTML .= "<label>$type[name_items_type]<input type='checkbox' value='$type[id_items_type]'></label>";
 }
+
+$attributes = makeSelectQuery("SELECT 
+    `attributes`.`id_attributes`,
+    `attributes`.`value_attributes`,
+    `properties`.`id_properties`,
+    `properties`.`name_properties`
+    FROM `attributes`
+    JOIN `properties` ON `properties`.`id_properties` = `attributes`.`properties_id_attributes`
+    ORDER BY `properties`.`id_properties`
+    ", [], false
+);
+
+if ($attributes == "FAIL") redirect();
+
+$attributesHTML = "";
+$currentAttributeID = null;
+foreach  ($attributes as $attribute) {
+    if ($currentAttributeID != $attribute["id_properties"]) {
+        if ($currentAttributeID != null) {
+            $attributesHTML .= "</div>";
+        }
+        $attributesHTML .= "<div class='field'><p>$attribute[name_properties]</p>";
+        $currentAttributeID = $attribute["id_properties"];
+    }
+    $attributesHTML .= "<label>$attribute[value_attributes]<input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_search'></label>";
+}
+$attributesHTML .= "</div>";
+
 ?>
 
 <main class="content">
@@ -22,9 +50,8 @@ foreach ($types as $type) {
             <p class="error"></p>
         </div>
         <!-- <div class="field">
-            <label class="label"></label>
-            <span class="input" data-name="items_type_id_search_items" data-is-insert-server="0">
-            </span>
+            <label class="label">Тип товара</label>
+            <= $typesHTML ?>
             <p class="error"></p>
         </div> -->
         <div class="field">
@@ -47,6 +74,7 @@ foreach ($types as $type) {
             <input class="input" type="search" data-name="max_count_items" data-is-insert-server="0">
             <p class="error"></p>
         </div>
+        <?= $attributesHTML ?>
         <div class="field">
             <label class="label"></label>
             <input class="input strict" type="checkbox" data-name="strict_search" data-is-insert-server="0">

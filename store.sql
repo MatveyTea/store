@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Фев 22 2026 г., 18:27
+-- Время создания: Фев 28 2026 г., 19:02
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -20,6 +20,30 @@ SET time_zone = "+00:00";
 --
 -- База данных: `store`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `attributes`
+--
+
+CREATE TABLE `attributes` (
+  `id_attributes` int NOT NULL,
+  `properties_id_attributes` int NOT NULL,
+  `value_attributes` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Дамп данных таблицы `attributes`
+--
+
+INSERT INTO `attributes` (`id_attributes`, `properties_id_attributes`, `value_attributes`) VALUES
+(1, 1, 'Красный'),
+(2, 1, 'Зеленый'),
+(3, 2, 'Другой'),
+(4, 1, 'Белый'),
+(5, 1, 'Синий'),
+(6, 1, 'Розовый');
 
 -- --------------------------------------------------------
 
@@ -462,12 +486,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (386, '123', 11, 'default.png', 604, '2026-01-14', 1, NULL, 0),
 (387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 0),
 (388, '123', 13, 'default.png', 100, '2026-01-14', 1, NULL, 0),
-(389, '123', 11, 'default.png', 869, '2026-01-14', 2, NULL, 0),
-(390, '123', 17, 'default.png', 269, '2026-01-14', 1, NULL, 0),
-(391, '123', 16, 'default.png', 961, '2026-01-14', 2, NULL, 0),
-(392, '123', 25, 'default.png', 85, '2026-01-14', 1, NULL, 0),
-(393, '123', 20, 'default.png', 122, '2026-01-14', 2, NULL, 0),
-(394, '123', 26, 'default.png', 204, '2026-01-14', 1, NULL, 0);
+(389, '123', 11, 'default.png', 869, '2026-01-14', 2, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -478,8 +497,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 CREATE TABLE `items_properties` (
   `id_items_properties` int NOT NULL,
   `items_id_items_properties` int NOT NULL,
-  `properties_id_items_properties` int NOT NULL,
-  `description_items_properties` varchar(255) NOT NULL
+  `attributes_id_items_properties` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -511,6 +529,14 @@ CREATE TABLE `properties` (
   `id_properties` int NOT NULL,
   `name_properties` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Дамп данных таблицы `properties`
+--
+
+INSERT INTO `properties` (`id_properties`, `name_properties`) VALUES
+(1, 'Цвет'),
+(2, 'Арбуз');
 
 -- --------------------------------------------------------
 
@@ -559,6 +585,13 @@ INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, 
 --
 
 --
+-- Индексы таблицы `attributes`
+--
+ALTER TABLE `attributes`
+  ADD PRIMARY KEY (`id_attributes`),
+  ADD KEY `properties_id_attributes` (`properties_id_attributes`);
+
+--
 -- Индексы таблицы `baskets`
 --
 ALTER TABLE `baskets`
@@ -588,7 +621,7 @@ ALTER TABLE `items`
 ALTER TABLE `items_properties`
   ADD PRIMARY KEY (`id_items_properties`),
   ADD KEY `items_id_items_properties` (`items_id_items_properties`),
-  ADD KEY `properties_id_items_properties` (`properties_id_items_properties`);
+  ADD KEY `attributes_id_items_properties` (`attributes_id_items_properties`);
 
 --
 -- Индексы таблицы `items_type`
@@ -620,10 +653,16 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT для таблицы `attributes`
+--
+ALTER TABLE `attributes`
+  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
@@ -635,13 +674,13 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=464;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=466;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -653,7 +692,7 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `properties`
 --
 ALTER TABLE `properties`
-  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -670,6 +709,12 @@ ALTER TABLE `users`
 --
 -- Ограничения внешнего ключа сохраненных таблиц
 --
+
+--
+-- Ограничения внешнего ключа таблицы `attributes`
+--
+ALTER TABLE `attributes`
+  ADD CONSTRAINT `attributes_ibfk_1` FOREIGN KEY (`properties_id_attributes`) REFERENCES `properties` (`id_properties`) ON DELETE CASCADE ON UPDATE RESTRICT;
 
 --
 -- Ограничения внешнего ключа таблицы `baskets`
@@ -697,7 +742,7 @@ ALTER TABLE `items`
 --
 ALTER TABLE `items_properties`
   ADD CONSTRAINT `items_properties_ibfk_1` FOREIGN KEY (`items_id_items_properties`) REFERENCES `items` (`id_items`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  ADD CONSTRAINT `items_properties_ibfk_2` FOREIGN KEY (`properties_id_items_properties`) REFERENCES `properties` (`id_properties`) ON DELETE CASCADE ON UPDATE RESTRICT;
+  ADD CONSTRAINT `items_properties_ibfk_2` FOREIGN KEY (`attributes_id_items_properties`) REFERENCES `attributes` (`id_attributes`) ON DELETE CASCADE ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

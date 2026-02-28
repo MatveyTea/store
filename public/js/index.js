@@ -1,7 +1,13 @@
 "use strict";
 async function getSearchItems() {
+    const attributes = [];
+    document.querySelectorAll(".input[data-name='attributes_search']").forEach((input) => {
+        if (input.checked) {
+            attributes.push(input.value);
+        }
+    });
     const data = formInputs.reduce((result, input) => {
-        if (input.type == "checkbox" && input.checked || input.type !== "checkbox" && input.value != "") {
+        if (input.dataset.name != "attributes_search" && (input.type == "checkbox" && input.checked || input.type !== "checkbox" && input.value != "")) {
             result[input.dataset.name] = input.value;
         }
         return result;
@@ -9,6 +15,9 @@ async function getSearchItems() {
         "server_type": "search_items",
         "offset_search_items": isResetSearch ? 0 : offset
     });
+    if (attributes.length > 0) {
+        data["attributes_search"] = JSON.stringify(attributes);
+    }
     const dataResult = await sendToServer(data);
 
     if (dataResult["status"] == "OK") {

@@ -22,41 +22,77 @@ function getModalHTML()
     </template>";
 }
 
-function getAdditionalHTML($allPropertiesHTML, $allProperties, $itemProperties, $needFieldID)
+function getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML, $value, $dataValue = [])
 {
-    $html = "<template data-max-count='" . count($allProperties) . "'data-count='" . count($itemProperties) . "'>
-        <div class='field additional'>
-            <h2>№<b></b></h2>";
-    if ($needFieldID) {
-        $html .= "
-            <div class='field hidden'>
-                <label class='label'></label>
-                <input class='hidden input' type='text' data-name='id_items_properties' data-is-insert-server='0'>
-                <p class='error'></p>
+    $startIndexValue = strpos($allPropertiesHTML, "value='$value'");
+    $selectSelected = substr($allPropertiesHTML, 0, $startIndexValue) . " selected " . substr($allPropertiesHTML, $startIndexValue);
+
+    if (!empty($dataValue)) {
+        $dataValue = "data-value='" . join("|", $dataValue) . "'";
+    }
+    return "<div class='field additional'>
+                <div class='field'>
+                    <label class='label'></label>
+                    <select class='input' data-name='attributes_select_property' data-is-insert-server='1' $dataValue>
+                        $selectSelected
+                    </select>
+                    <p class='error'></p>
+                </div>
+                <div class='field'>
+                    $allAttributesHTML
+                </div>
+                <div class='field'>
+                    <button class='button' data-id-property='$value'>Удалить</button>
+                </div>
             </div>
         ";
+}
+
+
+function getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $idItem = -1)
+{
+    $max = makeSelectQuery("SELECT COUNT(*) as `count` FROM `properties`", [], true);
+    if ($max == "FAIL") {
+        $max = [];
+        $max["count"] = 0;
     }
-    $html .= "
-           <div class='field'>
+
+    $current = [];
+    if ($idItem != -1) {
+        $current = makeSelectQuery("SELECT
+            COUNT(DISTINCT `attributes`.`properties_id_attributes`) as `count`
+            FROM `items_properties`
+            JOIN `attributes` ON `attributes`.`id_attributes` = `items_properties`.`attributes_id_items_properties`
+            JOIN `properties` ON `properties`.`id_properties` = `attributes`.`properties_id_attributes`
+            WHERE `items_properties`.`items_id_items_properties` = ?
+            ", [$idItem], true
+        );
+        if ($current == "FAIL") {
+            $current = [];
+            $current["count"] = 0;
+        }
+    } else {
+        $current["count"] = 0;
+    }
+
+    echo "<template data-max-count='$max[count]' data-current-count='$current[count]'>
+        <div class='field additional'>
+            <div class='field'>
                 <label class='label'></label>
-                <select class='input' data-name='properties_id_items_properties' data-is-insert-server='0'>
-                    <option value='' disabled selected>Выбрать</option>
+                <select class='input' data-name='attributes_select_property' data-is-insert-server='1'>
+                    <option selected disabled>Выбрать</option>
                     $allPropertiesHTML
                 </select>
                 <p class='error'></p>
             </div>
             <div class='field'>
-                <label class='label'></label>
-                <input class='input' type='text' data-name='description_items_properties' data-is-insert-server='0'>
-                <p class='error'></p>
+                $allAttributesHTML
             </div>
             <div class='field'>
-                <span class='button'>Удалить</span>
+                <button class='button'>Удалить</button>
             </div>
         </div>
     </template>";
-
-    return $html;
 }
 
 function redirect($path = "index.php", $params = "")
@@ -142,7 +178,6 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
     $userItems = [];
 
     $orderBy = $isPopularItems ? "`views_items` DESC," : "";
-
     $items = makeSelectQuery(
         "SELECT
         `id_items`,
@@ -151,6 +186,8 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
         `image_items`,
         `cost_items`
         FROM `items`
+        LEFT JOIN `items_properties` ON `items_id_items_properties` = `id_items`
+        LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
         $whereSQL
         ORDER BY $orderBy `id_items` DESC
         LIMIT 50 OFFSET $offset
@@ -222,12 +259,12 @@ function getItemHTML($item)
     $result = "";
     if ($item == null) return $result;
     $img = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]);
-    $result .= "<div class='item' data-id='$item[id_items]' data-count='$item[count_baskets]'>
+    $result .= "<a href='aboutItem.php?id_item=$item[id_items]' class='item' data-id='$item[id_items]' data-count='$item[count_baskets]'>
         <img src='$img'>
         <p>$item[name_items]</p>
         <p>Количество: $item[count_baskets]</p>
         <p>Стоимость: $item[cost_items]р</p>
-    </div>";
+    </a>";
     return $result;
 }
 
@@ -297,7 +334,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/", $value);
+                return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/u", $value);
             },
         ],
         "password_users" => [
@@ -306,7 +343,7 @@ function getValidationRules($file = "")
             "canUpdate" => true,
             "returned_value" => false,
             "pattern" => function ($value) use ($file) {
-                if (preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value)) {
+                if (preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/u", $value)) {
                     return $file == "auth.php" ? $value : password_hash($value, PASSWORD_DEFAULT);
                 }
                 return false;
@@ -318,7 +355,7 @@ function getValidationRules($file = "")
             "canUpdate" => true,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/", $value);
+                return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/u", $value);
             }
         ],
         "avatar_users" => [
@@ -344,7 +381,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/", $value);
+                return preg_match("/[0-9]{1,7}$/u", $value);
             }
         ],
         "name_items" => [
@@ -353,7 +390,7 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "adminEditItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
             }
         ],
         "count_items" => [
@@ -362,7 +399,7 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "adminEditItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
+                return preg_match("/^[0-9]{1,7}$/u", $value);
             }
         ],
         "cost_items" => [
@@ -371,7 +408,7 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "adminEditItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
+                return preg_match("/^[0-9]{1,7}$/u", $value);
             }
         ],
         "image_items" => [
@@ -396,7 +433,7 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "adminEditItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/", $value);
+                return preg_match("/[0-9]{1,7}$/u", $value);
             }
         ],
         "description_items" => [
@@ -405,7 +442,7 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "adminEditItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
             }
         ],
         // Поиск товара
@@ -415,7 +452,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => true,
             "pattern" => function ($value) {
-                if (preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value)) {
+                if (preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value)) {
                     return ["sql" => "`name_items` LIKE ?", "param" => "%$value%"];
                 }
                 return false;
@@ -427,7 +464,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => true,
             "pattern" => function ($value) {
-                if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                if (preg_match("/^[0-9]{1,7}$/u", $value)) {
                     return ["sql" => "`cost_items` > ?", "param" => $value];
                 }
                 return false;
@@ -439,7 +476,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => true,
             "pattern" => function ($value) {
-                    if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                    if (preg_match("/^[0-9]{1,7}$/u", $value)) {
                     return ["sql" => "`cost_items` < ?", "param" => $value];
                 }
                 return false;
@@ -451,7 +488,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => true,
             "pattern" => function ($value) {
-                if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                if (preg_match("/^[0-9]{1,7}$/u", $value)) {
                     return ["sql" => "`count_items` > ?", "param" => $value];
                 }
                 return false;
@@ -463,7 +500,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => true,
             "pattern" => function ($value) {
-                    if (preg_match("/^[0-9]{1,7}$/", $value)) {
+                    if (preg_match("/^[0-9]{1,7}$/u", $value)) {
                     return ["sql" => "`count_items` < ?", "param" => $value];
                 }
                 return false;
@@ -475,7 +512,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
+                return preg_match("/^[0-9]{1,7}$/u", $value);
             }
         ],
         "strict_search" => [
@@ -506,7 +543,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
+                return preg_match("/^[0-9]{1,7}$/u", $value);
             }
         ],
         "text_comments" => [
@@ -515,7 +552,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
             }
         ],
         "rating_comments" => [
@@ -524,7 +561,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[1-5]$/", $value);
+                return preg_match("/^[1-5]$/u", $value);
             }
         ],
         // Свойство у товаров
@@ -534,7 +571,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
+                return preg_match("/^[0-9]{1,7}$/u", $value);
             }
         ],
         "items_properties" => [
@@ -545,20 +582,20 @@ function getValidationRules($file = "")
             "pattern" => function ($value) {
                 $isCorrect = true;
                 $properties = json_decode($value, true) ?? [];
-                foreach ($properties as $property) {
-                    $isCorrectId = preg_match("/^[0-9]{1,}$/", $property["id_items_properties"] ?? "0");
-                    $isCorrectName = preg_match("/^[0-9]{1,}$/", $property["properties_id_items_properties"] ?? "!");
-                    $isCorrectDescription = preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/", $property["description_items_properties"] ?? "!");
-                    $count = count($property);
-                    if (
-                        $count < 1 ||
-                        $count == 2 && !$isCorrectId && ($isCorrectName || $isCorrectDescription) ||
-                        $count == 3 && !$isCorrectId && !$isCorrectName && !$isCorrectDescription
-                    ) {
-                        $isCorrect = false;
-                        break;
-                    }
-                }
+                // foreach ($properties as $property) {
+                //     $isCorrectId = preg_match("/^[0-9]{1,}$/u", $property["id_items_properties"] ?? "0");
+                //     $isCorrectName = preg_match("/^[0-9]{1,}$/u", $property["properties_id_items_properties"] ?? "!");
+                //     $isCorrectDescription = preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/u", $property["description_items_properties"] ?? "!");
+                //     $count = count($property);
+                //     if (
+                //         $count < 1 ||
+                //         $count == 2 && !$isCorrectId && ($isCorrectName || $isCorrectDescription) ||
+                //         $count == 3 && !$isCorrectId && !$isCorrectName && !$isCorrectDescription
+                //     ) {
+                //         $isCorrect = false;
+                //         break;
+                //     }
+                // }
                 if ($isCorrect) {
                     return $properties;
                 }
@@ -567,12 +604,12 @@ function getValidationRules($file = "")
         ],
         // Свойства товаров
         "id_properties" => [
-            "files" => ["adminEditTable.php"],
+            "files" => ["adminEditTable.php", "adminEditItem.php"],
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/", $value);
+                return preg_match("/[0-9]{1,7}$/u", $value);
             }
         ],
         "name_properties" => [
@@ -581,8 +618,69 @@ function getValidationRules($file = "")
             "canUpdate" => true,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,80}$/u", $value);
             }
+        ],
+        //
+        "attributes" => [
+            "files" => ["adminEditTable.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                $isCorrect = true;
+                $attributes = json_decode($value, true) ?? [];
+                foreach ($attributes as $attribute) {
+                    if (false) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $attributes;
+                }
+                return false;
+            }
+        ],
+        "attributes_search" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                $isCorrect = true;
+                $attributes = json_decode($value, true) ?? [];
+                foreach ($attributes as $id => $values) {
+                    if (false) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $attributes;
+                }
+                return false;
+            } 
+        ],
+        "attributes_select_property" => [
+            "files" => ["adminEditItem.php"],
+            "required" => false,
+            "canUpdate" => $file == "adminEditItem.php",
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                $isCorrect = true;
+                $attributes = json_decode($value, true) ?? [];
+                foreach ($attributes as $id => $values) {
+                    if (false) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $attributes;
+                }
+                return false;
+            } 
         ],
         // Типы товаров
         "id_items_type" => [
@@ -600,7 +698,7 @@ function getValidationRules($file = "")
             "canUpdate" => true,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
             }
         ],
         // Статус покупки
@@ -619,7 +717,7 @@ function getValidationRules($file = "")
             "canUpdate" => true,
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/", $value);
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
             }
         ]
     ];
@@ -665,7 +763,7 @@ function getValidatedData($array, $file = ""): array
                 $currentCountCorrect++;
             } else {
                 $result["errorField"][$key] = 1;
-                if ($key == "items_properties") {
+                if ($key == "items_properties" || $key == "attributes") {
                     $result["data"][$key] = json_decode($value, true);
                 }
             }
@@ -869,16 +967,19 @@ function searchItems($json)
     $data = $data["data"];
     $isPopularItems = !empty($data["popular_items"]);
     $offset = $data["offset_search_items"];
+    $attributes = $data["attributes_search"] ?? [];
     $strictType = empty($data["strict_search"]) ? "OR" : "AND";
-    unset($data["offset_search_items"], $data["strict_search"]);
-
+   
     $whereSQL = "";
     $whereParams = [];
     if (!empty($data)) {
+        unset($data["attributes_search"], $data["offset_search_items"], $data["strict_search"]);
+        
         $whereSQL = "WHERE ";
         $isSpecificSearch = count($data) > 1 && $isPopularItems;
+        $isOtherParams = !empty($data);
         if ($isSpecificSearch) {
-            $whereSQL .= $data["popular_items"]["sql"] . " AND (";
+            $whereSQL .= $data["popular_items"]["sql"] . $isOtherParams ? " AND (" : "";
             $whereParams[] = $data["popular_items"]["param"];
             unset($data["popular_items"]);
         }
@@ -890,10 +991,24 @@ function searchItems($json)
                 $whereSQL .= " $strictType ";
             }
         }
-        if ($isSpecificSearch) {
+
+        if (!empty($attributes) && !empty($whereParams)) {
+            $whereSQL .= " $strictType ";
+        }
+        $lastIndex = count($attributes) - 1;
+        foreach ($attributes as $index => $attribute) {
+            $whereSQL .= "`id_attributes` = ?";
+            $whereParams[] = $attribute;
+            if ($index != $lastIndex) {
+                $whereSQL .= " $strictType ";
+            }
+        }
+
+        if ($isSpecificSearch && $isOtherParams) {
             $whereSQL .= ")";
         }
     }
+
     $items = getItems($offset, $whereSQL, $whereParams, $isPopularItems);
     setAnswer(empty($items) ? "NOTFOUND" : "OK", $items);
 }
@@ -938,13 +1053,19 @@ function addComment($idItem, $rating, $text)
     setAnswer("OK", ["comments" => getCommentsHTML($comment), "rating" => getRatingItem($validatedData["id_items"])]);
 }
 
-function deleteItemProperties($idItemsProperties)
+function deleteItemProperties($idProperties)
 {
-    $validatedData = getValidatedData(["id_items_properties" => $idItemsProperties], "adminEditItem.php");
+    $validatedData = getValidatedData(["id_properties" => $idProperties], "adminEditItem.php");
 
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
-    $isSuccess = makeSafeQuery("DELETE FROM `items_properties` WHERE `id_items_properties` = ?", [$idItemsProperties]);
+    $isSuccess = makeSafeQuery("DELETE FROM `items_properties`
+        WHERE EXISTS (
+            SELECT 1 FROM `attributes`
+            WHERE `attributes`.`id_attributes` = `items_properties`.`attributes_id_items_properties`
+            AND `properties_id_attributes` = ?
+        )
+    ", [$idProperties]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
@@ -967,7 +1088,7 @@ function deleteComment($id)
 
     $check = makeSelectQuery("SELECT `users_id_comments` FROM `comments` WHERE `id_comments` = ?", [$id], true);
 
-    if ($check == "FAIL" || $check["users_id_comments"] != getUserID() || !isAdmin()) setAnswer("FAIL");
+    if ($check == "FAIL" || $check["users_id_comments"] != getUserID() && !isAdmin()) setAnswer("FAIL");
 
     $isSuccess = makeSafeQuery("DELETE FROM `comments` WHERE `id_comments` = ?", [$id]);
     setAnswer($isSuccess ? "OK" : "FAIL");

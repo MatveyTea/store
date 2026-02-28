@@ -7,6 +7,7 @@ if (!isAdmin() || empty($_GET["table"])) {
 }
 
 $tableName = in_array($_GET["table"], ["properties", "status", "items_type"]) ? $_GET["table"] : false;
+$isAttribute = $tableName == "properties";
 
 if (!$tableName) {
     redirect();
@@ -15,6 +16,7 @@ if (!$tableName) {
 if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"])) {
     unset($_POST["submit_button"]);
     $validatedData = getValidatedData($_POST);
+    $result = [];
 
     if ($validatedData["isCorrect"]) {
         if ($_GET["type"] == "add") {
@@ -25,12 +27,30 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
                 $_SESSION["server"] = "Не удалось создать";
             }
         } else if ($_GET["type"] == "update") {
-            $result = getUpdateSQL(array_diff_key($validatedData["data"], ["id_$tableName" => true]));
-            $result["params"][] = $validatedData["data"]["id_$tableName"];
-            if (makeSafeQuery("UPDATE `$tableName` SET $result[sql] WHERE `id_$tableName` = ?", $result["params"])) {
-                $_SESSION["server"] = "Обновлено";
-            } else {
-                $_SESSION["server"] = "Не удалось обновить";
+            if (!empty($validatedData["data"]["id_$tableName"])) {
+                $result = getUpdateSQL(array_diff_key($validatedData["data"], ["id_$tableName" => true, "attributes" => true]));
+                $result["params"][] = $validatedData["data"]["id_$tableName"];
+                if (makeSafeQuery("UPDATE `$tableName` SET $result[sql] WHERE `id_$tableName` = ?", $result["params"])) {
+                    $_SESSION["server"] = "Обновлено";
+                } else {
+                    $_SESSION["server"] = "Не удалось обновить";
+                }
+            }
+            if ($isAttribute) {
+                $attributes = $validatedData["data"]["attributes"] ?? [];
+                $sql = "";
+                $params = [];
+                foreach ($attributes as $attribute) {
+                    $result = getUpdateSQL(array_diff_key($attribute, ["id_attributes" => true]));
+                    $result["params"][] = $attribute["id_attributes"];
+                    $sql .= "UPDATE `attributes` SET $result[sql] WHERE `id_attributes` = ?;";
+                    array_push($params, ...$result["params"]);
+                }
+                if (makeSafeQuery($sql, $params)) {
+                    $_SESSION["server"] = "Обновлено";
+                } else {
+                    $_SESSION["server"] = "Не удалось обновить";
+                }
             }
         }
     } else {
@@ -46,23 +66,41 @@ if ($columnNames === "FAIL") {
 }
 
 $formAddHTML = "";
-
 foreach ($columnNames as $column) {
     $formAddHTML .= "<div class='field'>
         <label class='label'></label>
         <input class='input' type='text' data-name='$column[COLUMN_NAME]' data-is-insert-server='1'>
         <p class='error'></p>
     </div>";
+    if ($isAttribute) {
+        $formAddHTML .= "
+            <div class='field hidden'>
+                <label class='label hidden'></label>
+                <input class='input' data-name='attributes' data-is-insert-server='1'>
+                <p class='error'></p>
+            </div>
+            <div class='field'>
+                <label class='label'></label>
+                <input class='input' data-name='value_attributes' data-is-insert-server='1'>
+                <p class='error'></p>
+            </div>
+        ";
+    }
 }
 
-$table = makeSelectQuery("SELECT * FROM `$tableName`", [], false);
+$table = makeSelectQuery("SELECT * FROM `$tableName` ORDER BY `id_$tableName`", [], false);
 
 if ($table === "FAIL") {
     redirect();
 }
 
-$formEditHTML = "";
 
+$attributesProperties = [];
+if ($isAttribute) {
+    $attributesProperties = makeSelectQuery("SELECT * FROM `attributes` ORDER BY `id_attributes`", [], false);
+}
+
+$formEditHTML = "";
 $countEditForms = 0;
 foreach ($table as $row) {
     $countEditForms++;
@@ -80,6 +118,31 @@ foreach ($table as $row) {
             <p class='error'></p>
         </div>";
     };
+
+    if ($isAttribute) {
+        $formEditHTML .= "<div class='field hidden'>
+                <label class='label'></label>
+                <input class='input' data-name='attributes' data-is-insert-server='1'>
+                <p class='error'></p>
+            </div>
+        ";
+        foreach ($attributesProperties as $attribute) {
+            if ($attribute["properties_id_attributes"] == $row["id_properties"]) {
+                $formEditHTML .= "
+                    <div class='field hidden'>
+                        <label class='label'></label>
+                        <input class='input' data-name='id_attributes' data-is-insert-server='1' value='$attribute[id_attributes]'>
+                        <p class='error'></p>
+                    </div>
+                    <div class='field'>
+                        <label class='label'></label>
+                        <input class='input' data-name='value_attributes' data-is-insert-server='1' value='$attribute[value_attributes]'>
+                        <p class='error'></p>
+                    </div>
+                ";
+            }
+        }
+    }
 
     $formEditHTML .= "<div class='field'>
             <input class='input button' type='submit' name='submit_button' value='Изменить'>
@@ -104,5 +167,11 @@ include_once __DIR__ . "/header.php";
     </form>
     <?= $formEditHTML ?>
 </main>
+
+<template>
+    <div class="field">
+        <input class="input" data-name="attribute_value" data-is-insert-server="0">
+    </div>
+</template>
 
 <?php include_once __DIR__ . "/footer.php"; ?>

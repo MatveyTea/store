@@ -77,6 +77,36 @@ form .field:has(.input[type=checkbox]) {
     display: block;
 }
 
+form .field:has(label .input[type=checkbox]) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: unset;
+}
+
+form .field:has(label .input[type=checkbox]) p {
+    width: 100%;
+}
+
+form .field:has(label .input[type=checkbox]) label {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    user-select: none;
+    cursor: pointer;
+}
+
+.form .field.additional .field {
+    width: 100%;
+}
+
+.form .field.additional .field label {
+    width: 30%;
+}
+
+.form .field.additional .field label.hidden {
+    display: none !important;
+}
+
 .form .field.hidden {
     display: none;
 }
