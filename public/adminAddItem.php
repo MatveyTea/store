@@ -22,17 +22,19 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $itemProperties = $validatedData["data"]["items_properties"] ?? [];
         foreach ($itemProperties as $property) {
             $sql .= "INSERT INTO `items_properties` (`items_id_items_properties`, `attributes_id_items_properties`) VALUES (?, ?);";
-            array_push($params, $id, $property["id"]);
+            array_push($params, $id, $property["id_attributes"]);
         }
 
-        if ($sql != "" && $params != [] && makeSafeQuery($sql, $params) || $isSucceedItem) {
+        if ($sql != "" && $params != [] && makeSafeQuery($sql, $params) ) {
             clearValidatedSession();
             $_SESSION["server"] = "Товар добавлен";
         } else {
             $_SESSION["server"] = "Не удалось добавить товар";
+            $_SESSION["data"]["item_properties"] = $itemProperties;
         }
     } else {
         $_SESSION["server"] = "Не удалось добавить товар";
+        $_SESSION["data"]["item_properties"] = $validatedData["data"]["items_properties"] ?? [];
     }
 
     redirectYourself();

@@ -27,6 +27,8 @@ if (!empty(file_get_contents("php://input"))) {
         deleteComment($json["id_comment"]);
     } else if ($isAuth && $serverType == "add_view" && !empty($json["id_item"])) {
         addView($json["id_item"]);
+    } else if ($isAdmin && $serverType == "delete_one_from_table" && !empty($json["id"])) {
+        deleteOneFromTable($json["id"]);
     } else {
         setAnswer("FAIL");
     }

@@ -791,7 +791,7 @@ function getValidationRules() {
             "connectedRules": ["id_items_type"],
             "connectedInputs": null,
             "isInsertServer": null,
-            "nameInput": "свойство",
+            "nameInput": "тип товара",
             "inputs": null,
             "nameRule": "name_items_type",
             "oldValue": null,
@@ -836,7 +836,7 @@ function getValidationRules() {
             "connectedRules": ["id_status"],
             "connectedInputs": null,
             "isInsertServer": null,
-            "nameInput": "свойство",
+            "nameInput": "статус",
             "inputs": null,
             "nameRule": "name_status",
             "oldValue": null,
@@ -1115,9 +1115,10 @@ function setAdditional(form) {
             updateInputCheckbox.forEach((input) => {
                 array.push({
                     "type": input.checked ? "add" : "remove",
-                    "id": input.value
+                    "id_attributes": input.value,
+                    "id_properties": document.querySelector(`.field.additional:has(#${input.id}) select`).value
                 });
-            })
+            });
         });
         input.value = JSON.stringify(array ?? "");
     });

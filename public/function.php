@@ -189,6 +189,7 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
         LEFT JOIN `items_properties` ON `items_id_items_properties` = `id_items`
         LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
         $whereSQL
+        GROUP BY `id_items`
         ORDER BY $orderBy `id_items` DESC
         LIMIT 50 OFFSET $offset
         ", $whereParams, false
@@ -458,6 +459,34 @@ function getValidationRules($file = "")
                 return false;
             }
         ],
+        "items_type_id_search_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                $isCorrect = true;
+                $properties = json_decode($value, true) ?? [];
+                // foreach ($properties as $property) {
+                //     $isCorrectId = preg_match("/^[0-9]{1,}$/u", $property["id_items_properties"] ?? "0");
+                //     $isCorrectName = preg_match("/^[0-9]{1,}$/u", $property["properties_id_items_properties"] ?? "!");
+                //     $isCorrectDescription = preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/u", $property["description_items_properties"] ?? "!");
+                //     $count = count($property);
+                //     if (
+                //         $count < 1 ||
+                //         $count == 2 && !$isCorrectId && ($isCorrectName || $isCorrectDescription) ||
+                //         $count == 3 && !$isCorrectId && !$isCorrectName && !$isCorrectDescription
+                //     ) {
+                //         $isCorrect = false;
+                //         break;
+                //     }
+                // }
+                if ($isCorrect) {
+                    return $properties;
+                }
+                return false;
+            }
+        ],
         "min_cost_items" => [
             "files" => ["index.php"],
             "required" => false,
@@ -640,6 +669,15 @@ function getValidationRules($file = "")
                     return $attributes;
                 }
                 return false;
+            }
+        ],
+        "id_attributes" => [
+            "files" => ["adminEditTable.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/[0-9]{1,7}$/u", $value);
             }
         ],
         "attributes_search" => [
@@ -968,12 +1006,13 @@ function searchItems($json)
     $isPopularItems = !empty($data["popular_items"]);
     $offset = $data["offset_search_items"];
     $attributes = $data["attributes_search"] ?? [];
+    $types = $data["items_type_id_search_items"] ?? [];
     $strictType = empty($data["strict_search"]) ? "OR" : "AND";
    
     $whereSQL = "";
     $whereParams = [];
     if (!empty($data)) {
-        unset($data["attributes_search"], $data["offset_search_items"], $data["strict_search"]);
+        unset($data["items_type_id_search_items"], $data["attributes_search"], $data["offset_search_items"], $data["strict_search"]);
         
         $whereSQL = "WHERE ";
         $isSpecificSearch = count($data) > 1 && $isPopularItems;
@@ -999,6 +1038,18 @@ function searchItems($json)
         foreach ($attributes as $index => $attribute) {
             $whereSQL .= "`id_attributes` = ?";
             $whereParams[] = $attribute;
+            if ($index != $lastIndex) {
+                $whereSQL .= " $strictType ";
+            }
+        }
+
+        if (!empty($types) && !empty($whereParams)) {
+            $whereSQL .= " $strictType ";
+        }
+        $lastIndex = count($types) - 1;
+        foreach ($types as $index => $type) {
+            $whereSQL .= "`items_type_id_items` = ?";
+            $whereParams[] = $type;
             if ($index != $lastIndex) {
                 $whereSQL .= " $strictType ";
             }
@@ -1102,4 +1153,14 @@ function addView($idItem)
 
     $isSuccess = makeSafeQuery("UPDATE `items` SET `views_items` = `views_items` + 1 WHERE `id_items` = ?", [$idItem]);
     setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function deleteOneFromTable($id)
+{
+    $validatedData = getValidatedData(["id_attributes" => $id], "adminEditTable.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAItL");
+
+    $isSuccess = makeSafeQuery("DELETE FROM `attributes` WHERE `id_attributes` = ?", [$id]);
+    setAnswer($isSuccess ? "OK" : "FAtIL");
 }

@@ -4,12 +4,10 @@ include_once __DIR__ . "/function.php";
 include_once __DIR__ . "/header.php";
 
 $types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
-
 if ($types == "FAIL") redirect();
-
 $typesHTML = "";
 foreach ($types as $type) {
-    $typesHTML .= "<label>$type[name_items_type]<input type='checkbox' value='$type[id_items_type]'></label>";
+    $typesHTML .= "<label>$type[name_items_type]<input class='input' type='checkbox' data-name='items_type_id_search_items' value='$type[id_items_type]'></label>";
 }
 
 $attributes = makeSelectQuery("SELECT 
@@ -49,11 +47,6 @@ $attributesHTML .= "</div>";
             <input class="input" type="search" data-name="name_search_items" data-is-insert-server="0">
             <p class="error"></p>
         </div>
-        <!-- <div class="field">
-            <label class="label">Тип товара</label>
-            <= $typesHTML ?>
-            <p class="error"></p>
-        </div> -->
         <div class="field">
             <label class="label"></label>
             <input class="input" type="search" data-name="min_cost_items" data-is-insert-server="0">
@@ -72,6 +65,11 @@ $attributesHTML .= "</div>";
         <div class="field">
             <label class="label"></label>
             <input class="input" type="search" data-name="max_count_items" data-is-insert-server="0">
+            <p class="error"></p>
+        </div>
+        <div class="field">
+            <label class="label">Тип товара</label>
+            <?= $typesHTML ?>
             <p class="error"></p>
         </div>
         <?= $attributesHTML ?>

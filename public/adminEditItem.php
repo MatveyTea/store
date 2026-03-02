@@ -36,17 +36,17 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         foreach ($itemProperties as $property) {
             if ($property["type"] == "remove") {
                 $sql .= "DELETE FROM `items_properties` WHERE `attributes_id_items_properties` = ? AND `items_id_items_properties` = ?;";
-                array_push($params, $property["id"], $idItem);
+                array_push($params, $property["id_attributes"], $idItem);
             } else if ($property["type"] == "add") {
                 $canInsert = true;
                 foreach ($itemPropertiesDB as $propertyDB) {
-                    if ($propertyDB["attributes_id_items_properties"] == $property["id"]) {
+                    if ($propertyDB["attributes_id_items_properties"] == $property["id_attributes"]) {
                         $canInsert = false;
                     }
                 }
                 if ($canInsert) {
                     $sql .= "INSERT INTO `items_properties` (`items_id_items_properties`, `attributes_id_items_properties`) VALUES (?, ?);";
-                    array_push($params, $idItem, $property["id"]);
+                    array_push($params, $idItem, $property["id_attributes"]);
                 }
             }
         }

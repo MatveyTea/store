@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Фев 28 2026 г., 19:02
+-- Время создания: Мар 02 2026 г., 21:20
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -39,11 +39,9 @@ CREATE TABLE `attributes` (
 
 INSERT INTO `attributes` (`id_attributes`, `properties_id_attributes`, `value_attributes`) VALUES
 (1, 1, 'Красный'),
-(2, 1, 'Зеленый'),
-(3, 2, 'Другой'),
-(4, 1, 'Белый'),
-(5, 1, 'Синий'),
-(6, 1, 'Розовый');
+(2, 2, 'Другой'),
+(3, 1, 'Белый'),
+(4, 1, 'Розовый');
 
 -- --------------------------------------------------------
 
@@ -656,31 +654,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `attributes`
 --
 ALTER TABLE `attributes`
-  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=466;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=390;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -692,7 +690,7 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `properties`
 --
 ALTER TABLE `properties`
-  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `status`

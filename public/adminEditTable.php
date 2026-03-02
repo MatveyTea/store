@@ -20,12 +20,31 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
 
     if ($validatedData["isCorrect"]) {
         if ($_GET["type"] == "add") {
+            $attributes = $validatedData["data"]["attributes"] ?? [];
+            unset($validatedData["data"]["attributes"]);
             $result = getInsertSQL($validatedData["data"]);
             if (makeSafeQuery("INSERT INTO `$tableName` ($result[sql]) VALUES ($result[question])", $result["params"])) {
                 $_SESSION["server"] = "Создано";
             } else {
                 $_SESSION["server"] = "Не удалось создать";
             }
+            if ($isAttribute) {
+                $sql = "";
+                $params = [];
+                foreach ($attributes as $attribute) {
+                    $attribute["properties_id_attributes"] = $link->lastInsertId();
+                    $result = getInsertSQL(array_diff_key($attribute));
+                    $sql .= "INSERT INTO `attributes` ($result[sql]) VALUES ($result[question]);";
+                    array_push($params, ...$result["params"]);
+                }
+                
+                if (makeSafeQuery($sql, $params)) {
+                    $_SESSION["server"] = "Обновлено";
+                } else {
+                    $_SESSION["server"] = "Не удалнось создать";
+                }
+            }
+
         } else if ($_GET["type"] == "update") {
             if (!empty($validatedData["data"]["id_$tableName"])) {
                 $result = getUpdateSQL(array_diff_key($validatedData["data"], ["id_$tableName" => true, "attributes" => true]));
@@ -84,11 +103,14 @@ foreach ($columnNames as $column) {
                 <input class='input' data-name='value_attributes' data-is-insert-server='1'>
                 <p class='error'></p>
             </div>
+            <div class='field'>
+                <button class='button add-one'>Добавить ещё</button>
+            </div>
         ";
     }
 }
 
-$table = makeSelectQuery("SELECT * FROM `$tableName` ORDER BY `id_$tableName`", [], false);
+$table = makeSelectQuery("SELECT * FROM `$tableName` ORDER BY `id_$tableName` DESC", [], false);
 
 if ($table === "FAIL") {
     redirect();
@@ -106,7 +128,7 @@ foreach ($table as $row) {
     $countEditForms++;
     $id = "id_$tableName";
     $formEditHTML .= "<form action='adminEditTable.php?table=$tableName&type=update' method='POST' class='form'>
-        <legend class='legend'>Изменение №$countEditForms</legend>
+        <legend class='legend'>Изменение</legend>
     ";
 
     foreach ($row as $key => $column) {
@@ -129,26 +151,34 @@ foreach ($table as $row) {
         foreach ($attributesProperties as $attribute) {
             if ($attribute["properties_id_attributes"] == $row["id_properties"]) {
                 $formEditHTML .= "
-                    <div class='field hidden'>
-                        <label class='label'></label>
-                        <input class='input' data-name='id_attributes' data-is-insert-server='1' value='$attribute[id_attributes]'>
-                        <p class='error'></p>
-                    </div>
-                    <div class='field'>
-                        <label class='label'></label>
-                        <input class='input' data-name='value_attributes' data-is-insert-server='1' value='$attribute[value_attributes]'>
-                        <p class='error'></p>
+                    <div class='field additional'>
+                        <div class='field hidden'>
+                            <label class='label'></label>
+                            <input class='input' data-name='id_attributes' data-is-insert-server='1' value='$attribute[id_attributes]'>
+                            <p class='error'></p>
+                        </div>
+                        <div class='field'>
+                            <label class='label'></label>
+                            <input class='input' data-name='value_attributes' data-is-insert-server='1' value='$attribute[value_attributes]'>
+                            <p class='error'></p>
+                        </div>
+                        <div class='field'>
+                            <button class='button delete-one' data-id-attributes='$attribute[id_attributes]'>Удалить это свойство</button>
+                        </div>
                     </div>
                 ";
             }
         }
+        $formEditHTML .= "<div class='field'>
+            <button class='button add-one'>Добавить ещё свойство</button>
+        </div>";
     }
 
     $formEditHTML .= "<div class='field'>
             <input class='input button' type='submit' name='submit_button' value='Изменить'>
         </div>
         <div class='field'>
-            <button class='button' data-id='$row[$id]' data-table='$tableName'>Удалить</button>
+            <button class='button delete-all' data-id='$row[$id]' data-table='$tableName'>Удалить всё</button>
         </div>
     </form>";
 }
@@ -168,9 +198,21 @@ include_once __DIR__ . "/header.php";
     <?= $formEditHTML ?>
 </main>
 
-<template>
-    <div class="field">
-        <input class="input" data-name="attribute_value" data-is-insert-server="0">
+<template id="add-one-template">
+    <div class="field additional">
+        <div class="field hidden">
+            <label class="label"></label>
+            <input class="input" data-name="id_attributes" data-is-insert-server="1">
+            <p class="error"></p>
+        </div>
+        <div class="field">
+            <label class="label"></label>
+            <input class="input" data-name="value_attributes" data-is-insert-server="1">
+            <p class="error"></p>
+        </div>
+        <div class="field">
+            <button class="button delete-one">Удалить это свойство</button>
+        </div>
     </div>
 </template>
 
