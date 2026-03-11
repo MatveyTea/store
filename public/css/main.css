@@ -156,7 +156,82 @@ form .field:has(label .input[type=checkbox]) label {
 }
 
 
+.item {
+    width: calc(20% - 40px - (15px * 2));
+}
 
+.item a {
+    width: 100%;
+    height: 275px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 15px;
+}
+.item:has(.basket) {
+    height: max-content !important;
+}
+
+.item img {
+    width: 60%;
+    max-width: 200px;
+    user-select: none;
+    align-self: center;
+}
+
+.item button.basket {
+    width: 100%;
+    height: 40px;
+    cursor: pointer;
+    background-color: rgba(255, 127, 80, 0.5);
+    transition: 0.4s background-color;
+    border-radius: 15px;
+}
+.item button.basket:hover,
+.item button.basket:focus {
+    background-color: coral
+}
+
+.item span {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.item span button {
+    width: 15%;
+    height: 30px;
+    cursor: pointer;
+    border-radius: 50px;
+    background-color: rgba(135, 222, 155, 0.7);
+    transition: 0.4s background-color;
+}
+.item span button:hover,
+.item span button:focus {
+    background-color: rgba(135, 222, 155, 1);
+}
+.item span p {
+    width: 60%;
+    text-align: center;
+}
+
+@media (max-width: 1440px) {
+    .item {
+        width: calc(33% - 30px);
+    }
+}
+
+@media (max-width: 767px) {
+    .item {
+        width: calc(50% - 20px);
+    }
+}
+
+@media (max-width: 360px) {
+    .item {
+        width: 100%;
+    }
+}
 
 
 .avatar {

@@ -171,7 +171,7 @@ function makeSafeQuery($query, $params)
     }
 }
 
-function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItems = false)
+function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItems = false, $limit = 50)
 {
     $result = "";
     $items = [];
@@ -191,7 +191,7 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
         $whereSQL
         GROUP BY `id_items`
         ORDER BY $orderBy `id_items` DESC
-        LIMIT 50 OFFSET $offset
+        LIMIT $limit OFFSET $offset
         ", $whereParams, false
     );
     if ($items == "FAIL") return $result;
@@ -919,9 +919,9 @@ function getRatingItem($idItem)
     $rating = makeSelectQuery("SELECT
         ROUND(AVG(`rating_comments`), 1) AS `rating`
         FROM `comments`
-       params:  WHERE `items_id_comments` = ?
+        WHERE `items_id_comments` = ?
     ", [$idItem], true);
-    return $rating == "FAIL" ? 0.0 : $rating["rating"];
+    return $rating == "FAIL" || $rating["rating"] == null ? 0.0 : $rating["rating"];
 }
 
 function setAnswer($status, $data = [])
@@ -1011,7 +1011,8 @@ function searchItems($json)
    
     $whereSQL = "";
     $whereParams = [];
-    if (!empty($data)) {
+
+    if (!empty($data) && count($data) > 1) {
         unset($data["items_type_id_search_items"], $data["attributes_search"], $data["offset_search_items"], $data["strict_search"]);
         
         $whereSQL = "WHERE ";

@@ -88,7 +88,7 @@ $attributesHTML .= "</div>";
         </div>
     </form>
     <section class="items">
-        <?= getItems(0) ?>
+        <?= getItems() ?>
     </section>
 </main>
 

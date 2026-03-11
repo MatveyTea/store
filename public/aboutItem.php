@@ -13,13 +13,18 @@ $item = makeSelectQuery("SELECT
     `items`.`cost_items`,
     `items`.`date_add_items`,
     `items`.`description_items`,
-    `items_type`.`name_items_type`
+    `items`.`items_type_id_items`,
+    `items_type`.`name_items_type`,
+    `attributes`.`properties_id_attributes`
     FROM `items`
     JOIN `items_type` ON `items_type`.`id_items_type` = `items`.`items_type_id_items`
+    LEFT JOIN `items_properties` ON `id_items_properties` = `id_items`
+    LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
+    LEFT JOIN `properties` ON `properties_id_attributes` = `id_properties`
     WHERE `items`.`id_items` = ?
 ", [$_GET["id_item"]], true);
 
-if ($item === false || empty($item)) {
+if ($item === "FAIL" || empty($item)) {
     redirect();
 }
 
@@ -134,6 +139,10 @@ include_once __DIR__ . "/header.php";
             </div>
         </form>
         <?php } echo getCommentsHTML($comments) ?>
+    </section>
+    <section class="similar">
+        <h2>Похожие товары</h2>
+        <?= getItems(0, "WHERE `items_type_id_items` = ? OR `properties_id_attributes` = ?", [$item["items_type_id_items"], 1], false, 9) ?>
     </section>
     <?php 
         if (isAdmin()) {
