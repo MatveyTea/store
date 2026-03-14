@@ -21,6 +21,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
     if ($validatedData["isCorrect"]) {
         if ($_GET["type"] == "add") {
             $attributes = $validatedData["data"]["attributes"] ?? [];
+            print_r($attributes);
             unset($validatedData["data"]["attributes"]);
             $result = getInsertSQL($validatedData["data"]);
             if (makeSafeQuery("INSERT INTO `$tableName` ($result[sql]) VALUES ($result[question])", $result["params"])) {
@@ -28,7 +29,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
             } else {
                 $_SESSION["server"] = "Не удалось создать";
             }
-            if ($isAttribute) {
+            if ($isAttribute && !empty($attributes)) {
                 $sql = "";
                 $params = [];
                 foreach ($attributes as $attribute) {
@@ -37,14 +38,12 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
                     $sql .= "INSERT INTO `attributes` ($result[sql]) VALUES ($result[question]);";
                     array_push($params, ...$result["params"]);
                 }
-                
                 if (makeSafeQuery($sql, $params)) {
-                    $_SESSION["server"] = "Обновлено";
+                    $_SESSION["server"] = "Создано";
                 } else {
-                    $_SESSION["server"] = "Не удалнось создать";
+                    $_SESSION["server"] = "Не удалось создать";
                 }
             }
-
         } else if ($_GET["type"] == "update") {
             if (!empty($validatedData["data"]["id_$tableName"])) {
                 $result = getUpdateSQL(array_diff_key($validatedData["data"], ["id_$tableName" => true, "attributes" => true]));
@@ -60,10 +59,16 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
                 $sql = "";
                 $params = [];
                 foreach ($attributes as $attribute) {
-                    $result = getUpdateSQL(array_diff_key($attribute, ["id_attributes" => true]));
-                    $result["params"][] = $attribute["id_attributes"];
-                    $sql .= "UPDATE `attributes` SET $result[sql] WHERE `id_attributes` = ?;";
-                    array_push($params, ...$result["params"]);
+                    if (empty($attribute["id_attributes"])) {
+                        $result = getInsertSQL(array_diff_key($attribute));
+                        $sql .= "INSERT INTO `attributes` ($result[sql]) VALUES ($result[question]);";
+                        array_push($params, ...$result["params"]);
+                    } else {
+                        $result = getUpdateSQL(array_diff_key($attribute, ["id_attributes" => true, "id_properties" => true]));
+                        $result["params"][] = $attribute["id_attributes"];
+                        $sql .= "UPDATE `attributes` SET $result[sql] WHERE `id_attributes` = ?;";
+                        array_push($params, ...$result["params"]);
+                    }
                 }
                 if (makeSafeQuery($sql, $params)) {
                     $_SESSION["server"] = "Обновлено";

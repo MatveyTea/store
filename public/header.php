@@ -3,6 +3,7 @@ include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
 $partHeader = "";
+$partHeaderMobile = "";
 
 if (isUserAuth()) {
     if (isAdmin()) {
@@ -12,11 +13,15 @@ if (isUserAuth()) {
     $partHeader .= "<a href='basket.php'>Корзина</a>
         <a href='profile.php'><img class='avatar' src=$img></a>
     ";
+    $partHeaderMobile = $partHeader;
 } else {
     $partHeader = "<span>
         <a href='auth.php'>Войти</a>
         <a href='reg.php'>Зарегистрироваться</a>
     </span>";
+    $partHeaderMobile .= "<a href='auth.php'>Войти</a>
+        <a href='reg.php'>Зарегистрироваться</a>
+    ";
 }
 
 $currentFileName = pathinfo($_SERVER["SCRIPT_NAME"], PATHINFO_FILENAME);
@@ -44,9 +49,20 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
 </head>
 <body>
     <header class="header">
-        <nav class="content">
+        <nav class="content header-desktop">
             <a href="/">Каталог</a>
             <?= $partHeader ?>
+        </nav>
+        <nav class="content header-mobile">
+            <div class="header-mobile-burger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="header-mobile-content">
+                <a href="/">Каталог</a>
+                <?= $partHeaderMobile ?>
+            </div>
         </nav>
     </header>
 </body>

@@ -63,20 +63,20 @@ if (isUserAuth()) {
         redirect();
     } else if ($basket == []) {
         $itemHTML .= "<span class='item' data-id='$_GET[id_item]' data-count='$item[count_items]'>
-            <button class='button basket' data-type='add'>Добавить в корзину</button>
-            <span class='hidden counter-wrapper'>
-                <button class='button minus'>-</button>
-                <p class='counter'>В корзине: <b class='counterText'>0</b></p>
-                <button class='button plus'>+</button>
+            <button class='item-basket button' data-type='add'>Добавить в корзину</button>
+            <span class='hidden item-counter-container'>
+                <button class='item-counter-minus button'>-</button>
+                <p>В корзине: <b class='item-counter-text'>0</b></p>
+                <button class='item-counter-plus button'>+</button>
             </span>
         </span>";
     } else {
         $itemHTML .= "<span class='item' data-id='$_GET[id_item]' data-count='$item[count_items]'>
-            <button class='button basket' data-type='remove'>Убрать из корзины</button>
-            <span class='counter-wrapper'>
-                <button class='button minus'>-</button>
-                <p class='counter'>В корзине: <b class='counterText'>$basket[count_baskets]</b></p>
-                <button class='button plus'>+</button>
+            <button class='item-basket button' data-type='remove'>Убрать из корзины</button>
+            <span class='item-counter-container'>
+                <button class='item-counter-minus button'>-</button>
+                <p>В корзине: <b class='item-counter-text'>$basket[count_baskets]</b></p>
+                <button class='item-counter-plus button'>+</button>
             </span>
         </span>";
     }
@@ -140,9 +140,9 @@ include_once __DIR__ . "/header.php";
         </form>
         <?php } echo getCommentsHTML($comments) ?>
     </section>
-    <section class="similar">
+    <section class="content items">
         <h2>Похожие товары</h2>
-        <?= getItems(0, "WHERE `items_type_id_items` = ? OR `properties_id_attributes` = ?", [$item["items_type_id_items"], 1], false, 9) ?>
+        <?= getItems(0, "WHERE (`items_type_id_items` = ? OR `properties_id_attributes` = ?) AND `id_items` != ?", [$item["items_type_id_items"], 1, $_GET["id_item"]], false, 10) ?>
     </section>
     <?php 
         if (isAdmin()) {

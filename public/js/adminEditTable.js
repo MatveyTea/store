@@ -20,6 +20,7 @@ deleteAll.forEach((button) => {
         const resultData = await result.json();
         if (resultData["status"] == "OK") {
             form.remove();
+            showModal("Удалено");
         } else {
             showModal("Не удалось выполнить запрос")
             form.classList.remove("hidden");
@@ -54,13 +55,12 @@ deleteOneButtons?.forEach((button) => {
 async function deleteOne(button, additional) {
     if (button.hasAttribute("data-id-attributes")) {
         additional.classList.add("hidden");
-        const resultData = sendToServer({
+        const resultData = await sendToServer({
             "server_type": "delete_one_from_table",
             "id": button.dataset.idAttributes
         });
         if (resultData["status"] == "OK") {
             additional.remove();
-            current.remove();
             showModal("Удалено");
         } else {
             showModal("Не удалось выполнить запрос")
@@ -76,15 +76,19 @@ document.querySelectorAll(".form").forEach((form) => {
         const ids = form.querySelectorAll(".input[data-name='id_attributes']");
         const values = form.querySelectorAll(".input[data-name='value_attributes']");
         const result = [];
-        for (let i = 0; i < ids.length; i++) {
+        for (let i = 0; i < values.length; i++) {
             let array = {};
             if (ids[i] && ids[i].value != "") {
                 array["id_attributes"] = ids[i].value;
             }
             if (values[i].value != "" && values[i].dataset.isInsertServer == 0) {
                 array["value_attributes"] = values[i].value;
+                result.push(array);
             }
-            result.push(array);
+            const idProperty = document.querySelector(`.form:has(#${values[i].id}) .input[data-name='id_properties']`);
+            if (idProperty) {
+                array["properties_id_attributes"] = idProperty.value;
+            }
         }
         if (result.length > 0) {
             const attributes = form.querySelector(".input[data-name='attributes']");

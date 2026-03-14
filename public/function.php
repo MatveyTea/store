@@ -219,11 +219,11 @@ function getItemsHTML($items, $userItems)
         $basket = "";
         foreach ($userItems as $userItem) {
             if ($userItem["items_id_baskets"] == $item["id_items"]) {
-                $basket = "<button class='basket button' data-type='remove'>Убрать из корзины</button>
-                    <span class='counter-wrapper'>
-                        <button class='minus button'>-</button>
-                        <p class='counter'>В корзине: <b class='counterText'>$userItem[count_baskets]</b></p>
-                        <button class='plus button'>+</button>
+                $basket = "<button class='item-basket button' data-type='remove'>Убрать из корзины</button>
+                    <span class='item-counter-container'>
+                        <button class='item-counter-minus button'>-</button>
+                        <p>В корзине: <b class='item-counter-text'>$userItem[count_baskets]</b></p>
+                        <button class='item-counter-plus button'>+</button>
                     </span>
                 ";
                 break;
@@ -231,22 +231,21 @@ function getItemsHTML($items, $userItems)
         }
 
         if ($basket == "" && isUserAuth()) {
-            $basket = "<button class='button basket' data-type='add'>Добавить в корзину</button>
-                <span class='hidden counter-wrapper'>
-                    <button class='minus button'>-</button>
-                    <p class='counter'>В корзине: <b class='counterText'>0</b></p>
-                    <button class='plus button'>+</button>
+            $basket = "<button class='item-basket button' data-type='add'>Добавить в корзину</button>
+                <span class='invisible item-counter-container'>
+                    <button class='item-counter-minus button'>-</button>
+                    <p>В корзине: <b class='item-counter-text'>0</b></p>
+                    <button class='item-counter-plus button'>+</button>
                 </span>
             ";
         }
 
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
-                <a href ='aboutItem.php?id_item=$item[id_items]' class='item_link' >
+                <a href ='aboutItem.php?id_item=$item[id_items]' class='item-link' >
                     <p>№ $item[id_items]</p>
-                    <img src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]) . "' class='item_image''>
-                    <p class='item_name'>$item[name_items]</p>
-                    <p class='item_count'>Количество: $item[count_items]</p>
-                    <p class='item_cost'>Стоимость: $item[cost_items]р</p>
+                    <img src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]) . "' class='item-image'>
+                    <p class='item-name'>$item[name_items]</p>
+                    <p class='item-cost'>Стоимость: $item[cost_items]р</p>
                 </a>
                 $basket
             </span>
@@ -285,16 +284,16 @@ function getBasketHTML($basket)
         } else {
             if ($datetimeBuy != $item["datetime_buy_baskets"]) {
                 if ($datetimeBuy != null) {
-                    $historyHTML .= "<p>Всего: {$historyCost}р</p></article>";
+                    $historyHTML .= "</div><p>Всего: {$historyCost}р</p></article>";
                     $historyCost = 0;
                 }
-                $historyHTML .= "<article class='basket'><h2>Время покупки: " . dateformat($item["datetime_buy_baskets"]) . "</h2>";
+                $historyHTML .= "<article class='basket'><h2>Время покупки: " . dateformat($item["datetime_buy_baskets"]) . "</h2><div class='items'>";
                 $datetimeBuy = $item["datetime_buy_baskets"];
             }
             $historyHTML .= getItemHTML($item);
             $historyCost += $item["cost_items"] * $item["count_baskets"];
             if ($item["id_baskets"] == $lastUserItem["id_baskets"]) {
-                $historyHTML .= "<p>Всего: {$historyCost}р</p></article>";
+                $historyHTML .= "</div><p>Всего: {$historyCost}р</p></article>";
             }
         }
     }

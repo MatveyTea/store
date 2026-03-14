@@ -1161,44 +1161,44 @@ async function sendToServer(data) {
 }
 
 function clickableItem(item) {
-    const basketButton = item.querySelector("button.basket");
-    const counterWrapper = item.querySelector(".counter-wrapper");
-    const minusButton = counterWrapper.querySelector("button.minus");
-    const counterText = counterWrapper.querySelector(".counter .counterText");
-    const plusButton = counterWrapper.querySelector("button.plus");
+    const basketButton = item.querySelector(".item-basket");
+    const counterContainer = item.querySelector(".item-counter-container");
+    const minusButton = counterContainer.querySelector(".item-counter-minus");
+    const counterText = counterContainer.querySelector(".item-counter-text");
+    const plusButton = counterContainer.querySelector(".item-counter-plus");
 
     basketButton.addEventListener("click", async () => {
-        changeButtonBasket(basketButton.dataset.type == "add", counterWrapper, counterText, basketButton);
-        await sendItem(item, counterWrapper, counterText, basketButton);
+        changeButtonBasket(basketButton.dataset.type == "add", counterContainer, counterText, basketButton);
+        await sendItem(item, counterContainer, counterText, basketButton);
     });
 
     minusButton.addEventListener("click", async () => {
         if (parseInt(counterText.textContent) <= 1) {
-            changeButtonBasket(false, counterWrapper, counterText, basketButton);
+            changeButtonBasket(false, counterContainer, counterText, basketButton);
         } else {
             counterText.textContent = parseInt(counterText.textContent) - 1;
         }
-        await sendItem(item, counterWrapper, counterText, basketButton);
+        await sendItem(item, counterContainer, counterText, basketButton);
     });
     plusButton.addEventListener("click", async () => {
         if (item.dataset.count > parseInt(counterText.textContent)) {
             counterText.textContent = parseInt(counterText.textContent) + 1;
-            await sendItem(item, counterWrapper, counterText, basketButton);
+            await sendItem(item, counterContainer, counterText, basketButton);
         }
     });
 }
 
-function changeButtonBasket(status, counterWrapper, counterText, basketButton) {
-    if (status == null || counterText == null || counterWrapper == null || basketButton == null) return;
+function changeButtonBasket(status, counterContainer, counterText, basketButton) {
+    if (status == null || counterText == null || counterContainer == null || basketButton == null) return;
 
     if (status === true) {
         counterText.textContent = 1;
-        counterWrapper.classList.remove("hidden");
+        counterContainer.classList.remove("invisible");
         basketButton.textContent = "Убрать из корзины";
         basketButton.dataset.type = "remove";
     } else {
         counterText.textContent = 0;
-        counterWrapper.classList.add("hidden");
+        counterContainer.classList.add("invisible");
         basketButton.textContent = "Добавить в корзину";
         basketButton.dataset.type = "add";
     }
@@ -1254,3 +1254,33 @@ const template = document.querySelector("template[data-is-show-modal]");
 if (template && template.dataset.isShowModal == 1) {
     showModal(template.dataset?.text);
 }
+
+function setBurgerMenu() {
+    const burger = document.querySelector(".header-mobile-burger");
+    const content = document.querySelector(".header-mobile-content");
+
+    if (window.screen.width > 768) {
+        burger.classList.remove("open");
+        content.style.display = "none";
+    } else {
+        const vh = window.innerHeight - 100;
+        document.querySelector(".header-mobile-content").style.height = `${vh}px`;
+        burger.onclick = function () {
+            console.log(1);
+            burger.classList.toggle("open");
+            if (burger.classList.contains("open")) {
+                content.style.display = "flex";
+                document.body.style.overflow = "hidden";
+                setTimeout(() => content.style.opacity = "1", 10);
+            } else {
+                content.style.opacity = "0";
+                document.body.style.overflow = "unset";
+                setTimeout(() => content.style.display = "none", 300);
+            }
+        }
+    }
+}
+
+window.addEventListener("resize", () => {
+    setBurgerMenu();
+});

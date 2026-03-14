@@ -60,8 +60,8 @@ async function getSearchItems() {
 }
 
 const itemsSection = document.querySelector(".items");
-const items = itemsSection.querySelectorAll("span[data-id]");
-const isAuth = items[0]?.querySelector("button.basket");
+const items = itemsSection.querySelectorAll(".item");
+const isAuth = items[0]?.querySelector(".item-basket");
 
 const countGetMaxItems = 50;
 let isCanGet = true;

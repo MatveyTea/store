@@ -25,7 +25,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
             array_push($params, $id, $property["id_attributes"]);
         }
 
-        if ($sql != "" && $params != [] && makeSafeQuery($sql, $params) ) {
+        if ($sql != "" && $params != [] && makeSafeQuery($sql, $params) || $isSucceedItem) {
             clearValidatedSession();
             $_SESSION["server"] = "Товар добавлен";
         } else {

@@ -87,7 +87,7 @@ $attributesHTML .= "</div>";
             <input class="button input" type="submit" value="Найти" id="search_button" name="submit_button">
         </div>
     </form>
-    <section class="items">
+    <section class="content items">
         <?= getItems() ?>
     </section>
 </main>
