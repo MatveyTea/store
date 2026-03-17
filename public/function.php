@@ -260,10 +260,10 @@ function getItemHTML($item)
     if ($item == null) return $result;
     $img = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $item["image_items"]);
     $result .= "<a href='aboutItem.php?id_item=$item[id_items]' class='item' data-id='$item[id_items]' data-count='$item[count_baskets]'>
-        <img src='$img'>
-        <p>$item[name_items]</p>
-        <p>Количество: $item[count_baskets]</p>
-        <p>Стоимость: $item[cost_items]р</p>
+        <img src='$img' class='item-image'>
+        <p class='item-name'>$item[name_items]</p>
+        <p class='item-count'>Количество: $item[count_baskets]</p>
+        <p class='item-cost'>Стоимость: $item[cost_items]р</p>
     </a>";
     return $result;
 }
@@ -310,6 +310,54 @@ function dateformat($datetime = null)
     return "$array[4]:$array[5], " . intval($array[3]) . " " . $months[$array[2] - 1] . " $array[1]";
 }
 
+function searchUsers($json)
+{
+    $validatedData = getValidatedData(array_diff_key($json, ["server_type" => true]), "adminEditUser.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $where = [];
+    $params = [];
+
+    foreach ($validatedData["data"] as $data) {
+        $where[] = $data["sql"];
+        $params[] = $data["params"];
+    }
+
+    $users = null;
+    if (!empty($where) && !empty($params)) {
+        $users = getUsers("WHERE `id_users` != ? AND" . join(" AND ", $where), [1, ...$params]);
+    } else {
+        $users = getUsers();
+    }
+    
+    if ($users == "FAIL") setAnswer("FAIL");
+    else if (empty($users)) setAnswer("NOTFOUND");
+
+    setAnswer("OK", $users);
+}
+function getUsers($where = "", $params = [])
+{
+    $users = makeSelectQuery("SELECT * FROM `users` $where ORDER BY `is_banned_users` DESC", $params, false);
+    $usersHTML = "";
+
+    if ($users == "FAIL") {
+        return "FAIL";
+    }
+
+    foreach ($users as $user) {
+        $isBanned = $user["is_banned_users"] === 1;
+        $usersHTML .= "<div class='user'>
+            <p>Имя:<br>$user[name_users]</p>
+            <p>Почта:<br>$user[email_users]</p>
+            <p class='user-status'>Статус:<br><span>" . ($isBanned ? "Заблокирован" : "Разблокирован") . "</span></p>
+            <button class='button banned' data-id='$user[id_users]' data-is-banned='$user[is_banned_users]'>" . ($isBanned ? "Разблокировать" : "Заблокировать") . "</button>
+            <button class='button delete' data-id='$user[id_users]'>Удалить</button> 
+        </div>";
+    }
+
+    return $usersHTML;
+}
+
 function getValidationRules($file = "")
 {
     $result = [];
@@ -319,6 +367,15 @@ function getValidationRules($file = "")
 
     $rules = [
         // Пользователь
+        "id_users" => [
+            "files" => ["adminEditUser.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/[0-9]{1,7}$/u", $value);
+            }
+        ],
         "name_users" => [
             "files" => ["reg.php", "profile.php"],
             "required" => true,
@@ -337,11 +394,37 @@ function getValidationRules($file = "")
                 return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/u", $value);
             },
         ],
+        "email_search_users" => [
+            "files" => ["adminEditUser.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if (preg_match("/^[A-Za-z0-9._%+-@]{1,80}$/u", $value)) {
+                    return ["sql" => "`email_users` LIKE ?","params" => "%$value%"];
+                }
+                return false;
+            },
+        ],
+        "is_banned_search_users" => [
+            "files" => ["adminEditUser.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if (preg_match("/[0-1]$/u", $value)) {
+                    return ["sql" => "`is_banned_users` = ?", "params" => $value];
+                } else if ($value == 2) {
+                     return ["sql" => "`is_banned_users` IN (?)", "params" => "0,1"];
+                }
+                return false;
+            }
+        ],
         "password_users" => [
             "files" => ["reg.php", "auth.php", "profile.php"],
             "required" => true,
             "canUpdate" => true,
-            "returned_value" => false,
+            "returned_value" => true,
             "pattern" => function ($value) use ($file) {
                 if (preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/u", $value)) {
                     return $file == "auth.php" ? $value : password_hash($value, PASSWORD_DEFAULT);
@@ -372,6 +455,15 @@ function getValidationRules($file = "")
                     }
                 }
                 return false;
+            }
+        ],
+        "is_banned_users" => [
+            "files" => ["adminEditUser.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/[0-1]$/u", $value);
             }
         ],
         // Товар
@@ -1159,8 +1251,30 @@ function deleteOneFromTable($id)
 {
     $validatedData = getValidatedData(["id_attributes" => $id], "adminEditTable.php");
 
-    if (!$validatedData["isCorrect"]) setAnswer("FAItL");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
     $isSuccess = makeSafeQuery("DELETE FROM `attributes` WHERE `id_attributes` = ?", [$id]);
-    setAnswer($isSuccess ? "OK" : "FAtIL");
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function bannedUser($id, $idBanned)
+{
+    if ($id == 1) setAnswer("FAIL");
+
+    $validatedData = getValidatedData(["id_users" => $id, "is_banned_users" => $idBanned], "adminEditUser.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `is_banned_users` = ? WHERE `id_users` = ?", [$idBanned, $id]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function deleteUser($id)
+{
+    if ($id == 1) setAnswer("FAIL");
+
+    $validatedData = getValidatedData(["id_users" => $id], "adminEditUser.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("DELETE FROM `users` WHERE `id_users` = ?", [$id]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
 }

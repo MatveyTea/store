@@ -13,10 +13,10 @@ if (!empty($_POST["submit_button"])) {
 
     if ($validatedData["isCorrect"]) {
         $checkEmail = makeSelectQuery("SELECT `id_users` FROM `users` WHERE `email_users` = ?", [$validatedData["data"]["email_users"]], true);
-        if ($maxProperties === "FAIL") {
+        if ($checkEmail === "FAIL") {
             $_SESSION["server"] = "Не удалось вставить пользователя";
         } else if (empty($checkEmail)) {
-            $result = getInsertSQL(array_merge($validatedData["data"], ["date_create_users" => date("y-m-d")]));
+            $result = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["re_password_users"=> true]), ["date_create_users" => date("y-m-d")]));
             $isSuccess = makeSafeQuery("INSERT INTO `users` ($result[sql]) VALUES ($result[question])", $result["params"]);
             if ($isSuccess) {
                 clearValidatedSession();
@@ -27,7 +27,7 @@ if (!empty($_POST["submit_button"])) {
         } else if (!empty($checkEmail)) {
             $_SESSION["server"] = "Такая почта занята";
         }
-    } else if ($validatedData["errorField"]["password_users"] == 1) {
+    } else if ($validatedData["errorField"]["password_users"] ?? 0 == 1) {
         $_SESSION["server"] = "Пароли должны совпадать";
     } else {
         $_SESSION["server"] = "Не корректные данные";

@@ -1,0 +1,22 @@
+.users {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.user {
+    width: calc(20% - 20px);
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: wheat;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.user .button {
+    align-self: center;
+}

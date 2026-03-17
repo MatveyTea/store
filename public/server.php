@@ -7,7 +7,6 @@ if (!empty(file_get_contents("php://input"))) {
     $serverType = $json["server_type"] ?? "";
     $isAuth = isUserAuth();
     $isAdmin = isAdmin();
-  
 
     if ($isAuth && $serverType == "basket" && !empty($json["id_item"]) && isset($json["count_item"]) && !empty($json["action_item"])) { // index.js и aboutItem.js - Добавление и удаление товаров в корзине
         changeBasket($json["id_item"], $json["count_item"], $json["action_item"]);
@@ -19,17 +18,25 @@ if (!empty(file_get_contents("php://input"))) {
         searchItems($json);
     } else if ($isAuth && $serverType == "add_comment" && !empty($json["id_items"] && !empty($json["rating_comments"]))) { // aboutItem.js - Добавление комментария о товаре
         addComment($json["id_items"], $json["rating_comments"], $json["text_comments"] ?? "");
-    } else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_properties"])) { // adminEditItem.js - Удаление свойства у товара
-        deleteItemProperties($json["id_properties"]);
     } else if ($isAdmin && $serverType == "delete_from_table" && !empty($json["id"]) && !empty($json["table"])) { // adminEditTable.js - Удаление поля из таблиц ("properties" или "status" или "items_type")
         deleteFromTable($json["table"], $json["id"]);
-    } else if ($isAuth && $serverType == "delete_comment" && !empty($json["id_comment"])) {
+    } else if ($isAuth && $serverType == "delete_comment" && !empty($json["id_comment"])) { // aboutItem.js - Удаление комментария
         deleteComment($json["id_comment"]);
-    } else if ($isAuth && $serverType == "add_view" && !empty($json["id_item"])) {
+    } else if ($isAuth && $serverType == "add_view" && !empty($json["id_item"])) { // aboutItem.js - Увеличение счётчик просмотра
         addView($json["id_item"]);
-    } else if ($isAdmin && $serverType == "delete_one_from_table" && !empty($json["id"])) {
+    } else if ($isAdmin && $serverType == "delete_one_from_table" && !empty($json["id"])) { // adminEditTable.js - Удалить свойства из таблицы attributes
         deleteOneFromTable($json["id"]);
-    } else {
+    } else if ($isAdmin && $serverType == "banned_users" && !empty($json["id_users"]) && isset($json["is_banned_users"])) { // adminEditUser.js - Блокировка пользователя
+        bannedUser($json["id_users"], $json["is_banned_users"]);
+    } else if ($isAdmin && $serverType == "search_users" && !empty($json)) {
+        searchUsers($json);
+    } else if ($isAdmin && $serverType == "delete_user" && !empty($json["id_users"])) {
+        deleteUser($json["id_users"]);
+    } else { // Иначе ошибка
         setAnswer("FAIL");
     }
 }
+// adminEditItem.js - Удаление свойства у товара
+// else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_properties"])) {
+//     deleteItemProperties($json["id_properties"]);
+// }

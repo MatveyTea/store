@@ -69,6 +69,47 @@ function getValidationRules() {
                 return "Введите действительный email-адрес до 80 символов.";
             },
         },
+        "email_search_users": {
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "email-адрес",
+            "inputs": null,
+            "nameRule": "email_search_users",
+            "oldValue": null,
+            "files": ["adminEditUser.php"],
+            "required": false,
+            "timerId": null,
+            "length": 80,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[A-Za-z0-9._%+-@]{1,80}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите действительный email-адрес до 80 символов.";
+            },
+        },
+        "is_banned_search_users": {
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "Искать среди",
+            "inputs": null,
+            "nameRule": "is_banned_search_users",
+            "oldValue": null,
+            "files": ["adminEditUser.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                return input.selectedIndex > -1 ? false : "Выберите элемент";
+            },
+        },
         "password_users": {
             "currentValue": null,
             "hasName": true,
@@ -80,7 +121,7 @@ function getValidationRules() {
             "nameRule": "password_users",
             "oldValue": null,
             "files": ["reg.php", "auth.php", "profile.php"],
-            "required": true,
+            "required": "profile.php" != file,
             "timerId": null,
             "length": 40,
             "placeMsg": null,
@@ -117,7 +158,7 @@ function getValidationRules() {
             "nameRule": "re_password_users",
             "oldValue": null,
             "files": ["reg.php", "profile.php"],
-            "required": true,
+            "required": "profile.php" != file,
             "timerId": null,
             "length": 80,
             "placeMsg": null,
@@ -127,7 +168,6 @@ function getValidationRules() {
                 }
 
                 const password = document.querySelector("input[data-name=password_users]");
-                console.log(password);
                 if (password) {
                     const passwordPlaceError = password.parentElement.querySelector(".error");
                     if (input.value != password.value && password.value != "") {
@@ -928,11 +968,7 @@ function setBasicSettingInput(inputs, form) {
         rule.inputs.push(input);
         rule.isInsertServer[input.id] = input.dataset?.isInsertServer ?? 1;
         if (rule.isInsertServer[input.id] == 1) {
-            if (input.type == "checkbox") {
-                rule.oldValue[input.id] = input.checked;
-            } else {
-                rule.oldValue[input.id] = input.value;
-            }
+            rule.oldValue[input.id] = defineValueInput(input);
         } else {
             rule.oldValue[input.id] = "";
         }
@@ -1014,7 +1050,7 @@ function defineValueInput(input) {
     let value = null;
     if (input.type == "checkbox") {
         value = input.checked;
-    } else if (input.hasAttribute("type")) {
+    } else if (input.tagName == "SELECT") {
         value = input.selectedIndex;
     } else {
         value = input.value;
@@ -1121,6 +1157,7 @@ function setAdditional(form) {
             });
         });
         input.value = JSON.stringify(array ?? "");
+        input.dispatchEvent(new Event("change"));
     });
 }
 
@@ -1225,7 +1262,11 @@ async function sendItem(item, counterWrapper, counterText, basketButton) {
     }
 }
 
+
+let prevModal = null;
 function showModal(text) {
+    if (prevModal != null) prevModal.querySelector(".button").click();
+
     const template = document.querySelector("template[data-is-show-modal]");
     if (!template || text == "") return;
 
@@ -1233,12 +1274,13 @@ function showModal(text) {
     const modalText = modal.querySelector("p");
     const modalButton = modal.querySelector(".button");
 
+    prevModal = modal;
     document.body.appendChild(modal);
     modal.classList.remove("hidden");
-
     setTimeout(() => {
         modal.classList.remove("invisible");
-    }, 0);
+        setTimeout(() => modalButton.click(), 3000);
+    }, 10);
 
     modalText.textContent = text;
 
@@ -1266,7 +1308,6 @@ function setBurgerMenu() {
         const vh = window.innerHeight - 100;
         document.querySelector(".header-mobile-content").style.height = `${vh}px`;
         burger.onclick = function () {
-            console.log(1);
             burger.classList.toggle("open");
             if (burger.classList.contains("open")) {
                 content.style.display = "flex";

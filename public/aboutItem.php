@@ -119,6 +119,11 @@ include_once __DIR__ . "/header.php";
 
 <main class="content">
     <section class="about">
+        <?php 
+            if (isAdmin()) {
+                echo "<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
+            }
+        ?>
         <?= $itemHTML ?>
     </section>
     <section class="comments">
@@ -142,13 +147,8 @@ include_once __DIR__ . "/header.php";
     </section>
     <section class="content items">
         <h2>Похожие товары</h2>
-        <?= getItems(0, "WHERE (`items_type_id_items` = ? OR `properties_id_attributes` = ?) AND `id_items` != ?", [$item["items_type_id_items"], 1, $_GET["id_item"]], false, 10) ?>
+        <?= getItems(0, "WHERE (`items_type_id_items` = ? OR `properties_id_attributes` = ?) AND `id_items` != ?", [$item["items_type_id_items"], 1, $_GET["id_item"]], false, 20) ?>
     </section>
-    <?php 
-        if (isAdmin()) {
-            echo "<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
-        }
-    ?>
 </main>
 
 <?php include_once __DIR__ . "/footer.php"; ?>

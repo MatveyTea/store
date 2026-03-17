@@ -209,20 +209,20 @@ echo "<template id='dependencies'>$dependencies</template>";
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="file" data-name="image_items" data-is-insert-server="0">
+            <input class="input" type="file" data-name="image_items" data-is-insert-server="1">
             <img src="<?= getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $itemInfo["image_items"]) ?>">
             <p class="error"></p>
         </div>
         <div class="field">
             <label class="label"></label>
-            <select class="input" data-name="items_type_id_items">
+            <select class="input" data-name="items_type_id_items" data-is-insert-server="1">
                 <option value="" disabled selected>Выбрать</option>
                 <?= $typesHTML ?>
             </select>
             <p class="error"></p>
         </div>
         <div class="field">
-            <input type="hidden" class="hidden input" data-name="items_properties">
+            <input type="hidden" class="hidden input" data-name="items_properties" data-is-insert-server="1">
             <button class="additional button">Добавить свойства</button>
             <p class="error"></p>
         </div>

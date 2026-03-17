@@ -60,7 +60,7 @@ include_once __DIR__ . "/header.php";
         </div>
     </form>
     <div>
-        <a href='logout.php'>Выйти из аккаунта</a>
+        <a class="button" href='logout.php'>Выйти из аккаунта</a>
     </div>
 </main>
 

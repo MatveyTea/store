@@ -28,6 +28,8 @@ if (addComment) {
             ratingComment.textContent = "";
             addComment.insertAdjacentHTML("afterend", resultData["data"]["comments"]);
             document.querySelector(".about h2 b").innerHTML = resultData["data"]["rating"];
+            document.querySelector(".comment:first-of-type .button").addEventListener("click", commentAction);
+            showModal("Комментарий добавлен");
         } else {
             showModal("Не удалось добавить комментарий");
         }
@@ -35,22 +37,7 @@ if (addComment) {
 
     document.querySelectorAll(".item").forEach((item) => clickableItem(item));
 
-    document.querySelectorAll("div .button[data-id]").forEach((button) => {
-        button.addEventListener("click", async () => {
-            const parent = document.querySelector(`div:has(.button[data-id='${button.dataset.id}'])`);
-            parent.classList.add("hidden");
-            const resultData = await sendToServer({
-                "server_type": "delete_comment",
-                "id_comment": button.dataset.id
-            });
-            if (resultData["status"] == "OK") {
-                parent.remove();
-            } else {
-                showModal("Не удалось удалить комментарий");
-                parent.classList.remove("hidden");
-            }
-        });
-    });
+    document.querySelectorAll("div .button[data-id]").forEach((button) => button.addEventListener("click", commentAction));
 }
 
 const idItem = window.location.search.split("?id_item=")[1];
@@ -62,3 +49,19 @@ addEventListener("DOMContentLoaded", async () => {
         });
     }
 });
+
+
+async function commentAction() {
+    const parent = document.querySelector(`div:has(.button[data-id='${this.dataset.id}'])`);
+    parent.classList.add("hidden");
+    const resultData = await sendToServer({
+        "server_type": "delete_comment",
+        "id_comment": this.dataset.id
+    });
+    if (resultData["status"] == "OK") {
+        parent.remove();
+    } else {
+        showModal("Не удалось удалить комментарий");
+        parent.classList.remove("hidden");
+    }
+}

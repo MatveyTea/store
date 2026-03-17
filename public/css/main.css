@@ -99,21 +99,21 @@ footer {
     gap: 15px;
 }
 
-form .field:has(.input[type=checkbox]) {
+.form .field:has(.input[type=checkbox]) {
     display: block;
 }
 
-form .field:has(label .input[type=checkbox]) {
+.form .field:has(label .input[type=checkbox]) {
     display: flex;
     flex-wrap: wrap;
     justify-content: unset;
 }
 
-form .field:has(label .input[type=checkbox]) p {
+.form .field:has(label .input[type=checkbox]) p {
     width: 100%;
 }
 
-form .field:has(label .input[type=checkbox]) label {
+.form .field:has(label .input[type=checkbox]) label {
     display: flex;
     gap: 20px;
     align-items: center;
@@ -223,7 +223,8 @@ form .field:has(label .input[type=checkbox]) label {
     user-select: none;
     align-self: center;
     border-radius: 15px;
-    object-fit: contain;
+    object-fit: cover;
+    border-radius: 30px
 }
 
 .item-basket {
@@ -346,7 +347,7 @@ header nav a:focus {
     flex-direction: column;
     top: 100%;
     left: 0;
-    transform: translate(-2.5%, 3.3%);
+    transform: translate(-1.95%, 3.7%);
     background-color: black;
     width: 100vw;
     justify-content: space-evenly;
@@ -361,7 +362,7 @@ header nav a:focus {
 /* МОДАЛЬНОЕ ОКНО */
 .modal {
     width: 33vw;
-    position: absolute;
+    position: fixed;
     inset: 0;
     top: 50%;
     left: 50%;

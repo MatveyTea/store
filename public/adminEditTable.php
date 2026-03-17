@@ -21,7 +21,6 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
     if ($validatedData["isCorrect"]) {
         if ($_GET["type"] == "add") {
             $attributes = $validatedData["data"]["attributes"] ?? [];
-            print_r($attributes);
             unset($validatedData["data"]["attributes"]);
             $result = getInsertSQL($validatedData["data"]);
             if (makeSafeQuery("INSERT INTO `$tableName` ($result[sql]) VALUES ($result[question])", $result["params"])) {
