@@ -64,7 +64,7 @@ if (isUserAuth()) {
     } else if ($basket == []) {
         $itemHTML .= "<span class='item' data-id='$_GET[id_item]' data-count='$item[count_items]'>
             <button class='item-basket button' data-type='add'>Добавить в корзину</button>
-            <span class='hidden item-counter-container'>
+            <span class='invisible item-counter-container'>
                 <button class='item-counter-minus button'>-</button>
                 <p>В корзине: <b class='item-counter-text'>0</b></p>
                 <button class='item-counter-plus button'>+</button>
@@ -112,6 +112,9 @@ foreach  ($attributes as $index => $attribute) {
     }
 }
 $itemHTML .= "</p>";
+if (isAdmin()) {
+    $itemHTML .="<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
+}
 
 getModalHTML();
 include_once __DIR__ . "/header.php";
@@ -119,11 +122,6 @@ include_once __DIR__ . "/header.php";
 
 <main class="content">
     <section class="about">
-        <?php 
-            if (isAdmin()) {
-                echo "<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
-            }
-        ?>
         <?= $itemHTML ?>
     </section>
     <section class="comments">

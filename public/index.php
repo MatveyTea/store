@@ -1,15 +1,17 @@
 <?php
 include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
-include_once __DIR__ . "/header.php";
 
-$types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
-if ($types == "FAIL") redirect();
 $typesHTML = "";
+$types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
+if ($types == "FAIL") {
+    redirect();
+}
 foreach ($types as $type) {
     $typesHTML .= "<label>$type[name_items_type]<input class='input' type='checkbox' data-name='items_type_id_search_items' value='$type[id_items_type]'></label>";
 }
 
+$attributesHTML = "";
 $attributes = makeSelectQuery("SELECT 
     `attributes`.`id_attributes`,
     `attributes`.`value_attributes`,
@@ -20,10 +22,10 @@ $attributes = makeSelectQuery("SELECT
     ORDER BY `properties`.`id_properties`
     ", [], false
 );
+if ($attributes == "FAIL") {
+    redirect();
+}
 
-if ($attributes == "FAIL") redirect();
-
-$attributesHTML = "";
 $currentAttributeID = null;
 foreach  ($attributes as $attribute) {
     if ($currentAttributeID != $attribute["id_properties"]) {
@@ -37,6 +39,7 @@ foreach  ($attributes as $attribute) {
 }
 $attributesHTML .= "</div>";
 
+include_once __DIR__ . "/header.php";
 ?>
 
 <main class="content">
@@ -45,6 +48,11 @@ $attributesHTML .= "</div>";
         <div class="field">
             <label class="label"></label>
             <input class="input" type="search" data-name="name_search_items" data-is-insert-server="0">
+            <p class="error"></p>
+        </div>
+            <div class="field">
+            <label class="label"></label>
+            <input class="input" type="search" data-name="description_search_items" data-is-insert-server="0">
             <p class="error"></p>
         </div>
         <div class="field">
@@ -67,21 +75,18 @@ $attributesHTML .= "</div>";
             <input class="input" type="search" data-name="max_count_items" data-is-insert-server="0">
             <p class="error"></p>
         </div>
-        <div class="field">
-            <label class="label">Тип товара</label>
-            <?= $typesHTML ?>
-            <p class="error"></p>
-        </div>
-        <?= $attributesHTML ?>
-        <div class="field">
-            <label class="label"></label>
-            <input class="input strict" type="checkbox" data-name="strict_search" data-is-insert-server="0">
-            <p class="error"></p>
+        <div class="field-attributes">
+            <div class="field">
+                <label class="label">Тип товара</label>
+                <?= $typesHTML ?>
+            </div>
+            <?= $attributesHTML ?>
         </div>
         <div class="field">
-            <label class="label"></label>
-            <input class="input popular" type="checkbox" data-name="popular_items" data-is-insert-server="0">
-            <p class="error"></p>
+            <label class="label"><input class="input popular" type="checkbox" data-name="popular_items" data-is-insert-server="0"></label>
+        </div>
+        <div class="field">
+            <label class="label"><input class="input strict" type="checkbox" data-name="strict_search" data-is-insert-server="0"></label>
         </div>
         <div class="field">
             <input class="button input" type="submit" value="Найти" id="search_button" name="submit_button">

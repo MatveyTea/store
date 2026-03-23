@@ -1,0 +1,48 @@
+.current-basket {
+    border-radius: 20px;
+    padding: 20px;
+    background-color: var(--button-color-hover);
+}
+
+.current-basket .buy {
+    width: 300px;
+    margin: 0 auto;
+}
+
+.current-basket .buy b {
+    color: white;
+    margin-left: 5px;
+}
+
+.history-basket {
+    border-radius: 20px;
+    padding: 20px;
+    background-color: var(--button-color-hover);
+    margin-top: 50px;
+
+}
+
+.current-basket *,
+.history-basket * {
+    color: white;
+}
+
+.items {
+    background-color: transparent;
+    justify-content: start;
+}
+
+.items .item {
+    background-color: var(--button-color-hover);
+}
+
+.basket {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 20px 0;
+    color: white;
+    border-radius: 20px;
+    background-color: var(--button-color);
+    padding: 20px;
+}

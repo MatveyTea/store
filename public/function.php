@@ -4,7 +4,7 @@ include_once __DIR__ . "/config/config.php";
 const FOLDER_IMG = "img";
 const FOLDER_MAIN = "main";
 const FOLDER_UPLOAD = "upload";
-const FOLDER_AVATARS = "profile";
+const FOLDER_AVATARS = "avatars";
 const FOLDER_ITEMS = "items";
 
 function getModalHTML()
@@ -219,7 +219,7 @@ function getItemsHTML($items, $userItems)
         $basket = "";
         foreach ($userItems as $userItem) {
             if ($userItem["items_id_baskets"] == $item["id_items"]) {
-                $basket = "<button class='item-basket button' data-type='remove'>Убрать из корзины</button>
+                $basket = "<button class='item-basket button green' data-type='remove'>Убрать из корзины</button>
                     <span class='item-counter-container'>
                         <button class='item-counter-minus button'>-</button>
                         <p>В корзине: <b class='item-counter-text'>$userItem[count_baskets]</b></p>
@@ -231,7 +231,7 @@ function getItemsHTML($items, $userItems)
         }
 
         if ($basket == "" && isUserAuth()) {
-            $basket = "<button class='item-basket button' data-type='add'>Добавить в корзину</button>
+            $basket = "<button class='item-basket button green' data-type='add'>Добавить в корзину</button>
                 <span class='invisible item-counter-container'>
                     <button class='item-counter-minus button'>-</button>
                     <p>В корзине: <b class='item-counter-text'>0</b></p>
@@ -534,7 +534,7 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "adminEditItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
+                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
             }
         ],
         // Поиск товара
@@ -546,6 +546,18 @@ function getValidationRules($file = "")
             "pattern" => function ($value) {
                 if (preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value)) {
                     return ["sql" => "`name_items` LIKE ?", "param" => "%$value%"];
+                }
+                return false;
+            }
+        ],
+        "description_search_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if (preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value)) {
+                    return ["sql" => "`description_items` LIKE ?", "param" => "%$value%"];
                 }
                 return false;
             }

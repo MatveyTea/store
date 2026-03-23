@@ -29,8 +29,8 @@ extract(getBasketHTML($basket));
 
 if (!empty($currentHTML)) {
     $currentHTML = "<h2>Товары в корзине</h2>
-        <article class='basket items'>$currentHTML</article>
-        <button class='button buy'>Оплатить <b> {$currentCost}р</b></button>
+        <article class='basket'><div class='items'>$currentHTML</div></article>
+        <button class='button buy'>Оплатить<b>{$currentCost}р</b></button>
     ";
 } else {
     $currentHTML = "<h2>У вас нет ничего в корзине</h2>";
@@ -57,19 +57,3 @@ include_once __DIR__ . "/header.php";
 </main>
 
 <?php include_once __DIR__ . "/footer.php"; ?>
-<style>
-    .current-basket .buy {
-        width: 300px;
-        margin: 0 auto;
-    }
-    .basket {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        margin: 20px 0;
-        color: white;
-        background-color: chocolate;
-        border-radius: 20px;
-        padding: 20px;
-    }
-</style>

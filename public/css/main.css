@@ -1,6 +1,12 @@
 /* ПЕРЕМЕННЫЕ */
 :root {
     --content-width: 1440px;
+    --header-color: #BE405F;
+    --green-color: #007d00;
+    --green-color-hover: #004c00;
+    --body-color: #F3C6C6;
+    --button-color: #9d2e3b;
+    --button-color-hover: #71212a;
 }
 
 /* ОБЩИЕ СВОЙСТВА */
@@ -12,7 +18,9 @@
     text-decoration: none;
     outline: none;
     border: none;
+    color: var(--button-color);
     letter-spacing: 1px;
+    line-height: 150%;
 }
 
 html, body {
@@ -23,6 +31,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    background-color: var(--body-color);
 }
 
 a {
@@ -31,6 +40,11 @@ a {
 
 body main {
     flex: 1;
+    margin-top: 150px !important;
+}
+
+body main > .button  {
+    margin: 0 auto;
 }
 
 .content {
@@ -49,9 +63,24 @@ body main {
     align-items: center;
     cursor: pointer;
     color: white;
-    background-color: coral;
-    padding: 20px;
+    background-color: var(--button-color);
+    padding: 15px;
     border-radius: 10px;
+    transition: background-color 0.3s linear;
+}
+
+.button:hover,
+.button:focus {
+    background-color: var(--button-color-hover);
+}
+
+.button.green {
+    background-color: var(--green-color);
+}
+
+.button.green:hover,
+.button.green:focus {
+    background-color: var( --green-color-hover);
 }
 
 .invisible {
@@ -59,17 +88,55 @@ body main {
 }
 
 .avatar {
-    height: 50px;
+    height: 60px;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 50%;
-    border: 1px solid black;
+    border-radius: 40px;
 }
 
+/* ФУТЕР */
 footer {
-    height: 200px;
-    background-color: aquamarine;
+    min-height: 150px;
+    color: white;
+    background-color: var(--header-color);
     flex-shrink: 0;
+}
+
+.footer-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.footer-slogan {
+    width: 100%;
+    text-align: justify;
+    color: white;
+}
+
+.footer-items {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.footer-item {
+    color: white;
+    display: block;
+}
+
+.footer-copyright {
+    width: 100%;
+    text-align: center;
+    color: white;
+}
+
+.footer-copyright br {
+    display: none;
 }
 
 /* ФОРМА */
@@ -97,28 +164,6 @@ footer {
     align-items: center;
     flex-wrap: wrap;
     gap: 15px;
-}
-
-.form .field:has(.input[type=checkbox]) {
-    display: block;
-}
-
-.form .field:has(label .input[type=checkbox]) {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: unset;
-}
-
-.form .field:has(label .input[type=checkbox]) p {
-    width: 100%;
-}
-
-.form .field:has(label .input[type=checkbox]) label {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    user-select: none;
-    cursor: pointer;
 }
 
 .form .field.additional .field {
@@ -152,34 +197,100 @@ footer {
 
 .form .field .input {
     width: 100%;
-    height: 20px;
-    border-bottom: 1px solid black;
+    height: 30px;
+    padding: 20px;
+    border-radius: 20px;
 }
 
-.form .field .input[type=checkbox] {
-    width: 10%;
+.form .field-attributes {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.form .field-attributes .field, .form .field:has(input[type=checkbox]) {
+    height: max-content;
+    background-color: white;
+    padding: 20px;
+    border-radius: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.form .field-attributes .field p,
+.form .field-attributes .field .label {
+    width: 100%;
+}
+
+.form .field-attributes .field label,
+.form .field:has(input[type=checkbox]) .label {
+    width: calc(25% - 10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    user-select: none;
+    cursor: pointer;
+}
+
+.form .field:has(input[type=checkbox]) .label {
+    width: 100%;
+}
+
+.form .field-attributes .field label .input,
+.form .field:has(input[type=checkbox]) .input {
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+
+.form .field:has(input[type=file]) {
+    gap: 2px;
+}
+
+.form .field input[type=file] {
+    height: 40px;
+    padding: 10px 20px;
+    width: 50%;
+    background-color: white;
+}
+
+.form .field:has(input[type=file]) img {
+    width: 40%;
 }
 
 .form .field input.button {
-    width: 50%;
+    width: 30%;
     height: 50px;
     padding: 0;
     align-self: center;
     border-bottom: none;
+    border-radius: 15px;
 }
 
 .form .field .error {
-    width: 100%;
-    height: 20px;
-    transition: 0.3s all;
-    color: crimson;
+    width: max-content;
+    height: max-content;
+    transition: all 0.3s linear;
+    color: white;
+    background-color: var(--button-color);
+    border-radius: 10px;
+}
+
+.form .field .error:not(.invisible) {
+    padding: 10px;
 }
 
 .form .field .textarea {
-    max-height: 150px;
+    min-height: 100px;
+    max-height: 200px;
     resize: vertical;
 }
-
 
 /* ТОВАРЫ */
 .items {
@@ -187,9 +298,26 @@ footer {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 15px;
+    padding: 15px;
+    color: white;
+    background-color: var(--button-color-hover);
+    border-radius: 20px;
+}
+
+.items * {
+    color: white;
+}
+
+.items .notfound {
+    width: 100%;
+    color: white;
+    text-align: center;
+    border-radius: 20px;
+    padding: 20px;
 }
 
 .item {
+    background-color: var(--button-color);
     width: calc(25% - 15px);
     height: max-content;
     padding: 10px;
@@ -231,14 +359,7 @@ footer {
     width: 100%;
     height: 40px;
     cursor: pointer;
-    background-color: rgba(255, 127, 80, 0.5);
-    transition: 0.4s background-color;
     border-radius: 15px;
-}
-
-.item-basket:hover,
-.item-basket:focus {
-    background-color: coral
 }
 
 .item-counter-container {
@@ -274,35 +395,37 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: cornflowerblue;
+    background-color: var(--header-color);
     margin-bottom: 50px;
     flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    z-index: 10;
 }
 
 header nav a {
     color: white;
     font-size: 1.2rem;
     transition: 0.5s color;
-
 }
 
 header nav a:hover,
 header nav a:focus {
-    color: chocolate;
+    color: var(--button-color-hover);
 }
 
 .header-desktop {
     display: flex;
     justify-content: space-between;
     align-items: center;
-        margin: 0 auto;
+    margin: 0 auto;
 }
 
 .header-mobile {
     display: none;
     justify-content: flex-end;
     position: relative;
-        margin: 0 auto;
+    margin: 0 auto;
 }
 
 .header-mobile-burger {
@@ -347,8 +470,8 @@ header nav a:focus {
     flex-direction: column;
     top: 100%;
     left: 0;
-    transform: translate(-1.95%, 3.7%);
-    background-color: black;
+    transform: translate(-1.45%, 3.7%);
+    background-color: var(--header-color);
     width: 100vw;
     justify-content: space-evenly;
     align-items: center;
@@ -357,6 +480,14 @@ header nav a:focus {
     transition: opacity 0.3s linear;
     gap: 20px;
     padding: 20px 0;
+}
+
+.header-mobile-content a {
+    width: 90%;
+    background-color: var(--button-color);
+    text-align: center;
+    padding: 20px;
+    border-radius: 20px;
 }
 
 /* МОДАЛЬНОЕ ОКНО */
@@ -391,29 +522,67 @@ header nav a:focus {
     gap: 20px;
 }
 
-@media (min-width: 769px) and (max-width: 1400px) {
+/* НОУТБУКИ 769px - 1440px */
+@media (min-width: 769px) and (max-width: 1440px) {
+    /* ОБЩИЕ СВОЙСТВА */
+    html {
+        --content-width: 96vw !important;
+    }
+
+    /* ФОРМА */
+    .form .field-attributes .field label {
+        width: calc(50% - 20px);
+    }
+
+    /* ТОВАРЫ */
     .item {
         width: calc(33% - 15px);
     }
-
-    html {
-        --content-width: 96vw !important;
-    }
 }
 
+/* ПЛАНШЕТЫ 401px - 768px */
 @media (min-width: 401px) and (max-width: 768px) {
+    /* ОБЩИЕ СВОЙСТВА */
     html {
-        --content-width: 96vw !important;
+        --content-width: 97vw !important;
     }
+
+    /* ШАПКА */
+    .header-desktop {
+        display: none;
+    }
+
+    .header-mobile {
+        display: flex;
+    }
+
+    /* ФОРМА */
     .form .field {
         width: 100%;
     }
 
+    .form .field input.button {
+        width: 60%;
+    }
 
+    .form .field-attributes .field label {
+        width: calc(50% - 20px);
+    }
+
+    /* ТОВАРЫ */
     .item {
         width: calc(50% - 15px);
     }
+}
 
+/* ТЕЛЕФОНЫ 1px - 400px */
+@media  (min-width: 1px) and (max-width: 400px) {
+    /* ОБЩИЕ СВОЙСТВА */
+    html {
+        --content-width: 97vw !important; 
+    }
+
+    /* ШАПКА */
     .header-desktop {
         display: none;
     }
@@ -421,25 +590,36 @@ header nav a:focus {
     .header-mobile {
         display: flex;
     }
-}
 
-@media (max-width: 400px) {
-    .form .field {
+    /* ФОРМА */
+    .form .field, .form .field input.button {
         width: 100%;
     }
-    html {
-        --content-width: 98vw !important; 
+
+    .form .field-attributes .field label {
+        width: calc(100% - 20px);
     }
 
+    .form .field:has(input[type=checkbox]) .label .input {
+        width: 30px;
+        height: 30px;
+    }
+
+    /* ТОВАРЫ */
     .item {
         width: 100%;
     }
 
-    .header-desktop {
-        display: none;
+    /* ФУТЕР */
+    .footer-items {
+        flex-direction: column;
     }
 
-    .header-mobile {
-        display: flex;
+    .footer-item:has(img) {
+        order: -1;
+    }
+
+    .footer-copyright br {
+        display: block;
     }
 }

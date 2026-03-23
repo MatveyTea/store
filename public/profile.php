@@ -59,9 +59,7 @@ include_once __DIR__ . "/header.php";
             <input type="submit" class="input button" name="submit_button" value="Обновить">
         </div>
     </form>
-    <div>
-        <a class="button" href='logout.php'>Выйти из аккаунта</a>
-    </div>
+    <a href='logout.php' class="button">Выйти из аккаунта</a>
 </main>
 
 <?php include_once __DIR__ . "/footer.php"; ?>

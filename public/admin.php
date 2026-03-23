@@ -15,10 +15,14 @@ include_once __DIR__ . "/header.php";
         <a href="adminAddItem.php" class="button">Товары</a>
     </div>
     <div class="edit">
-        <h2>Добавление | Изменение | Удаление</h2>
-        <a href="adminEditTable.php?table=properties" class="button">Свойства товаров</a>
-        <a href="adminEditTable.php?table=status" class="button">Статусы товаров</a>
-        <a href="adminEditTable.php?table=items_type" class="button">Типы товаров</a>
+        <h2>Добавление, изменение, удаление товаров</h2>
+        <a href="adminEditTable.php?table=properties" class="button">Свойства</a>
+        <a href="adminEditTable.php?table=status" class="button">Статусы</a>
+        <a href="adminEditTable.php?table=items_type" class="button">Типы</a>
+        <a href="adminEditUser.php" class="button">Пользователи</a>
+    </div>
+    <div class="edit">
+        <h2>Блокировка пользователей</h2>
         <a href="adminEditUser.php" class="button">Пользователи</a>
     </div>
 </main>

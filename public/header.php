@@ -16,11 +16,11 @@ if (isUserAuth()) {
     $partHeaderMobile = $partHeader;
 } else {
     $partHeader = "<span>
-        <a href='auth.php'>Войти</a>
-        <a href='reg.php'>Зарегистрироваться</a>
+        <a href='auth.php'>Вход</a>
+        <a href='reg.php'>Регистрация</a>
     </span>";
-    $partHeaderMobile .= "<a href='auth.php'>Войти</a>
-        <a href='reg.php'>Зарегистрироваться</a>
+    $partHeaderMobile .= "<a href='auth.php'>Вход</a>
+        <a href='reg.php'>Регистрация</a>
     ";
 }
 

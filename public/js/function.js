@@ -390,7 +390,7 @@ function getValidationRules() {
             "length": 255,
             "placeMsg": null,
             "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/.test(input.value)) {
                     return false;
                 }
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-255 символов.";
@@ -417,6 +417,28 @@ function getValidationRules() {
                     return false;
                 }
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+            }
+        },
+        "description_search_items": {
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "описание товара",
+            "inputs": null,
+            "nameRule": "description_search_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": 255,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-255 символов.";
             }
         },
         "items_type_id_search_items": {
@@ -933,7 +955,7 @@ function checkInput(input, rule) {
         } else {
             rule.placeMsg[input.id].textContent = textMessage;
         }
-        rule.placeMsg[input.id].classList.toggle("hidden", isCorrect);
+        rule.placeMsg[input.id].classList.toggle("invisible", isCorrect);
     }
 
     if (isCorrect && rule.oldValue[input.id] == rule.currentValue[input.id]) {
@@ -976,7 +998,7 @@ function setBasicSettingInput(inputs, form) {
 
         const placeMsg = form.querySelector(`.field:not(.additional):has(#${input.id}) .error`);
         if (placeMsg) {
-            placeMsg.classList.toggle("hidden", placeMsg.textContent == "");
+            placeMsg.classList.toggle("invisible", placeMsg.textContent == "");
             rule.placeMsg[input.id] = placeMsg;
         }
 
@@ -990,8 +1012,12 @@ function setBasicSettingInput(inputs, form) {
         if (rule.nameInput != null) {
             const label = form.querySelector(`.field:not(.additional):has(#${input.id}) .label`);
             if (label) {
-                label.setAttribute("for", input.id)
-                label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1);
+                label.setAttribute("for", input.id);
+                if (label.children.length > 0) {
+                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1) + label.innerHTML;
+                } else {
+                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1);
+                }
                 if (rule.required) {
                     label.innerHTML += "<b>*</b>";
                 }
