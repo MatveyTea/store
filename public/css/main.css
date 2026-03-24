@@ -1,6 +1,6 @@
 /* ПЕРЕМЕННЫЕ */
 :root {
-    --content-width: 1440px;
+    --content-width: 95vw;
     --header-color: #BE405F;
     --green-color: #007d00;
     --green-color-hover: #004c00;
@@ -49,6 +49,7 @@ body main > .button  {
 
 .content {
     width: var(--content-width);
+    max-width: 1720px;
     margin: 20px auto;
 }
 
@@ -168,6 +169,7 @@ footer {
 
 .form .field.additional .field {
     width: 100%;
+    padding: 0;
 }
 
 .form .field.additional .field label {
@@ -176,6 +178,10 @@ footer {
 
 .form .field.additional .field label.hidden {
     display: none !important;
+}
+
+.form .field.additional .field .button {
+    width: 33%;
 }
 
 .form .field.hidden {
@@ -202,6 +208,19 @@ footer {
     border-radius: 20px;
 }
 
+.form .field select.input {
+    appearance: none !important;
+    background-image: url("../img/main/selectArrow.png");
+    background-repeat: no-repeat;
+    background-position: right 20px top 50%;
+    background-size: 14px auto;
+    height: 40px;
+    padding: 0 20px;
+    position: relative;
+    border-radius: 20px 20px 0 0;
+}
+
+
 .form .field-attributes {
     width: 100%;
     display: flex;
@@ -210,7 +229,12 @@ footer {
     gap: 20px;
 }
 
-.form .field-attributes .field, .form .field:has(input[type=checkbox]) {
+.form .field-attributes .field select.input {
+    padding: 0;
+}
+
+.form .field-attributes .field,
+.form .field:has(input[type=checkbox]) {
     height: max-content;
     background-color: white;
     padding: 20px;
@@ -243,7 +267,7 @@ footer {
 }
 
 .form .field-attributes .field label .input,
-.form .field:has(input[type=checkbox]) .input {
+.form .field:has(input[type=checkbox]) .input[type=checkbox] {
     display: block;
     width: 20px;
     height: 20px;
@@ -260,8 +284,9 @@ footer {
     background-color: white;
 }
 
-.form .field:has(input[type=file]) img {
+.form .field:has(input[type=file]) img:not(.avatar) {
     width: 40%;
+    border-radius: 30px;
 }
 
 .form .field input.button {
@@ -274,7 +299,7 @@ footer {
 }
 
 .form .field .error {
-    width: max-content;
+    width: 100%;
     height: max-content;
     transition: all 0.3s linear;
     color: white;
@@ -513,13 +538,17 @@ header nav a:focus {
     display: flex;
     width: 100%;
     height: 100%;
-    background-color: rebeccapurple;
+    background-color: var(--button-color-hover);
     flex-direction: column;
     justify-content: center;
     align-items: center;
     color: white;
     border-radius: 50px;
     gap: 20px;
+}
+
+.modal span * {
+    color: white;
 }
 
 /* НОУТБУКИ 769px - 1440px */
@@ -531,7 +560,7 @@ header nav a:focus {
 
     /* ФОРМА */
     .form .field-attributes .field label {
-        width: calc(50% - 20px);
+        width: calc(50% - 20px) !important;
     }
 
     /* ТОВАРЫ */
@@ -566,7 +595,7 @@ header nav a:focus {
     }
 
     .form .field-attributes .field label {
-        width: calc(50% - 20px);
+        width: calc(50% - 20px) !important;
     }
 
     /* ТОВАРЫ */
@@ -597,12 +626,25 @@ header nav a:focus {
     }
 
     .form .field-attributes .field label {
-        width: calc(100% - 20px);
+        width: 100% !important;
     }
 
     .form .field:has(input[type=checkbox]) .label .input {
         width: 30px;
         height: 30px;
+    }
+
+    .form .field:has(input[type=file]) {
+       flex-direction: column;  
+        gap: 20px;
+    }
+
+    .form .field input[type=file] {
+        width: 100%;
+    }
+
+    .form .field:has(input[type=file]) img:not(.avatar) {
+        width: 100%;
     }
 
     /* ТОВАРЫ */

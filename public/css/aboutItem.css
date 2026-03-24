@@ -1,0 +1,80 @@
+.about {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: 20px;
+}
+
+.about-name {
+    grid-column: 1 / -1;
+    grid-row: 1 / 2;
+}
+
+.about-rating {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+}
+
+.about-image {
+    width: 100%;
+    grid-column: 1 / 3;
+    grid-row: 3 /-1;
+    border-radius: 30px;
+    object-fit: cover;
+}
+
+.about-description {
+    grid-column: 3 / -1;
+    grid-row: 3 / 4;
+}
+
+.about-attributes {
+    grid-column: 3 / -1;
+    grid-row: 4 / 5;
+}
+
+.basket {
+    grid-column: 3 / -1;
+    grid-row: 5 / -1;
+}
+
+.basket {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+main > a {
+    width: 50% !important;
+    margin: 30px auto !important;
+}
+
+.comments {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+}
+
+.comment {
+    width: calc(50% - 10px);
+    padding: 20px;
+    border-radius: 20px;
+    background-color: var(--button-color-hover);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.comment * {
+    color: white;
+}
+
+.comment-text {
+    text-align: justify;
+}
+
+.comment-date, .comment-text, .comment-rating {
+    width: 100%;
+}

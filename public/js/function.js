@@ -603,7 +603,7 @@ function getValidationRules() {
             "length": 255,
             "placeMsg": null,
             "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/.test(input.value)) {
                     return false;
                 }
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-255 символов.";
@@ -1103,7 +1103,7 @@ function setAdditional(form) {
     dependenciesTemplate.remove();
 
     const additionalButton = form.querySelector("button.additional");
-    const insertPlace = form.querySelector(".field:has(.button.input)");
+    const insertPlace = form.querySelector(".field-attributes");
     const isEditFile = ["/adminEditItem.php"].includes(window.location.pathname);
 
     const allAdditional = document.querySelectorAll(".field.additional select");
@@ -1119,7 +1119,7 @@ function setAdditional(form) {
         if (count >= maxCount) return;
         count++;
         const clone = additional.cloneNode(true);
-        insertPlace.insertAdjacentElement("beforebegin", clone);
+        insertPlace.prepend(clone);
 
         clone.querySelector(".button").addEventListener("click", () => {
             count--;
@@ -1173,13 +1173,15 @@ function setAdditional(form) {
         const additionalFiled = document.querySelectorAll(".field.additional");
         const array = [];
         additionalFiled.forEach((filed) => {
-            const updateInputCheckbox = Array.from(filed.querySelectorAll(".input[data-is-insert-server='0']"));
+            const updateInputCheckbox = Array.from(filed.querySelectorAll(".input[data-is-insert-server='0']:not(.input[data-name='attributes_select_property'])"));
             updateInputCheckbox.forEach((input) => {
-                array.push({
-                    "type": input.checked ? "add" : "remove",
-                    "id_attributes": input.value,
-                    "id_properties": document.querySelector(`.field.additional:has(#${input.id}) select`).value
-                });
+                if (input.value != "") {
+                    array.push({
+                        "type": input.checked ? "add" : "remove",
+                        "id_attributes": input.value,
+                        "id_properties": document.querySelector(`.field.additional:has(#${input.id}) select`).value
+                    });
+                }
             });
         });
         input.value = JSON.stringify(array ?? "");
@@ -1200,6 +1202,7 @@ function changeSelect(select, values) {
                 }
                 label.classList.toggle("hidden", !includesThisProperty);
                 input.checked = selectedInput.includes(input.value) ? "checked" : "";
+                input.dispatchEvent(new Event("change"));
             });
         }
     }

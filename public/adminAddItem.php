@@ -69,13 +69,24 @@ if (!empty($attributesItem)) {
             continue;
         }
         if ($propertyID != $attribute["id_properties"] && $propertyID != null) {
-            $attributesItemHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[$key - 1]["id_properties"], $dataValue);
+            $allAttributesHTMLSome = "";
+            foreach ($allAttributes as $attributeSome) {
+                echo  "$attributeSome[id_attributes] | $attribute[id_attributes]";
+                $isInsertServer = $attributeSome["id_attributes"] == $attribute["id_attributes"] ? 0 : 1;
+                $allAttributesHTMLSome .= "<label class='hidden'>$attributeSome[value_attributes]<input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'></label>";
+            }
+            $attributesItemHTML .= getAdditionalSelectHTML(0, $allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[$key - 1]["id_properties"], $dataValue);
             $dataValue = [];
         }
         $propertyID = $attribute["id_properties"];
         $dataValue[] = $attribute["id_attributes"];
     }
-    $attributesItemHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
+    $allAttributesHTMLSome = "";
+    foreach ($allAttributes as $attributeSome) {
+        $isInsertServer = $attributeSome["id_attributes"] == $attributesItem[count($attributesItem) - 1]["id_attributes"] ? 0 : 1;
+        $allAttributesHTMLSome .= "<label class='hidden'>$attributeSome[value_attributes]<input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'></label>";
+    }
+    $attributesItemHTML .= getAdditionalSelectHTML(0, $allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
 }
 
 
@@ -157,7 +168,9 @@ echo "<template id='dependencies'>$dependencies</template>";
             <p class="error"></p>
             <button class="additional button">Добавить свойства</button>
         </div>
-        <?= $attributesItemHTML ?>
+        <div class="field-attributes">
+            <?= $attributesItemHTML ?>
+        </div>
         <div class="field">
             <input type="submit" class="input button" name="submit_button" value="Добавить">
         </div>

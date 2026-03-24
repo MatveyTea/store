@@ -22,7 +22,7 @@ function getModalHTML()
     </template>";
 }
 
-function getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML, $value, $dataValue = [])
+function getAdditionalSelectHTML($isInsertServer, $allPropertiesHTML, $allAttributesHTML, $value, $dataValue = [])
 {
     $startIndexValue = strpos($allPropertiesHTML, "value='$value'");
     $selectSelected = substr($allPropertiesHTML, 0, $startIndexValue) . " selected " . substr($allPropertiesHTML, $startIndexValue);
@@ -33,7 +33,7 @@ function getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML, $value,
     return "<div class='field additional'>
                 <div class='field'>
                     <label class='label'></label>
-                    <select class='input' data-name='attributes_select_property' data-is-insert-server='1' $dataValue>
+                    <select class='input' data-name='attributes_select_property' data-is-insert-server='$isInsertServer' $dataValue>
                         $selectSelected
                     </select>
                     <p class='error'></p>
@@ -83,7 +83,6 @@ function getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $idIt
                     <option selected disabled>Выбрать</option>
                     $allPropertiesHTML
                 </select>
-                <p class='error'></p>
             </div>
             <div class='field'>
                 $allAttributesHTML
@@ -312,22 +311,23 @@ function dateformat($datetime = null)
 
 function searchUsers($json)
 {
-    $validatedData = getValidatedData(array_diff_key($json, ["server_type" => true]), "adminEditUser.php");
-    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+    unset($json["server_type"]);
+    $validatedData = getValidatedData($json, "adminEditUser.php");
+    if (!$validatedData["isCorrect"] && !empty($json)) setAnswer("FAIL");
 
     $where = [];
     $params = [];
 
     foreach ($validatedData["data"] as $data) {
         $where[] = $data["sql"];
-        $params[] = $data["params"];
+        array_push($params, ...$data["params"]);
     }
 
     $users = null;
     if (!empty($where) && !empty($params)) {
-        $users = getUsers("WHERE `id_users` != ? AND" . join(" AND ", $where), [1, ...$params]);
+        $users = getUsers("WHERE `id_users` != ? AND " . join(" AND ", $where), [1, ...$params]);
     } else {
-        $users = getUsers();
+        $users = getUsers("WHERE `id_users` != ?", [1]);
     }
     
     if ($users == "FAIL") setAnswer("FAIL");
@@ -401,7 +401,7 @@ function getValidationRules($file = "")
             "returned_value" => true,
             "pattern" => function ($value) {
                 if (preg_match("/^[A-Za-z0-9._%+-@]{1,80}$/u", $value)) {
-                    return ["sql" => "`email_users` LIKE ?","params" => "%$value%"];
+                    return ["sql" => "`email_users` LIKE ?", "params" => ["%$value%"]];
                 }
                 return false;
             },
@@ -413,9 +413,9 @@ function getValidationRules($file = "")
             "returned_value" => true,
             "pattern" => function ($value) {
                 if (preg_match("/[0-1]$/u", $value)) {
-                    return ["sql" => "`is_banned_users` = ?", "params" => $value];
+                    return ["sql" => "`is_banned_users` = ?", "params" => [$value]];
                 } else if ($value == 2) {
-                     return ["sql" => "`is_banned_users` IN (?)", "params" => "0,1"];
+                    return ["sql" => "`is_banned_users` IN (?, ?)", "params" => [0, 1]];
                 }
                 return false;
             }

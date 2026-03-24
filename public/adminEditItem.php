@@ -139,13 +139,13 @@ if (!empty($attributesItem)) {
             continue;
         }
         if ($propertyID != $attribute["id_properties"] && $propertyID != null) {
-            $attributesHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[$key - 1]["id_properties"], $dataValue);
+            $attributesHTML .= getAdditionalSelectHTML(1, $allPropertiesHTML, $allAttributesHTML,$attributesItem[$key - 1]["id_properties"], $dataValue);
             $dataValue = [];
         }
         $propertyID = $attribute["id_properties"];
         $dataValue[] = $attribute["id_attributes"];
     }
-    $attributesHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML,$attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
+    $attributesHTML .= getAdditionalSelectHTML(1, $allPropertiesHTML, $allAttributesHTML,$attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
 }
 
 $attributes = makeSelectQuery(
@@ -226,7 +226,10 @@ echo "<template id='dependencies'>$dependencies</template>";
             <button class="additional button">Добавить свойства</button>
             <p class="error"></p>
         </div>
-        <?= $attributesHTML ?>
+        <div class="field-attributes">
+            <?= $attributesHTML ?>
+        </div>
+
         <div class="field">
             <input type="submit" class="input button" name="submit_button" value="Обновить">
         </div>

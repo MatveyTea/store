@@ -29,13 +29,12 @@ if (addComment) {
             addComment.insertAdjacentHTML("afterend", resultData["data"]["comments"]);
             document.querySelector(".about h2 b").innerHTML = resultData["data"]["rating"];
             document.querySelector(".comment:first-of-type .button").addEventListener("click", commentAction);
-            showModal("Комментарий добавлен");
         } else {
             showModal("Не удалось добавить комментарий");
         }
     });
 
-    document.querySelectorAll(".item").forEach((item) => clickableItem(item));
+    document.querySelectorAll(".basket").forEach((item) => clickableItem(item));
 
     document.querySelectorAll("div .button[data-id]").forEach((button) => button.addEventListener("click", commentAction));
 }

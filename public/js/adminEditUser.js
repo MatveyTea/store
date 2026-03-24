@@ -15,7 +15,7 @@ form.addEventListener("submit", async (event) => {
         insertPlace.querySelectorAll(".banned").forEach((button) => button.addEventListener("click", bannedAction));
         insertPlace.querySelectorAll(".delete").forEach((button) => button.addEventListener("click", deleteAction));
     } else if (resultData["status"] == "NOTFOUND") {
-        insertPlace.innerHTML = "<p>Ничего не найдено</p>";
+        insertPlace.innerHTML = "<p class='notfound'>Ничего не найдено</p>";
     } else {
         showModal("Не удалось найти");
     }

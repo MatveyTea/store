@@ -1,22 +1,57 @@
 .users {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
     gap: 20px;
+    background-color: var(--button-color);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.users .notfound {
+    width: 100%;
+    color: white;
+    text-align: center;
 }
 
 .user {
-    width: calc(20% - 20px);
+    width: calc(25% - 20px);
     height: max-content;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    background-color: wheat;
+    color: white;
+    background-color: var(--button-color-hover);
     border-radius: 20px;
     padding: 20px;
 }
 
+.user * {
+    color: white;
+}
+
 .user .button {
+    width: 75%;
     align-self: center;
+}
+
+/* НОУТБУКИ 769px - 1440px */
+@media (min-width: 769px) and (max-width: 1440px) {
+    .user {
+        width: calc(33% - 20px);
+    }
+}
+
+/* ПЛАНШЕТЫ 401px - 768px */
+@media (min-width: 401px) and (max-width: 768px) {
+    .user {
+        width: calc(50% - 20px);
+    }
+}
+
+/* ТЕЛЕФОНЫ 1px - 400px */
+@media (min-width: 1px) and (max-width: 400px) {
+    .user {
+        width: 100%;
+    }
 }

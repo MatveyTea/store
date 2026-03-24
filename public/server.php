@@ -28,7 +28,7 @@ if (!empty(file_get_contents("php://input"))) {
         deleteOneFromTable($json["id"]);
     } else if ($isAdmin && $serverType == "banned_users" && !empty($json["id_users"]) && isset($json["is_banned_users"])) { // adminEditUser.js - Блокировка пользователя
         bannedUser($json["id_users"], $json["is_banned_users"]);
-    } else if ($isAdmin && $serverType == "search_users" && !empty($json)) {
+    } else if ($isAdmin && $serverType == "search_users") {
         searchUsers($json);
     } else if ($isAdmin && $serverType == "delete_user" && !empty($json["id_users"])) {
         deleteUser($json["id_users"]);
