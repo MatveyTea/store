@@ -283,16 +283,27 @@ function getBasketHTML($basket)
         } else {
             if ($datetimeBuy != $item["datetime_buy_baskets"]) {
                 if ($datetimeBuy != null) {
-                    $historyHTML .= "</div><p>Всего: {$historyCost}р</p></article>";
+                    $historyHTML .= "</div>
+                        <p>Всего: {$historyCost}р</p>
+                        <a href='deliveryItem.php?datetime=$datetimeBuy' class='button'>Информация о доставке</a>
+                        </article>
+                    ";
                     $historyCost = 0;
                 }
-                $historyHTML .= "<article class='basket'><h2>Время покупки: " . dateformat($item["datetime_buy_baskets"]) . "</h2><div class='items'>";
+                $historyHTML .= "<article class='basket'>
+                    <h2>Время покупки: " . dateformat($item["datetime_buy_baskets"]) . "</h2>
+                    <div class='items'>
+                ";
                 $datetimeBuy = $item["datetime_buy_baskets"];
             }
             $historyHTML .= getItemHTML($item);
             $historyCost += $item["cost_items"] * $item["count_baskets"];
             if ($item["id_baskets"] == $lastUserItem["id_baskets"]) {
-                $historyHTML .= "</div><p>Всего: {$historyCost}р</p></article>";
+                $historyHTML .= "</div>
+                    <p>Всего: {$historyCost}р</p>
+                    <a href='deliveryItem.php?datetime=$item[datetime_buy_baskets]' class='button'>Информация о доставке</a>
+                    </article>
+                ";
             }
         }
     }

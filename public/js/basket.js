@@ -15,6 +15,7 @@ buyButton?.addEventListener("click", async () => {
     });
     const resultData = await result.json();
     if (resultData["status"] == "OK") {
+        historyBasket.querySelector("h2").textContent = "История покупок";
         historyBasket.querySelector("h2").insertAdjacentHTML("afterend", resultData["data"]["historyHTML"]);
         currentBasket.innerHTML = "<h2>У вас нет ничего в корзине</h2>";
     } else {

@@ -30,6 +30,7 @@
 .items {
     background-color: transparent;
     justify-content: start;
+    padding: 0;
 }
 
 .items .item {
