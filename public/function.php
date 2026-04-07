@@ -128,6 +128,11 @@ function isAdmin()
     return getUserID() == 1;
 }
 
+function isDeliver()
+{
+    return makeSelectQuery("SELECT `is_deliver_users` FROM `users` WHERE `id_users` = ?", [getUserID()], true)["is_deliver_users"] == 1;
+}
+
 function getUserInfo()
 {
     $userInfo = makeSelectQuery("SELECT * FROM `users` WHERE `id_users` = ?", [getUserID()], true);
@@ -547,6 +552,15 @@ function getValidationRules($file = "")
             "pattern" => function ($value) {
                 return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
             }
+        ],
+        "datetime_buy_orders" => [
+            "files" => ["allOrders.php", "deliveryItem.php", "myOrders.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/u", $value);
+            }  
         ],
         // Поиск товара
         "name_search_items" => [
@@ -1077,7 +1091,7 @@ function changeBasket($idItem, $countItem, $actionItem)
 function buyItems()
 {
     $datetime = date("y-m-d H:i:s");
-    $isSuccess = makeSafeQuery("UPDATE `baskets` SET `status_id_baskets` = ?, `datetime_buy_baskets` = ? WHERE `users_id_baskets` = ? AND `status_id_baskets` = ? AND `datetime_buy_baskets` IS NULL ", [2, $datetime, 1, getUserID()]);
+    $isSuccess = makeSafeQuery("UPDATE `baskets` SET `status_id_baskets` = ?, `datetime_buy_baskets` = ? WHERE `users_id_baskets` = ? AND `status_id_baskets` = ? AND `datetime_buy_baskets` IS NULL", [2, $datetime, getUserID(), 1]);
 
     if (!$isSuccess) setAnswer("FAIL");
 
@@ -1299,5 +1313,45 @@ function deleteUser($id)
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
     $isSuccess = makeSafeQuery("DELETE FROM `users` WHERE `id_users` = ?", [$id]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function acceptOrders($datetime)
+{
+    $validatedData = getValidatedData(["datetime_buy_orders" => $datetime], "allOrders.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `baskets` SET `status_id_baskets` = ? WHERE `datetime_buy_baskets` = ?; INSERT INTO `orders` (`users_id_orders`, `baskets_datetime_orders`, `accept_datetime_orders`) VALUES (?, ?, ?)", [3, $datetime, getUserID(), $datetime, date("y-m-d H:i:s")]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function statusOrders($datetime)
+{
+    $validatedData = getValidatedData(["datetime_buy_orders" => $datetime], "myOrders.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `baskets` SET `status_id_baskets` = `status_id_baskets` + 1 WHERE `datetime_buy_baskets` = ? AND `status_id_baskets` < 5", [$datetime]);
+    if (!$isSuccess) setAnswer("FAIL");
+
+    $status = makeSelectQuery("SELECT `status`.`name_status`
+        FROM `baskets`
+        JOIN `status` ON `status`.`id_status` = `status_id_baskets`
+        JOIN `orders` ON `orders`.`baskets_datetime_orders` = `datetime_buy_baskets`
+        WHERE `datetime_buy_baskets` = ? AND `users_id_orders` = ?
+    ", [$datetime, getUserID()], true);
+    if ($status) {
+        setAnswer("OK", ["name_status" => $status["name_status"]]);
+    }
+    else {
+        setAnswer("FAIL");
+    }
+}
+
+function receiptOrders($datetime)
+{
+    $validatedData = getValidatedData(["datetime_buy_orders" => $datetime], "deliveryItem.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `baskets` SET `status_id_baskets` = ?, `datetime_receipt_baskets` = ? WHERE `datetime_buy_baskets` = ? AND `status_id_baskets` = ? AND `users_id_baskets` = ?", [6, date("y-m-d H:i:s"), $datetime, 5, getUserID()]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }

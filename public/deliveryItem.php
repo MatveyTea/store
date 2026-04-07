@@ -47,6 +47,9 @@ foreach ($allStatus as $index => $status) {
     }
 }
 
+if ($currentStatusItemInBasket == 5) {
+    $allStatusHTML .= "<button class='button receipt' data-datetime='" . $itemsInBasket[0]["datetime_buy_baskets"] . "'>Я получил товар</button>";
+ }
 
 getModalHTML();
 include_once __DIR__ . "/header.php";

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Мар 02 2026 г., 21:20
+-- Время создания: Апр 07 2026 г., 15:44
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -55,7 +55,8 @@ CREATE TABLE `baskets` (
   `status_id_baskets` int NOT NULL,
   `count_baskets` int NOT NULL,
   `users_id_baskets` int NOT NULL,
-  `datetime_buy_baskets` datetime DEFAULT NULL
+  `datetime_buy_baskets` datetime DEFAULT NULL,
+  `datetime_receipt_baskets` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -96,7 +97,7 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `cost_items`, `date_add_items`, `items_type_id_items`, `description_items`, `views_items`) VALUES
-(1, 'Товар 1', 19, 'default.png', 872, '2026-01-13', 2, NULL, 0),
+(1, 'Товар 1', 19, 'default.png', 872, '2026-01-13', 2, NULL, 1),
 (2, 'Товар 2', 14, 'default.png', 682, '2026-01-14', 1, NULL, 0),
 (3, 'Товар 3', 15, 'default.png', 740, '2026-01-14', 2, NULL, 0),
 (4, 'Товар 4', 18, 'default.png', 435, '2026-01-14', 1, NULL, 0),
@@ -151,7 +152,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (53, 'Товар 53', 7, 'default.png', 125, '2026-01-14', 2, NULL, 0),
 (54, 'Товар 54', 17, 'default.png', 626, '2026-01-14', 1, NULL, 0),
 (55, 'Товар 55', 16, 'default.png', 652, '2026-01-14', 2, NULL, 0),
-(56, 'Товар 56', 11, 'default.png', 633, '2026-01-14', 1, NULL, 0),
+(56, 'Товар 56', 11, 'default.png', 633, '2026-01-14', 1, NULL, 1),
 (57, 'Товар 57', 13, 'default.png', 596, '2026-01-14', 2, NULL, 0),
 (58, 'Товар 58', 28, 'default.png', 645, '2026-01-14', 1, NULL, 0),
 (59, 'Товар 59', 10, 'default.png', 399, '2026-01-14', 2, NULL, 0),
@@ -175,7 +176,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (77, 'Товар 77', 24, 'default.png', 290, '2026-01-14', 2, NULL, 0),
 (78, 'Товар 78', 9, 'default.png', 260, '2026-01-14', 1, NULL, 0),
 (79, 'Товар 79', 13, 'default.png', 901, '2026-01-14', 2, NULL, 0),
-(80, 'Товар 80', 6, 'default.png', 877, '2026-01-14', 1, NULL, 0),
+(80, 'Товар 80', 6, 'default.png', 877, '2026-01-14', 1, NULL, 1),
 (81, 'Товар 81', 24, 'default.png', 470, '2026-01-14', 2, NULL, 0),
 (82, 'Товар 82', 15, 'default.png', 694, '2026-01-14', 1, NULL, 0),
 (83, 'Товар 83', 30, 'default.png', 103, '2026-01-14', 2, NULL, 0),
@@ -243,7 +244,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (145, 'Товар 145', 6, 'default.png', 315, '2026-01-14', 2, NULL, 0),
 (146, 'Товар 146', 25, 'default.png', 72, '2026-01-14', 1, NULL, 0),
 (147, 'Товар 147', 20, 'default.png', 253, '2026-01-14', 2, NULL, 0),
-(148, 'Товар 148', 11, 'default.png', 929, '2026-01-14', 1, NULL, 0),
+(148, 'Товар 148', 11, 'default.png', 929, '2026-01-14', 1, NULL, 1),
 (149, 'Товар 149', 18, 'default.png', 100, '2026-01-14', 2, NULL, 0),
 (150, 'Товар 150', 5, 'default.png', 698, '2026-01-14', 1, NULL, 0),
 (151, 'Товар 151', 19, 'default.png', 813, '2026-01-14', 2, NULL, 0),
@@ -257,7 +258,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (159, 'Товар 159', 7, 'default.png', 289, '2026-01-14', 2, NULL, 0),
 (160, 'Товар 160', 6, 'default.png', 270, '2026-01-14', 1, NULL, 0),
 (161, 'Товар 161', 29, 'default.png', 419, '2026-01-14', 2, NULL, 0),
-(162, 'Товар 162', 8, 'default.png', 597, '2026-01-14', 1, NULL, 0),
+(162, 'Товар 162', 8, 'default.png', 597, '2026-01-14', 1, NULL, 1),
 (163, 'Товар 163', 5, 'default.png', 527, '2026-01-14', 2, NULL, 0),
 (164, 'Товар 164', 16, 'default.png', 257, '2026-01-14', 1, NULL, 0),
 (165, 'Товар 165', 28, 'default.png', 766, '2026-01-14', 2, NULL, 0),
@@ -334,7 +335,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (236, 'Товар 236', 11, 'default.png', 626, '2026-01-14', 1, NULL, 0),
 (237, 'Товар 237', 9, 'default.png', 695, '2026-01-14', 2, NULL, 0),
 (238, 'Товар 238', 19, 'default.png', 151, '2026-01-14', 1, NULL, 0),
-(239, 'Товар 239', 25, 'default.png', 467, '2026-01-14', 2, NULL, 0),
+(239, 'Товар 239', 25, 'default.png', 467, '2026-01-14', 2, NULL, 1),
 (240, 'Товар 240', 16, 'default.png', 560, '2026-01-14', 1, NULL, 0),
 (241, 'Товар 241', 18, 'default.png', 36, '2026-01-14', 2, NULL, 0),
 (242, 'Товар 242', 17, 'default.png', 286, '2026-01-14', 1, NULL, 0),
@@ -363,7 +364,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (265, 'Товар 265', 24, 'default.png', 644, '2026-01-14', 2, NULL, 0),
 (266, 'Товар 266', 19, 'default.png', 186, '2026-01-14', 1, NULL, 0),
 (267, 'Товар 267', 24, 'default.png', 953, '2026-01-14', 2, NULL, 0),
-(268, 'Товар 268', 13, 'default.png', 483, '2026-01-14', 1, NULL, 0),
+(268, 'Товар 268', 13, 'default.png', 483, '2026-01-14', 1, NULL, 1),
 (269, 'Товар 269', 15, 'default.png', 741, '2026-01-14', 2, NULL, 0),
 (270, 'Товар 270', 29, 'default.png', 381, '2026-01-14', 1, NULL, 0),
 (271, 'Товар 271', 24, 'default.png', 972, '2026-01-14', 2, NULL, 0),
@@ -484,7 +485,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (386, '123', 11, 'default.png', 604, '2026-01-14', 1, NULL, 0),
 (387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 0),
 (388, '123', 13, 'default.png', 100, '2026-01-14', 1, NULL, 0),
-(389, '123', 11, 'default.png', 869, '2026-01-14', 2, NULL, 0);
+(389, '123', 11, 'default.png', 869, '2026-01-14', 2, NULL, 3);
 
 -- --------------------------------------------------------
 
@@ -515,7 +516,21 @@ CREATE TABLE `items_type` (
 
 INSERT INTO `items_type` (`id_items_type`, `name_items_type`) VALUES
 (1, 'Обычный'),
-(2, 'Сложный');
+(2, 'Сложный'),
+(3, 'Средний');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `orders`
+--
+
+CREATE TABLE `orders` (
+  `id_orders` int NOT NULL,
+  `users_id_orders` int NOT NULL,
+  `baskets_datetime_orders` datetime NOT NULL,
+  `accept_datetime_orders` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -553,7 +568,11 @@ CREATE TABLE `status` (
 
 INSERT INTO `status` (`id_status`, `name_status`) VALUES
 (1, 'В корзине'),
-(2, 'Куплено');
+(2, 'Ожидание'),
+(3, 'Сборка'),
+(4, 'Доставка'),
+(5, 'Доставлено'),
+(6, 'Получено');
 
 -- --------------------------------------------------------
 
@@ -567,16 +586,21 @@ CREATE TABLE `users` (
   `password_users` varchar(150) NOT NULL,
   `name_users` varchar(150) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `date_create_users` date DEFAULT NULL,
-  `avatar_users` varchar(100) DEFAULT NULL
+  `avatar_users` varchar(100) DEFAULT NULL,
+  `is_banned_users` tinyint(1) NOT NULL DEFAULT '0',
+  `is_deliver_users` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`) VALUES
-(1, 'admin@admin.com', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'админ', '2025-11-30', NULL),
-(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL);
+INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`, `is_banned_users`, `is_deliver_users`) VALUES
+(1, 'admin@admin.com', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'Админ', '2025-11-30', NULL, 0, 1),
+(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 0),
+(3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 0),
+(4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 1),
+(5, 'de2l@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 1);
 
 --
 -- Индексы сохранённых таблиц
@@ -626,6 +650,13 @@ ALTER TABLE `items_properties`
 --
 ALTER TABLE `items_type`
   ADD PRIMARY KEY (`id_items_type`);
+
+--
+-- Индексы таблицы `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id_orders`),
+  ADD KEY `users_id_orders` (`users_id_orders`);
 
 --
 -- Индексы таблицы `properties`
@@ -684,25 +715,31 @@ ALTER TABLE `items_properties`
 -- AUTO_INCREMENT для таблицы `items_type`
 --
 ALTER TABLE `items_type`
-  MODIFY `id_items_type` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_items_type` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT для таблицы `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT для таблицы `properties`
 --
 ALTER TABLE `properties`
-  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
 --
 ALTER TABLE `status`
-  MODIFY `id_status` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_status` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -741,6 +778,12 @@ ALTER TABLE `items`
 ALTER TABLE `items_properties`
   ADD CONSTRAINT `items_properties_ibfk_1` FOREIGN KEY (`items_id_items_properties`) REFERENCES `items` (`id_items`) ON DELETE CASCADE ON UPDATE RESTRICT,
   ADD CONSTRAINT `items_properties_ibfk_2` FOREIGN KEY (`attributes_id_items_properties`) REFERENCES `attributes` (`id_attributes`) ON DELETE CASCADE ON UPDATE RESTRICT;
+
+--
+-- Ограничения внешнего ключа таблицы `orders`
+--
+ALTER TABLE `orders`
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`users_id_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

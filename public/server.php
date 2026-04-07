@@ -7,6 +7,7 @@ if (!empty(file_get_contents("php://input"))) {
     $serverType = $json["server_type"] ?? "";
     $isAuth = isUserAuth();
     $isAdmin = isAdmin();
+    $isDeliver = isDeliver();
 
     if ($isAuth && $serverType == "basket" && !empty($json["id_item"]) && isset($json["count_item"]) && !empty($json["action_item"])) { // index.js и aboutItem.js - Добавление и удаление товаров в корзине
         changeBasket($json["id_item"], $json["count_item"], $json["action_item"]);
@@ -32,11 +33,13 @@ if (!empty(file_get_contents("php://input"))) {
         searchUsers($json);
     } else if ($isAdmin && $serverType == "delete_user" && !empty($json["id_users"])) {
         deleteUser($json["id_users"]);
+    } else if ($isDeliver && $serverType == "accept_orders" && !empty($json["datetime_buy_orders"])) { // allOrders.js - Принятие товаров доставщиком
+        acceptOrders($json["datetime_buy_orders"]);
+    } else if ($isDeliver && $serverType == "status_orders" && !empty($json["datetime_buy_orders"])) { // myOrders.js - Изменение статусов доставки доставщиком
+        statusOrders($json["datetime_buy_orders"]);
+    } else if ($serverType == "receipt_orders" && !empty($json["datetime_buy_orders"])) { // deliveryItem.js - Изменение статусов доставки клиентом
+        receiptOrders($json["datetime_buy_orders"]);
     } else { // Иначе ошибка
         setAnswer("FAIL");
     }
 }
-// adminEditItem.js - Удаление свойства у товара
-// else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_properties"])) {
-//     deleteItemProperties($json["id_properties"]);
-// }
