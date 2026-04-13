@@ -8,21 +8,23 @@ if (!isUserAuth() || !isDeliver()) {
 
 $basketsHTML = "";
 $baskets = makeSelectQuery("SELECT
-    `baskets`.`id_baskets`,
-    `baskets`.`count_baskets`,
-    `baskets`.`users_id_baskets`,
-    `baskets`.`datetime_buy_baskets`,
-    `status`.`id_status`,
-    `status`.`name_status`,
-    `items`.`id_items`,
-    `items`.`name_items`,
-    `items`.`image_items`,
-    `items`.`cost_items`
+    `id_orders`,
+    `id_baskets`,
+    `count_baskets`,
+    `users_id_orders`,
+    `datetime_buy_orders`,
+    `id_status`,
+    `name_status`,
+    `id_items`,
+    `name_items`,
+    `image_items`,
+    `cost_items`
     FROM `baskets`
-    JOIN `items` ON `items`.`id_items` = `items_id_baskets`
-    JOIN `status` ON `status`.`id_status` = `status_id_baskets`
-    WHERE `status_id_baskets` = ?
-    ORDER BY `baskets`.`datetime_buy_baskets` DESC
+    JOIN `items` ON `id_items` = `items_id_baskets`
+    JOIN `orders` ON `id_orders` = `orders_id_baskets`
+    JOIN `status` ON `id_status` = `status_id_orders`
+    WHERE `status_id_orders` = ?
+    ORDER BY `datetime_buy_orders` DESC
 ", [2], false);
 if ($baskets == "FAIL") {
     redirect();
@@ -32,19 +34,19 @@ if ($baskets == "FAIL") {
 $datetimeBuy = null;
 $lastIndexBasket = count($baskets) - 1;
 foreach ($baskets as $index => $basket) {
-    if ($datetimeBuy != $basket["datetime_buy_baskets"]) {
+    if ($datetimeBuy != $basket["datetime_buy_orders"]) {
         $basketsHTML .= "
             <article class='basket'>
-                <h2>Время покупки: " . dateformat($basket["datetime_buy_baskets"]) . "</h2>
+                <h2>Время покупки: " . dateformat($basket["datetime_buy_orders"]) . "</h2>
                 <div class='items'>
         ";
-        $datetimeBuy = $basket["datetime_buy_baskets"];
+        $datetimeBuy = $basket["datetime_buy_orders"];
     }
     $basketsHTML .= getItemHTML($basket);
-    if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_baskets"] != $datetimeBuy) {
+    if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_orders"] != $datetimeBuy) {
         $basketsHTML .= "
                 </div>
-                <button class='button' data-datetime='$basket[datetime_buy_baskets]'>Принять</button>
+                <button class='button' data-id-order='$basket[id_orders]'>Принять</button>
             </article>
         ";
     }

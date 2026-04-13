@@ -9,11 +9,11 @@ if (!empty(file_get_contents("php://input"))) {
     $isAdmin = isAdmin();
     $isDeliver = isDeliver();
 
-    if ($isAuth && $serverType == "basket" && !empty($json["id_item"]) && isset($json["count_item"]) && !empty($json["action_item"])) { // index.js и aboutItem.js - Добавление и удаление товаров в корзине
-        changeBasket($json["id_item"], $json["count_item"], $json["action_item"]);
-    } else if ($isAuth && $serverType == "buy_items") { // profile.js - Покупка товаров в корзине
-        buyItems();
-    } else if ($isAdmin && $serverType == "delete_items" && !empty($json["id_item"])) { // adminEditItem.js - Удаление товара++
+    if ($isAuth && $serverType == "change_basket" && !empty($json["id_items"]) && isset($json["count_items"]) && !empty($json["action_items"])) { // index.js и aboutItem.js - Добавление и удаление товаров в корзине
+        changeBasket($json["id_items"], $json["count_items"], $json["action_items"]);
+    } else if ($isAuth && $serverType == "buy_items" && !empty($json["server_type"]) && !empty($json["address_orders"]) && isset($json["note_orders"]) && !empty($json["datetime_plan_orders"])) { // profile.js - Покупка товаров в корзине
+        buyItems($json);
+    } else if ($isAdmin && $serverType == "delete_items" && !empty($json["id_item"])) { // adminEditItem.js - Удаление товара
         deleteItem($json["id_item"]);
     } else if ($serverType == "search_items" && isset($json["offset_search_items"])) { // index.js - Поиск товаров
         searchItems($json);
@@ -33,12 +33,14 @@ if (!empty(file_get_contents("php://input"))) {
         searchUsers($json);
     } else if ($isAdmin && $serverType == "delete_user" && !empty($json["id_users"])) {
         deleteUser($json["id_users"]);
-    } else if ($isDeliver && $serverType == "accept_orders" && !empty($json["datetime_buy_orders"])) { // allOrders.js - Принятие товаров доставщиком
-        acceptOrders($json["datetime_buy_orders"]);
-    } else if ($isDeliver && $serverType == "status_orders" && !empty($json["datetime_buy_orders"])) { // myOrders.js - Изменение статусов доставки доставщиком
-        statusOrders($json["datetime_buy_orders"]);
-    } else if ($serverType == "receipt_orders" && !empty($json["datetime_buy_orders"])) { // deliveryItem.js - Изменение статусов доставки клиентом
-        receiptOrders($json["datetime_buy_orders"]);
+    } else if ($isAdmin && $serverType == "deliver_users" && !empty($json["id_users"])) {
+        deliverUsers($json["id_users"]);
+    } else if ($isDeliver && $serverType == "accept_orders" && !empty($json["id_orders"])) { // allOrders.js - Принятие товаров доставщиком
+        acceptOrders($json["id_orders"]);
+    } else if ($isDeliver && $serverType == "status_orders" && !empty($json["id_orders"])) { // myOrders.js - Изменение статусов доставки доставщиком
+        statusOrders($json["id_orders"]);
+    } else if ($serverType == "receipt_orders" && !empty($json["id_orders"])) { // deliveryItem.js - Изменение статусов доставки клиентом
+        receiptOrders($json["id_orders"]);
     } else { // Иначе ошибка
         setAnswer("FAIL");
     }

@@ -9,65 +9,65 @@ if (!isUserAuth() || !isDeliver()) {
 $basketsCurrentHTML = "";
 $basketsHistoryHTML = "";
 $baskets = makeSelectQuery("SELECT
-    `baskets`.`id_baskets`,
-    `baskets`.`count_baskets`,
-    `baskets`.`users_id_baskets`,
-    `baskets`.`datetime_buy_baskets`,
-    `baskets`.`datetime_receipt_baskets`,
-    `status`.`id_status`,
-    `status`.`name_status`,
-    `items`.`id_items`,
-    `items`.`name_items`,
-    `items`.`image_items`,
-    `items`.`cost_items`,
-    `orders`.`accept_datetime_orders`
+    `id_orders`,
+    `id_baskets`,
+    `count_baskets`,
+    `users_id_orders`,
+    `datetime_buy_orders`,
+    `datetime_end_orders`,
+    `datetime_receipt_orders`,
+    `id_status`,
+    `name_status`,
+    `id_items`,
+    `name_items`,
+    `image_items`,
+    `cost_items`
     FROM `baskets`
-    JOIN `items` ON `items`.`id_items` = `items_id_baskets`
-    JOIN `status` ON `status`.`id_status` = `status_id_baskets`
-    JOIN `orders` ON `orders`.`baskets_datetime_orders` = `datetime_buy_baskets`
-    WHERE `status_id_baskets` > ? AND `users_id_orders` = ?
-    ORDER BY `baskets`.`datetime_buy_baskets` DESC
+    JOIN `items` ON `id_items` = `items_id_baskets`
+    JOIN `orders` ON `id_orders` = `orders_id_baskets`
+    JOIN `status` ON `status`.`id_status` = `status_id_orders`
+    WHERE `status_id_orders` > ? AND `users_id_orders` = ?
+    ORDER BY `datetime_buy_orders` DESC
 ", [2, getUserID()], false);
 if ($baskets == "FAIL") {
-    //redirect();
+    redirect();
 }
 
 $datetimeBuy = null;
 $lastIndexBasket = count($baskets) - 1;
 foreach ($baskets as $index => $basket) {
-    if ($basket["id_status"] < 5) {
-        if ($datetimeBuy != $basket["datetime_buy_baskets"]) {
+    if ($basket["id_status"] <= 5) {
+        if ($datetimeBuy != $basket["datetime_buy_orders"]) {
             $basketsCurrentHTML .= "
                 <article class='basket'>
-                    <h2 class='time-buy'>Время покупки: " . dateformat($basket["datetime_buy_baskets"]) . "</h2>
-                    <h2 class='time-accept'>Заказ принят: " . dateformat($basket["accept_datetime_orders"]) . "</h2>
+                    <h2 class='time-buy'>Время покупки: " . dateformat($basket["datetime_buy_orders"]) . "</h2>
+                    <h2 class='time-accept'>Заказ нужно доставить до: " . dateformat($basket["datetime_end_orders"]) . "</h2>
                     <h2 class='name-status'>Статус: <b>$basket[name_status]</b></h2>
                     <div class='items'>
             ";
-            $datetimeBuy = $basket["datetime_buy_baskets"];
+            $datetimeBuy = $basket["datetime_buy_orders"];
         }
         $basketsCurrentHTML .= getItemHTML($basket);
-        if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_baskets"] != $datetimeBuy) {
+        if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_orders"] != $datetimeBuy) {
             $basketsCurrentHTML .= "
                     </div>
                     <p class='help-text'></p>
-                    <button class='button action' data-datetime='$basket[datetime_buy_baskets]' data-id-status='$basket[id_status]'></button>
+                    <button class='button action' data-id-order='$basket[id_orders]' data-id-status='$basket[id_status]'></button>
                 </article>
             ";
         }
     } else {
-        if ($datetimeBuy != $basket["datetime_buy_baskets"]) {
+        if ($datetimeBuy != $basket["datetime_buy_orders"]) {
             $basketsHistoryHTML .= "
                 <article class='basket'>
-                    <h2 class='time-buy'>Время покупки: " . dateformat($basket["datetime_buy_baskets"]) . "</h2>
-                    <h2 class='time-accept'>Заказ принят: " . dateformat($basket["accept_datetime_orders"]) . "</h2>
-                    <h2 class='time-receipt'>Заказ получен: " . dateformat($basket["datetime_receipt_baskets"]) . "</h2>
+                    <h2 class='time-buy'>Время покупки: " . dateformat($basket["datetime_buy_orders"]) . "</h2>
+                    <h2 class='time-receipt'>Заказ получен: " . dateformat($basket["datetime_receipt_orders"]) . "</h2>
                     <div class='items'>
             ";
-            $datetimeBuy = $basket["datetime_buy_baskets"];
+            $datetimeBuy = $basket["datetime_buy_orders"];
         }
         $basketsHistoryHTML .= getItemHTML($basket);
-        if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_baskets"] != $datetimeBuy) {
+        if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_orders"] != $datetimeBuy) {
             $basketsHistoryHTML .= "
                     </div>
                 </article>

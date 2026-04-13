@@ -195,6 +195,7 @@ footer {
 
 .form .field .label {
     width: 100%;
+    min-height: 30px;
 }
 
 .form .field .label b {
@@ -311,7 +312,7 @@ footer {
     padding: 10px;
 }
 
-.form .field .textarea {
+.form .field textarea.input {
     min-height: 100px;
     max-height: 200px;
     resize: vertical;
@@ -525,7 +526,7 @@ header nav a:focus {
     left: 50%;
     transform: translate(-50%, -50%);
     height: 225px;
-    z-index: 10;
+    z-index: 30;
     transition: 0.3s opacity;
 }
 

@@ -22,7 +22,7 @@
 
 }
 
-.current-basket *,
+.current-basket *:not(.form *:not(.label, .label *, .legend)),
 .history-basket * {
     color: white;
 }
@@ -46,4 +46,40 @@
     border-radius: 20px;
     background-color: var(--button-color);
     padding: 20px;
+}
+
+.make-order {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.make-order::after {
+    content: "";
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 100% !important;
+    height: 100%;
+    z-index: -10;
+    background-color: gray;
+    opacity: 0.8;
+}
+
+.form {
+    margin: 0;
+    background-color: var(--button-color-hover);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+
+html:has(.make-order:not(.hidden)) {
+    overflow: hidden;
 }

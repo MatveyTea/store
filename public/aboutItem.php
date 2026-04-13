@@ -7,21 +7,21 @@ if (empty($_GET["id_item"])) {
 }
 
 $item = makeSelectQuery("SELECT
-    `items`.`name_items`,
-    `items`.`count_items`,
-    `items`.`image_items`,
-    `items`.`cost_items`,
-    `items`.`date_add_items`,
-    `items`.`description_items`,
-    `items`.`items_type_id_items`,
+    `name_items`,
+    `count_items`,
+    `image_items`,
+    `cost_items`,
+    `date_add_items`,
+    `description_items`,
+    `items_type_id_items`,
     `items_type`.`name_items_type`,
     `attributes`.`properties_id_attributes`
     FROM `items`
-    JOIN `items_type` ON `items_type`.`id_items_type` = `items`.`items_type_id_items`
+    JOIN `items_type` ON `items_type`.`id_items_type` = `items_type_id_items`
     LEFT JOIN `items_properties` ON `id_items_properties` = `id_items`
     LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
     LEFT JOIN `properties` ON `properties_id_attributes` = `id_properties`
-    WHERE `items`.`id_items` = ?
+    WHERE `id_items` = ?
 ", [$_GET["id_item"]], true);
 
 if ($item === "FAIL" || empty($item)) {
@@ -87,8 +87,10 @@ foreach  ($attributes as $index => $attribute) {
 $itemHTML .= "</p></div>";
 
 if (isUserAuth()) {
-    $basket = makeSelectQuery("SELECT `count_baskets` FROM `baskets`
-        WHERE `status_id_baskets` = ? AND `items_id_baskets` = ? AND `users_id_baskets` = ?
+    $basket = makeSelectQuery("SELECT
+        `count_baskets` FROM `baskets`
+        JOIN `orders` ON `id_orders` = `orders_id_baskets`
+        WHERE `status_id_orders` = ? AND `items_id_baskets` = ? AND `users_id_orders` = ?
         ", [1, $_GET["id_item"], getUserID()], true
     );
     if ($basket === "FAIL") {

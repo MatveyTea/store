@@ -913,6 +913,114 @@ function getValidationRules() {
                 }
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
             }
+        },
+        // Заказы
+        "street_address_orders": {
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "улица",
+            "inputs": null,
+            "nameRule": "street_address_orders",
+            "oldValue": null,
+            "files": ["basket.php"],
+            "required": true,
+            "timerId": null,
+            "length": 100,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,100}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-100 символов.";
+            }
+        },
+        "home_address_orders": {
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "дом",
+            "inputs": null,
+            "nameRule": "home_address_orders",
+            "oldValue": null,
+            "files": ["basket.php"],
+            "required": true,
+            "timerId": null,
+            "length": 100,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,100}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-100 символов.";
+            }
+        },
+        "number_address_orders": {
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "квартира",
+            "inputs": null,
+            "nameRule": "number_address_orders",
+            "oldValue": null,
+            "files": ["basket.php"],
+            "required": false,
+            "timerId": null,
+            "length": 100,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[0-9]{1,55}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите цифры 1-55 символов.";
+            }
+        },
+        "datetime_plan_orders": {
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "время доставки",
+            "inputs": null,
+            "nameRule": "datetime_plan_orders",
+            "oldValue": null,
+            "files": ["basket.php"],
+            "required": true,
+            "timerId": null,
+            "length": 100,
+            "placeMsg": null,
+            "check": function (input) {
+                return input.selectedIndex > 0 ? false : "Выберите элемент";
+            }
+        },
+        "note_orders": {
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "примечание",
+            "inputs": null,
+            "nameRule": "note_orders",
+            "oldValue": null,
+            "files": ["basket.php"],
+            "required": false,
+            "timerId": null,
+            "length": 100,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,255}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-255 символов.";
+            }
         }
     };
 
@@ -1272,10 +1380,10 @@ function changeButtonBasket(status, counterContainer, counterText, basketButton)
 
 async function sendItem(item, counterWrapper, counterText, basketButton) {
     const dataItem = {
-        "server_type": "basket",
-        "id_item": item.dataset.id,
-        "count_item": parseInt(counterText.textContent),
-        "action_item": basketButton.dataset.type == "add" ? "remove" : "add"
+        "server_type": "change_basket",
+        "id_items": item.dataset.id,
+        "count_items": parseInt(counterText.textContent),
+        "action_items": basketButton.dataset.type == "add" ? "remove" : "add"
     };
     const result = await fetch("server.php", {
         "method": "POST",

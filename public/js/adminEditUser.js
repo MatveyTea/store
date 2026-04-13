@@ -5,6 +5,7 @@ const inputs = form.querySelectorAll(".input");
 const insertPlace = document.querySelector(".users");
 insertPlace.querySelectorAll(".banned").forEach((button) => button.addEventListener("click", bannedAction));
 insertPlace.querySelectorAll(".delete").forEach((button) => button.addEventListener("click", deleteAction));
+insertPlace.querySelectorAll(".deliver").forEach((button) => button.addEventListener("click", deliverAction));
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -14,6 +15,7 @@ form.addEventListener("submit", async (event) => {
         insertPlace.insertAdjacentHTML("beforeend", resultData["data"]);
         insertPlace.querySelectorAll(".banned").forEach((button) => button.addEventListener("click", bannedAction));
         insertPlace.querySelectorAll(".delete").forEach((button) => button.addEventListener("click", deleteAction));
+        insertPlace.querySelectorAll(".status").forEach((button) => button.addEventListener("click", deliverAction));
     } else if (resultData["status"] == "NOTFOUND") {
         insertPlace.innerHTML = "<p class='notfound'>Ничего не найдено</p>";
     } else {
@@ -48,6 +50,26 @@ async function deleteAction() {
     } else {
         this.parentElement.classList.remove("hidden");
         showModal("Не удалось удалить");
+    }
+}
+
+async function deliverAction() {
+    const resultData = await sendToServer({
+        "server_type": "deliver_users",
+        "id_users": this.dataset.id
+    });
+    if (resultData["status"] == "OK") {
+        if (this.dataset.deliver == 0) {
+            this.parentElement.querySelector(".user-role").textContent = "Доставщик";
+            this.textContent = "Убрать из доставщика";
+            this.dataset.deliver = 1;
+        } else {
+            this.parentElement.querySelector(".user-role").textContent = "Пользователь";
+            this.textContent = "Сделать доставщиком";
+            this.dataset.deliver = 0;
+        }
+    } else {
+        showModal("Не удалось");
     }
 }
 

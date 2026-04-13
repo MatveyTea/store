@@ -22,7 +22,7 @@ include_once __DIR__ . "/header.php";
         <a href="adminEditUser.php" class="button">Пользователи</a>
     </div>
     <div class="edit">
-        <h2>Блокировка пользователей</h2>
+        <h2>Пользователи</h2>
         <a href="adminEditUser.php" class="button">Пользователи</a>
     </div>
 </main>

@@ -2,27 +2,29 @@
 include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
-if (!isUserAuth() || empty($_GET["datetime"])) {
+if (!isUserAuth() || empty($_GET["id_order"])) {
     redirect("auth.php");
 }
 
 $itemsInBasketHTML = "";
 $itemsInBasket = makeSelectQuery("SELECT
-    `baskets`.`id_baskets`,
-    `baskets`.`count_baskets`,
-    `baskets`.`users_id_baskets`,
-    `baskets`.`datetime_buy_baskets`,
-    `status`.`id_status`,
-    `status`.`name_status`,
-    `items`.`id_items`,
-    `items`.`name_items`,
-    `items`.`image_items`,
-    `items`.`cost_items`
+    `id_orders`,
+    `id_baskets`,
+    `count_baskets`,
+    `users_id_orders`,
+    `datetime_buy_orders`,
+    `id_status`,
+    `name_status`,
+    `id_items`,
+    `name_items`,
+    `image_items`,
+    `cost_items`
     FROM `baskets`
-    JOIN `items` ON `items`.`id_items` = `items_id_baskets`
-    JOIN `status` ON `status`.`id_status` = `status_id_baskets`
-    WHERE `users_id_baskets` = ? AND `datetime_buy_baskets` = ?
-", [getUserID(), $_GET["datetime"]], false);
+    JOIN `orders` ON `id_orders` = `orders_id_baskets`
+    JOIN `items` ON `id_items` = `items_id_baskets`
+    JOIN `status` ON `id_status` = `status_id_orders`
+    WHERE `users_id_orders` = ? AND `orders_id_baskets` = ?
+", [getUserID(), $_GET["id_order"]], false);
 
 if ($itemsInBasket == "FAIL" || empty($itemsInBasket)) {
     redirect("basket.php");
@@ -33,14 +35,14 @@ foreach ($itemsInBasket as $item) {
 }
 
 $allStatusHTML = "";
-$allStatus = makeSelectQuery("SELECT * FROM `status` LIMIT 99999999 OFFSET 1", [], false);
+$allStatus = makeSelectQuery("SELECT * FROM `status`", [], false);
 if ($allStatus == "FAIL") {
-   
+    redirect("basket.php");
 }
 
 $currentStatusItemInBasket = $itemsInBasket[0]["id_status"];
 foreach ($allStatus as $index => $status) {
-    $activeClass = $status["id_status"] <= $currentStatusItemInBasket ? "competed" : "";
+    $activeClass = $status["id_status"] <= $currentStatusItemInBasket ? "completed" : "";
     $allStatusHTML .= "<p class='$activeClass'>$status[name_status]</p>";
     if ($index != count($allStatus) - 1) {
         $allStatusHTML .= "<img src='img/main/statusArrow.png'>";
@@ -48,7 +50,7 @@ foreach ($allStatus as $index => $status) {
 }
 
 if ($currentStatusItemInBasket == 5) {
-    $allStatusHTML .= "<button class='button receipt' data-datetime='" . $itemsInBasket[0]["datetime_buy_baskets"] . "'>Я получил товар</button>";
+    $allStatusHTML .= "<button class='button receipt' data-id-order='" . $itemsInBasket[0]["id_orders"] . "'>Я получил товар</button>";
  }
 
 getModalHTML();

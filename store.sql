@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Апр 07 2026 г., 15:44
+-- Время создания: Апр 14 2026 г., 00:06
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -52,11 +52,8 @@ INSERT INTO `attributes` (`id_attributes`, `properties_id_attributes`, `value_at
 CREATE TABLE `baskets` (
   `id_baskets` int NOT NULL,
   `items_id_baskets` int NOT NULL,
-  `status_id_baskets` int NOT NULL,
   `count_baskets` int NOT NULL,
-  `users_id_baskets` int NOT NULL,
-  `datetime_buy_baskets` datetime DEFAULT NULL,
-  `datetime_receipt_baskets` datetime DEFAULT NULL
+  `orders_id_baskets` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -97,7 +94,7 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `cost_items`, `date_add_items`, `items_type_id_items`, `description_items`, `views_items`) VALUES
-(1, 'Товар 1', 19, 'default.png', 872, '2026-01-13', 2, NULL, 1),
+(1, 'Товар 1', 19, 'default.png', 872, '2026-01-13', 2, NULL, 0),
 (2, 'Товар 2', 14, 'default.png', 682, '2026-01-14', 1, NULL, 0),
 (3, 'Товар 3', 15, 'default.png', 740, '2026-01-14', 2, NULL, 0),
 (4, 'Товар 4', 18, 'default.png', 435, '2026-01-14', 1, NULL, 0),
@@ -152,7 +149,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (53, 'Товар 53', 7, 'default.png', 125, '2026-01-14', 2, NULL, 0),
 (54, 'Товар 54', 17, 'default.png', 626, '2026-01-14', 1, NULL, 0),
 (55, 'Товар 55', 16, 'default.png', 652, '2026-01-14', 2, NULL, 0),
-(56, 'Товар 56', 11, 'default.png', 633, '2026-01-14', 1, NULL, 1),
+(56, 'Товар 56', 11, 'default.png', 633, '2026-01-14', 1, NULL, 0),
 (57, 'Товар 57', 13, 'default.png', 596, '2026-01-14', 2, NULL, 0),
 (58, 'Товар 58', 28, 'default.png', 645, '2026-01-14', 1, NULL, 0),
 (59, 'Товар 59', 10, 'default.png', 399, '2026-01-14', 2, NULL, 0),
@@ -176,7 +173,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (77, 'Товар 77', 24, 'default.png', 290, '2026-01-14', 2, NULL, 0),
 (78, 'Товар 78', 9, 'default.png', 260, '2026-01-14', 1, NULL, 0),
 (79, 'Товар 79', 13, 'default.png', 901, '2026-01-14', 2, NULL, 0),
-(80, 'Товар 80', 6, 'default.png', 877, '2026-01-14', 1, NULL, 1),
+(80, 'Товар 80', 6, 'default.png', 877, '2026-01-14', 1, NULL, 0),
 (81, 'Товар 81', 24, 'default.png', 470, '2026-01-14', 2, NULL, 0),
 (82, 'Товар 82', 15, 'default.png', 694, '2026-01-14', 1, NULL, 0),
 (83, 'Товар 83', 30, 'default.png', 103, '2026-01-14', 2, NULL, 0),
@@ -244,7 +241,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (145, 'Товар 145', 6, 'default.png', 315, '2026-01-14', 2, NULL, 0),
 (146, 'Товар 146', 25, 'default.png', 72, '2026-01-14', 1, NULL, 0),
 (147, 'Товар 147', 20, 'default.png', 253, '2026-01-14', 2, NULL, 0),
-(148, 'Товар 148', 11, 'default.png', 929, '2026-01-14', 1, NULL, 1),
+(148, 'Товар 148', 11, 'default.png', 929, '2026-01-14', 1, NULL, 0),
 (149, 'Товар 149', 18, 'default.png', 100, '2026-01-14', 2, NULL, 0),
 (150, 'Товар 150', 5, 'default.png', 698, '2026-01-14', 1, NULL, 0),
 (151, 'Товар 151', 19, 'default.png', 813, '2026-01-14', 2, NULL, 0),
@@ -258,7 +255,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (159, 'Товар 159', 7, 'default.png', 289, '2026-01-14', 2, NULL, 0),
 (160, 'Товар 160', 6, 'default.png', 270, '2026-01-14', 1, NULL, 0),
 (161, 'Товар 161', 29, 'default.png', 419, '2026-01-14', 2, NULL, 0),
-(162, 'Товар 162', 8, 'default.png', 597, '2026-01-14', 1, NULL, 1),
+(162, 'Товар 162', 8, 'default.png', 597, '2026-01-14', 1, NULL, 0),
 (163, 'Товар 163', 5, 'default.png', 527, '2026-01-14', 2, NULL, 0),
 (164, 'Товар 164', 16, 'default.png', 257, '2026-01-14', 1, NULL, 0),
 (165, 'Товар 165', 28, 'default.png', 766, '2026-01-14', 2, NULL, 0),
@@ -335,7 +332,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (236, 'Товар 236', 11, 'default.png', 626, '2026-01-14', 1, NULL, 0),
 (237, 'Товар 237', 9, 'default.png', 695, '2026-01-14', 2, NULL, 0),
 (238, 'Товар 238', 19, 'default.png', 151, '2026-01-14', 1, NULL, 0),
-(239, 'Товар 239', 25, 'default.png', 467, '2026-01-14', 2, NULL, 1),
+(239, 'Товар 239', 25, 'default.png', 467, '2026-01-14', 2, NULL, 0),
 (240, 'Товар 240', 16, 'default.png', 560, '2026-01-14', 1, NULL, 0),
 (241, 'Товар 241', 18, 'default.png', 36, '2026-01-14', 2, NULL, 0),
 (242, 'Товар 242', 17, 'default.png', 286, '2026-01-14', 1, NULL, 0),
@@ -364,7 +361,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (265, 'Товар 265', 24, 'default.png', 644, '2026-01-14', 2, NULL, 0),
 (266, 'Товар 266', 19, 'default.png', 186, '2026-01-14', 1, NULL, 0),
 (267, 'Товар 267', 24, 'default.png', 953, '2026-01-14', 2, NULL, 0),
-(268, 'Товар 268', 13, 'default.png', 483, '2026-01-14', 1, NULL, 1),
+(268, 'Товар 268', 13, 'default.png', 483, '2026-01-14', 1, NULL, 0),
 (269, 'Товар 269', 15, 'default.png', 741, '2026-01-14', 2, NULL, 0),
 (270, 'Товар 270', 29, 'default.png', 381, '2026-01-14', 1, NULL, 0),
 (271, 'Товар 271', 24, 'default.png', 972, '2026-01-14', 2, NULL, 0),
@@ -485,7 +482,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (386, '123', 11, 'default.png', 604, '2026-01-14', 1, NULL, 0),
 (387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 0),
 (388, '123', 13, 'default.png', 100, '2026-01-14', 1, NULL, 0),
-(389, '123', 11, 'default.png', 869, '2026-01-14', 2, NULL, 3);
+(389, '123', 11, 'default.png', 869, '2026-01-14', 2, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -527,9 +524,15 @@ INSERT INTO `items_type` (`id_items_type`, `name_items_type`) VALUES
 
 CREATE TABLE `orders` (
   `id_orders` int NOT NULL,
+  `status_id_orders` int NOT NULL,
   `users_id_orders` int NOT NULL,
-  `baskets_datetime_orders` datetime NOT NULL,
-  `accept_datetime_orders` datetime NOT NULL
+  `datetime_buy_orders` datetime DEFAULT NULL,
+  `datetime_receipt_orders` datetime DEFAULT NULL,
+  `address_orders` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `note_orders` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `datetime_start_orders` datetime DEFAULT NULL,
+  `datetime_end_orders` datetime DEFAULT NULL,
+  `users_deliver_orders` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -600,7 +603,7 @@ INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, 
 (2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 0),
 (3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 0),
 (4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 1),
-(5, 'de2l@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 1);
+(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 1);
 
 --
 -- Индексы сохранённых таблиц
@@ -619,8 +622,7 @@ ALTER TABLE `attributes`
 ALTER TABLE `baskets`
   ADD PRIMARY KEY (`id_baskets`),
   ADD KEY `items_id_baskets` (`items_id_baskets`),
-  ADD KEY `status_id_baskets` (`status_id_baskets`),
-  ADD KEY `users_id_baskets` (`users_id_baskets`);
+  ADD KEY `orders_id_baskets` (`orders_id_baskets`);
 
 --
 -- Индексы таблицы `comments`
@@ -656,7 +658,9 @@ ALTER TABLE `items_type`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`id_orders`),
-  ADD KEY `users_id_orders` (`users_id_orders`);
+  ADD KEY `status_id_orders` (`status_id_orders`),
+  ADD KEY `users_id_orders` (`users_id_orders`),
+  ADD KEY `user_deliver_baskets` (`users_deliver_orders`);
 
 --
 -- Индексы таблицы `properties`
@@ -691,13 +695,13 @@ ALTER TABLE `attributes`
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
@@ -709,7 +713,7 @@ ALTER TABLE `items`
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -721,7 +725,7 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT для таблицы `properties`
@@ -756,8 +760,7 @@ ALTER TABLE `attributes`
 --
 ALTER TABLE `baskets`
   ADD CONSTRAINT `baskets_ibfk_1` FOREIGN KEY (`items_id_baskets`) REFERENCES `items` (`id_items`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  ADD CONSTRAINT `baskets_ibfk_2` FOREIGN KEY (`status_id_baskets`) REFERENCES `status` (`id_status`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  ADD CONSTRAINT `baskets_ibfk_3` FOREIGN KEY (`users_id_baskets`) REFERENCES `users` (`id_users`) ON DELETE CASCADE ON UPDATE RESTRICT;
+  ADD CONSTRAINT `baskets_ibfk_2` FOREIGN KEY (`orders_id_baskets`) REFERENCES `orders` (`id_orders`) ON DELETE CASCADE ON UPDATE RESTRICT;
 
 --
 -- Ограничения внешнего ключа таблицы `comments`
@@ -783,7 +786,9 @@ ALTER TABLE `items_properties`
 -- Ограничения внешнего ключа таблицы `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`users_id_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`status_id_orders`) REFERENCES `status` (`id_status`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`users_id_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`users_deliver_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

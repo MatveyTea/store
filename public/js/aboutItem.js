@@ -34,7 +34,7 @@ if (addComment) {
         }
     });
 
-    document.querySelectorAll(".basket").forEach((item) => clickableItem(item));
+    document.querySelectorAll(".items .item").forEach((item) => clickableItem(item));
 
     document.querySelectorAll("div .button[data-id]").forEach((button) => button.addEventListener("click", commentAction));
 }

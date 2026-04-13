@@ -33,7 +33,7 @@ actionButtons.forEach((button) => {
         button.addEventListener("click", async () => {
             const resultData = await sendToServer({
                 "server_type": "status_orders",
-                "datetime_buy_orders": button.dataset.datetime,
+                "id_orders": button.dataset.idOrder,
             });
             if (resultData["status"] == "OK") {
                 button.dataset.idStatus++;
