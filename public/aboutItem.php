@@ -95,24 +95,8 @@ if (isUserAuth()) {
     );
     if ($basket === "FAIL") {
         redirect();
-    } else if ($basket == []) {
-        $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>
-            <span class='invisible item-counter-container'>
-                <button class='item-counter-minus button'>-</button>
-                <p>В корзине: <b class='item-counter-text'>0</b></p>
-                <button class='item-counter-plus button'>+</button>
-            </span>
-            <button class='item-basket button' data-type='add'>Добавить в корзину</button>
-        </span>";
     } else {
-        $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>
-            <span class='item-counter-container'>
-                <button class='item-counter-minus button'>-</button>
-                <p>В корзине: <b class='item-counter-text'>$basket[count_baskets]</b></p>
-                <button class='item-counter-plus button'>+</button>
-            </span>
-            <button class='item-basket button' data-type='remove'>Убрать из корзины</button>
-        </span>";
+        $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>" . getBuyBasketHTML() . "</span>";
     }
 }
 
@@ -142,7 +126,7 @@ if (isUserAuth()) {
             <p class='error'></p>
         </div>
         <div class='field'>
-            <input type='submit' class='input button'>
+            <input type='submit' class='button'>
         </div>
     </form>";
 } 

@@ -3,10 +3,12 @@
 const buyButton = document.querySelector("button.buy");
 const historyBasket = document.querySelector(".history-basket");
 const currentBasket = document.querySelector(".current-basket");
+const cancelBasket = document.querySelector(".cancel-basket");
+
 buyButton?.addEventListener("click", async () => {
     const makeOrder = document.querySelector(".make-order");
     makeOrder.classList.remove("hidden");
-    makeOrder.querySelector(".input.button").addEventListener("click", async (event) => {
+    makeOrder.querySelector(".form").addEventListener("submit", async (event) => {
         event.preventDefault();
         const resultData = await sendToServer({
             "server_type": "buy_items",
@@ -28,4 +30,11 @@ buyButton?.addEventListener("click", async () => {
             showModal("Не удалось купить");
         }
     });
+});
+
+cancelBasket.addEventListener("click", (event) => {
+    event.preventDefault();
+    const makeOrder = document.querySelector(".make-order");
+    makeOrder.classList.add("hidden");
+    makeOrder.querySelector(".form").reset();
 });

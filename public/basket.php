@@ -71,7 +71,10 @@ if (!empty($currentHTML)) {
                     <p class='error'></p>
                 </div>
                 <div class='field'>
-                    <input type='submit' name='submit_button' class='input button' value='Оформить доставку'>
+                    <input type='submit' name='submit_button' class='button' value='Оформить доставку'>
+                </div>
+                <div class='field'>
+                    <button class='button cancel-basket'>Отмена</button>
                 </div>
             </form>
         </article>

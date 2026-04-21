@@ -27,13 +27,23 @@ function getAdditionalSelectHTML($isInsertServer, $allPropertiesHTML, $allAttrib
     $startIndexValue = strpos($allPropertiesHTML, "value='$value'");
     $selectSelected = substr($allPropertiesHTML, 0, $startIndexValue) . " selected " . substr($allPropertiesHTML, $startIndexValue);
 
-    if (!empty($dataValue)) {
+    if (count($dataValue) > 0) {
         $dataValue = "data-value='" . join("|", $dataValue) . "'";
+    } else {
+        $dataValue = "";
     }
-    return "<div class='field additional'>
+
+    if ($value == 0) {
+        $value = "";
+    } else {
+        $value = "data-id-property='$value'";
+    }
+
+    return "<div class='field property'>
                 <div class='field'>
                     <label class='label'></label>
                     <select class='input' data-name='attributes_select_property' data-is-insert-server='$isInsertServer' $dataValue>
+                        <option selected disabled>Выбрать</option>
                         $selectSelected
                     </select>
                     <p class='error'></p>
@@ -42,14 +52,14 @@ function getAdditionalSelectHTML($isInsertServer, $allPropertiesHTML, $allAttrib
                     $allAttributesHTML
                 </div>
                 <div class='field'>
-                    <button class='button' data-id-property='$value'>Удалить</button>
+                    <button class='delete-property button' $value>Удалить</button>
                 </div>
             </div>
         ";
 }
 
 
-function getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $idItem = -1)
+function getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $attributes, $idItem = -1)
 {
     $max = makeSelectQuery("SELECT COUNT(*) as `count` FROM `properties`", [], true);
     if ($max == "FAIL") {
@@ -74,23 +84,17 @@ function getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $idIt
     } else {
         $current["count"] = 0;
     }
+    
+    $dependencies = [];
+        
+    foreach ($attributes as $attribute) {
+        $dependencies[$attribute["id_properties"]][] = $attribute["id_attributes"];
+    }
+    $dependencies = json_encode($dependencies);
 
-    echo "<template data-max-count='$max[count]' data-current-count='$current[count]'>
-        <div class='field additional'>
-            <div class='field'>
-                <label class='label'></label>
-                <select class='input' data-name='attributes_select_property' data-is-insert-server='1'>
-                    <option selected disabled>Выбрать</option>
-                    $allPropertiesHTML
-                </select>
-            </div>
-            <div class='field'>
-                $allAttributesHTML
-            </div>
-            <div class='field'>
-                <button class='button'>Удалить</button>
-            </div>
-        </div>
+    echo "<template data-max-count='$max[count]' data-current-count='$current[count]'>" .
+        getAdditionalSelectHTML(1, $allPropertiesHTML, $allAttributesHTML, 0) ."
+        <p>$dependencies</p>
     </template>";
 }
 
@@ -221,30 +225,7 @@ function getItemsHTML($items, $userItems)
 {
     $result = "";
     foreach ($items as $item) {
-        $basket = "";
-        foreach ($userItems as $userItem) {
-            if ($userItem["items_id_baskets"] == $item["id_items"]) {
-                $basket = "<button class='item-basket button green' data-type='remove'>Убрать из корзины</button>
-                    <span class='item-counter-container'>
-                        <button class='item-counter-minus button'>-</button>
-                        <p>В корзине: <b class='item-counter-text'>$userItem[count_baskets]</b></p>
-                        <button class='item-counter-plus button'>+</button>
-                    </span>
-                ";
-                break;
-            }
-        }
-
-        if ($basket == "" && isUserAuth()) {
-            $basket = "<button class='item-basket button green' data-type='add'>Добавить в корзину</button>
-                <span class='invisible item-counter-container'>
-                    <button class='item-counter-minus button'>-</button>
-                    <p>В корзине: <b class='item-counter-text'>0</b></p>
-                    <button class='item-counter-plus button'>+</button>
-                </span>
-            ";
-        }
-
+        $basket = getBuyBasketHTML($userItems, $item);
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
                 <a href ='aboutItem.php?id_item=$item[id_items]' class='item-link' >
                     <p>№ $item[id_items]</p>
@@ -271,6 +252,37 @@ function getItemHTML($item)
         <p class='item-cost'>Стоимость: $item[cost_items]р</p>
     </a>";
     return $result;
+}
+
+function getBuyBasketHTML($userItems = [], $item = [])
+{
+    if (!isUserAuth()) return;
+
+    $textBasket = "Добавить в корзину";
+    $countBasket = "0";
+    $classBasket = "invisible";
+    $type = "add";
+
+    if (count($userItems) > 0 && count($item) > 0) {
+        foreach ($userItems as $userItem) {
+            if ($userItem["items_id_baskets"] == $item["id_items"]) {
+                $textBasket = "Убрать из корзины";
+                $countBasket = "$userItem[count_baskets]";
+                $classBasket = "";
+                $type = "remove";
+                break;
+            }
+        }
+    }
+
+    return "
+        <span class='$classBasket item-counter-container'>
+            <button class='item-counter-minus button'>-</button>
+            <p>В корзине: <b class='item-counter-text'>$countBasket</b></p>
+            <button class='item-counter-plus button'>+</button>
+        </span>
+        <button class='item-basket button green' data-type='$type'>$textBasket</button>
+    ";
 }
 
 function getBasketHTML($basket)
@@ -1140,6 +1152,20 @@ function changeBasket($idItem, $countItem, $actionItem)
     } else {
         setAnswer("FAIL");
     }
+}
+
+function deleteAvatar()
+{
+    $user = getUserInfo();
+    if (count($user) < 1 || $user["avatar_users"] == null) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `avatar_users` = NULL WHERE `id_users` = ?", [$user["id_users"]]);
+    if (!$isSuccess) setAnswer("FAIL");
+
+    $file = __DIR__ . "/" . FOLDER_IMG . "/" . FOLDER_UPLOAD . "/" . FOLDER_AVATARS;
+    if (!file_exists($file)) setAnswer("3FAIL");
+    // unlink($file);
+    setAnswer("OK", ["src" => FOLDER_IMG . "/" . FOLDER_MAIN . "/default.png"]);
 }
 
 function buyItems($json)

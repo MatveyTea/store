@@ -75,7 +75,7 @@ include_once __DIR__ . "/header.php";
             <input class="input" type="search" data-name="max_count_items" data-is-insert-server="0">
             <p class="error"></p>
         </div>
-        <div class="field-attributes">
+        <div class="field-properties">
             <div class="field">
                 <label class="label">Тип товара</label>
                 <?= $typesHTML ?>
@@ -89,7 +89,7 @@ include_once __DIR__ . "/header.php";
             <label class="label"><input class="input strict" type="checkbox" data-name="strict_search" data-is-insert-server="0"></label>
         </div>
         <div class="field">
-            <input class="button input" type="submit" value="Найти" id="search_button" name="submit_button">
+            <input class="button" type="submit" value="Найти" id="search_button" name="submit_button">
         </div>
     </form>
     <section class="content items">

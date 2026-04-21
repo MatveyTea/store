@@ -167,20 +167,20 @@ footer {
     gap: 15px;
 }
 
-.form .field.additional .field {
+.form .field.property .field {
     width: 100%;
     padding: 0;
 }
 
-.form .field.additional .field label {
+.form .field.property .field label {
     width: 30%;
 }
 
-.form .field.additional .field label.hidden {
+.form .field.property .field label.hidden {
     display: none !important;
 }
 
-.form .field.additional .field .button {
+.form .field.property .field .button {
     width: 33%;
 }
 
@@ -222,7 +222,7 @@ footer {
 }
 
 
-.form .field-attributes {
+.form .field-properties {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
@@ -230,11 +230,11 @@ footer {
     gap: 20px;
 }
 
-.form .field-attributes .field select.input {
+.form .field-properties .field select.input {
     padding: 0;
 }
 
-.form .field-attributes .field,
+.form .field-properties .field,
 .form .field:has(input[type=checkbox]) {
     height: max-content;
     background-color: white;
@@ -247,12 +247,12 @@ footer {
     gap: 10px;
 }
 
-.form .field-attributes .field p,
-.form .field-attributes .field .label {
+.form .field-properties .field p,
+.form .field-properties .field .label {
     width: 100%;
 }
 
-.form .field-attributes .field label,
+.form .field-properties .field label,
 .form .field:has(input[type=checkbox]) .label {
     width: calc(25% - 10px);
     display: flex;
@@ -267,7 +267,7 @@ footer {
     width: 100%;
 }
 
-.form .field-attributes .field label .input,
+.form .field-properties .field label .input,
 .form .field:has(input[type=checkbox]) .input[type=checkbox] {
     display: block;
     width: 20px;
@@ -561,7 +561,7 @@ header nav a:focus {
     }
 
     /* ФОРМА */
-    .form .field-attributes .field label {
+    .form .field-properties .field label {
         width: calc(50% - 20px) !important;
     }
 
@@ -596,7 +596,7 @@ header nav a:focus {
         width: 60%;
     }
 
-    .form .field-attributes .field label {
+    .form .field-properties .field label {
         width: calc(50% - 20px) !important;
     }
 
@@ -627,7 +627,7 @@ header nav a:focus {
         width: 100%;
     }
 
-    .form .field-attributes .field label {
+    .form .field-properties .field label {
         width: 100% !important;
     }
 

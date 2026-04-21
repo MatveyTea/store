@@ -104,11 +104,7 @@ $attributes = makeSelectQuery(
     false
 );
 if ($attributes == "FAIL") redirect();
-$dependencies = [];
-foreach ($attributes as $attribute) {
-    $dependencies[$attribute["id_properties"]][] = $attribute["id_attributes"];
-}
-$dependencies = json_encode($dependencies);
+
 
 $types = $link->query("SELECT * FROM `items_type`")->fetchAll(PDO::FETCH_ASSOC);
 $typesHTML = "";
@@ -120,9 +116,8 @@ foreach ($types as $type) {
 $data = $_SESSION["data"] ?? [];
 
 include_once __DIR__ . "/header.php";
-getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML);
+getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $attributes);
 getModalHTML();
-echo "<template id='dependencies'>$dependencies</template>";
 ?>
 
 <main class="content">
@@ -166,13 +161,13 @@ echo "<template id='dependencies'>$dependencies</template>";
             <label class="label hidden"></label>
             <input type="hidden" class="hidden input" data-name="items_properties" data-is-insert-server="0">
             <p class="error"></p>
-            <button class="additional button">Добавить свойства</button>
+            <button class="add-properties button">Добавить свойство</button>
         </div>
-        <div class="field-attributes">
+        <div class="field-properties">
             <?= $attributesItemHTML ?>
         </div>
         <div class="field">
-            <input type="submit" class="input button" name="submit_button" value="Добавить">
+            <input type="submit" class="button" name="submit_button" value="Добавить">
         </div>
     </form>
 </main>

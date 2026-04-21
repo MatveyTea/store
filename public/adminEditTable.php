@@ -179,7 +179,7 @@ foreach ($table as $row) {
     }
 
     $formEditHTML .= "<div class='field'>
-            <input class='input button' type='submit' name='submit_button' value='Изменить'>
+            <input class='button' type='submit' name='submit_button' value='Изменить'>
         </div>
         <div class='field'>
             <button class='button delete-all' data-id='$row[$id]' data-table='$tableName'>Удалить всё</button>
@@ -196,7 +196,7 @@ include_once __DIR__ . "/header.php";
         <legend class="legend">Добавление</legend>
         <?= $formAddHTML  ?>
         <div class="field">
-            <input class="input button" type="submit" name="submit_button" value="Создать">
+            <input class="button" type="submit" name="submit_button" value="Создать">
         </div>
     </form>
     <?= $formEditHTML ?>

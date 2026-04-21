@@ -1,4 +1,4 @@
-main.content div {
+main.content article {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
@@ -7,12 +7,12 @@ main.content div {
     margin-bottom: 30px;
 }
 
-main.content div h2 {
+main.content article h2 {
     width: 100%;
     text-align: center;
 }
 
-main.content div a {
+main.content article a {
     display: block;
     width: calc(50% - 50px);
     text-align: center;

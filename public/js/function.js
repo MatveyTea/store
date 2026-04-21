@@ -1,31 +1,268 @@
 "use strict";
 
-/*
-    connectedInputs - связанные поля по правилам | Array<String, Array<DOM>>
-    connectedRules - связанные правила | Array<String>
-    hasName - нужен ли аттрибут name | Bool
-    isInsertServer - было ли значение вставлено из сессии (или при вводе пользователя) или из базы данных | Int = 0, 1
-    placeholder - подсказка что вводить | String
-    inputs - поля которые подходят под это правило | Array<DOM>
-    nameInput - имя поля (для placeholder и label.textContent) | String
-    nameRule - имя правила | String
-    currentValue - текущее значение поля (или состояние отметки или индекс или значение) | Array<String, String>
-    oldValue - значение которое пришло с сервера | Array<String, String>
-    files - файлы в которых это правило используется | Array<String>
-    required - обязательно ли это поли | Bool
-    timerId - id таймера для показа ошибок | Int
-    placeMsg - место куда выводить ошибки, виде  | Array<String, DOM>
-    length - длина вводимых символов | ?Int
-    check - функция валидации | function(input): Bool, String 
-*/
+function changeProperty(select, dependencies) {
+    const selectedValues = select.dataset?.value?.split("|") ?? [];
+    for (const idAttribute in dependencies) {
+        if (idAttribute == select.value) {
+            document.querySelectorAll(`.field.property:has(#${select.id}) .field:has(.input[type='checkbox']) label`).forEach((label) => {
+                const input = label.querySelector(".input");
+                const includesProperty = dependencies[idAttribute].includes(+input.value);
+                label.classList.toggle("hidden", !includesProperty);
+                input.checked = selectedValues.includes(input.value) ? "checked" : "";
+                input.dispatchEvent(new Event("change"));
+            });
+            break;
+        }
+    }
+}
+
+function setProperties(form) {
+    const templateProperties = document.querySelector("template[data-max-count][data-current-count]");
+    const wrapperProperties = templateProperties.content.firstElementChild;
+    const dependenciesProperties = JSON.parse(templateProperties.content.lastElementChild.textContent);
+    const maxCountProperties = templateProperties.dataset.maxCount;
+    let currentCountProperties = parseInt(templateProperties.dataset.currentCount);
+
+    const addProperties = form.querySelector(".add-properties");
+    const fieldProperties = form.querySelector(".field-properties");
+    const isEditFile = "/adminEditItem.php" == window.location.pathname;
+
+    const allSelectProperty = document.querySelectorAll(".field.property select");
+    allSelectProperty.forEach((select) => {
+        changeProperty(select, dependenciesProperties);
+        select.addEventListener("change", () => changeProperty(select, dependenciesProperties));
+    });
+
+    addProperties.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (currentCountProperties >= maxCountProperties) return;
+        currentCountProperties++;
+        const clone = wrapperProperties.cloneNode(true);
+        fieldProperties.prepend(clone);
+
+        clone.querySelector(".delete-property").addEventListener("click", () => {
+            currentCountProperties--;
+            clone.remove();
+        });
+
+        setBasicSettingInput([...clone.querySelectorAll(".field .input")], form);
+        const select = clone.querySelector("select");
+        select.addEventListener("change", () => changeProperty(select, dependenciesProperties));
+    });
+
+    if (isEditFile) {
+        const allDeleteProperty = form.querySelectorAll(".delete-property");
+        allDeleteProperty.forEach((button) => {
+            button.addEventListener("click", async (event) => {
+                event.preventDefault();
+                const resultData = await sendToServer({
+                    "server_type": "delete_item_properties",
+                    "id_properties": button.dataset.idProperty
+                });
+                if (resultData["status"] == "OK") {
+                    const parent = form.querySelector(`.field.property:has(.button[data-id-property='${button.dataset.idProperty}'])`);
+                    parent.remove();
+                    currentCountProperties--;
+                } else {
+                    showModal("Не удалось удалить свойство");
+                }
+            });
+        });
+    }
+
+    form.addEventListener("submit", (event) => {
+        const itemsProperties = document.querySelector(".input[data-name='items_properties']");
+        const allProperty = document.querySelectorAll(".field.property");
+        const attributes = [];
+        allProperty.forEach((field) => {
+            const valuesProperty = Array.from(field.querySelectorAll(".input[data-name='attributes_select_value'][data-is-insert-server='0']"));
+            valuesProperty.forEach((valueProperty) => {
+                attributes.push({
+                    "type": valueProperty.checked ? "add" : "remove",
+                    "id_attributes": valueProperty.value,
+                    "id_properties": document.querySelector(`.field.property:has(#${valueProperty.id}) select`).value
+                });
+            });
+        });
+        itemsProperties.value = JSON.stringify(attributes ?? "");
+        itemsProperties.dispatchEvent(new Event("change"));
+    });
+}
+
+function checkInput(input, rule) {
+    let textMessage = "";
+    let isCorrect = true;
+
+    if (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0))) {
+        const result = rule.check(input);
+        if (result !== false) {
+            textMessage = result;
+            isCorrect = false;
+        }
+    }
+
+    if (rule.placeMsg[input.id]) {
+        if (textMessage == "") {
+            rule.timerId = setTimeout(() => {
+                clearTimeout(rule.timerId);
+                rule.placeMsg[input.id].textContent = textMessage;
+            }, 300);
+        } else {
+            rule.placeMsg[input.id].textContent = textMessage;
+        }
+        rule.placeMsg[input.id].classList.toggle("invisible", isCorrect);
+    }
+
+    if (isCorrect && rule.oldValue[input.id] == rule.currentValue[input.id]) {
+        input.dataset.isInsertServer = 1;
+    } else if (isCorrect && rule.oldValue[input.id] != rule.currentValue[input.id]) {
+        input.dataset.isInsertServer = 0;
+    }
+    rule.isInsertServer[input.id] = input.dataset.isInsertServer;
+
+    const isUpdate = rule.isInsertServer[input.id] == 0 && (rule.oldValue[input.id] != input.value || input?.files?.length > 0);
+    const isConnectedInputChange = rule.connectedInputs[input.id]?.some((input) => input.hasAttribute("name"));
+    if (isCorrect && rule.hasName == true && (isUpdate || isConnectedInputChange)) {
+        input.setAttribute("name", rule.nameRule);
+    } else {
+        input.removeAttribute("name");
+    }
+
+    return isCorrect;
+}
+
+function setBasicSettingInput(inputs, form) {
+    if (validationRules == [] || inputs == [] || form == null) return;
+
+    Array.from(inputs).forEach((input) => {
+        input.id = `input_${countInput++}`;
+        input.removeAttribute("name");
+        const rule = validationRules[input.dataset.name];
+
+        if (rule.inputs == null) {
+            rule.inputs = [];
+            rule.oldValue = []
+            rule.isInsertServer = [];
+            rule.placeMsg = [];
+            rule.connectedInputs = [];
+            rule.currentValue = [];
+        }
+
+        rule.inputs.push(input);
+        if (!input.hasAttribute("is-insert-server")) {
+            input.dataset.isInsertServer = 1;
+        }
+        rule.isInsertServer[input.id] = input.dataset.isInsertServer;
+        if (rule.isInsertServer[input.id] == 1) {
+            rule.oldValue[input.id] = rule.wayDefineValue(input);
+        } else {
+            rule.oldValue[input.id] = "";
+        }
+        rule.currentValue[input.id] = rule.wayDefineValue(input);
+
+        const placeMsg = form.querySelector(`.field:not(.property):has(#${input.id}) .error`);
+        if (placeMsg) {
+            placeMsg.classList.toggle("invisible", placeMsg.textContent == "");
+            rule.placeMsg[input.id] = placeMsg;
+        }
+
+        if (rule.connectedRules != null) {
+            rule.connectedInputs[input.id] = Array.from(document.querySelectorAll(`.form:has(#${input.id}) .input[data-name~=${rule.connectedRules.join("-")}]`));
+        }
+
+        if (rule.nameInput != null) {
+            const label = form.querySelector(`.field:not(.property):has(#${input.id}) .label`);
+            if (label) {
+                label.setAttribute("for", input.id);
+                if (label.children.length > 0) {
+                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1) + label.innerHTML;
+                } else {
+                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1);
+                }
+                if (rule.required) {
+                    label.innerHTML += "<b>*</b>";
+                }
+            }
+        }
+
+        if (rule.length != null) {
+            input.setAttribute("maxlength", rule.length);
+        }
+
+        if (rule.nameInput != null) {
+            input.setAttribute("placeholder", `Введите ${rule.nameInput}`);
+        }
+
+        if (input.tagName != "SPAN" && (input.value != "" || input?.selectedIndex)) {
+            checkInput(input, rule);
+        }
+
+        const action = input.tagName == "SPAN" ? "click" : "change";
+        input.addEventListener(action, () => {
+            rule.currentValue[input.id] = rule.wayDefineValue(input);
+            checkInput(input, rule);
+        });
+    });
+
+    return validationRules;
+}
+
+function setValidationForm(form) {
+    if (form == null) return;
+
+    const inputs = form.querySelectorAll(".input");
+    const validatedRules = setBasicSettingInput(inputs, form);
+
+    if (["/adminEditItem.php", "/adminAddItem.php"].includes(window.location.pathname)) {
+        setProperties(form);
+    }
+
+    form.addEventListener("submit", (event) => {
+        let hasError = false;
+        let hasUpdate = false;
+        Array.from(inputs).forEach((input) => {
+            let isCorrect = checkInput(input, validatedRules[input.dataset.name]);
+            if (!isCorrect) {
+                hasError = true;
+            } else if (isCorrect && input.dataset.isInsertServer == 0) {
+                hasUpdate = true;
+            }
+        });
+        // if (hasError || !hasUpdate) {
+        //     event.preventDefault();
+        // }
+    });
+}
 
 function getValidationRules() {
+    /*
+        wayDefineValue - способ определения значения | function(input): String, Int
+        connectedInputs - связанные поля по правилам | Array<String, Array<DOM>>
+        connectedRules - связанные правила | Array<String>
+        hasName - нужен ли аттрибут name | Bool
+        isInsertServer - было ли значение вставлено из сессии (или при вводе пользователя) или из базы данных | Int = 0, 1
+        placeholder - подсказка что вводить | String
+        inputs - поля которые подходят под это правило | Array<DOM>
+        nameInput - имя поля (для placeholder и label.textContent) | String
+        nameRule - имя правила | String
+        currentValue - текущее значение поля (или состояние отметки или индекс или значение) | Array<String, String>
+        oldValue - значение которое пришло с сервера | Array<String, String>
+        files - файлы в которых это правило используется | Array<String>
+        required - обязательно ли это поли | Bool
+        timerId - id таймера для показа ошибок | Int
+        placeMsg - место куда выводить ошибки, виде  | Array<String, DOM>
+        length - длина вводимых символов | ?Int
+        check - функция валидации | function(input): Bool, String 
+    */
     let result = [];
     const file = window.location.pathname == "/" ? "index.php" : window.location.pathname.split("/")[1];
 
     const rules = {
         // Пользователь
         "name_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -48,6 +285,9 @@ function getValidationRules() {
             }
         },
         "email_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -70,6 +310,9 @@ function getValidationRules() {
             },
         },
         "email_search_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -92,6 +335,9 @@ function getValidationRules() {
             },
         },
         "is_banned_search_users": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -111,6 +357,9 @@ function getValidationRules() {
             },
         },
         "password_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -148,6 +397,9 @@ function getValidationRules() {
             }
         },
         "re_password_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -185,6 +437,9 @@ function getValidationRules() {
             }
         },
         "avatar_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -226,6 +481,9 @@ function getValidationRules() {
         },
         // Товар
         "id_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -248,6 +506,9 @@ function getValidationRules() {
             }
         },
         "name_items": {
+            "wayDefineValue": function(input) {
+                return input.value
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -270,6 +531,9 @@ function getValidationRules() {
             }
         },
         "count_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -292,6 +556,9 @@ function getValidationRules() {
             }
         },
         "cost_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -314,6 +581,9 @@ function getValidationRules() {
             }
         },
         "image_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -356,6 +626,9 @@ function getValidationRules() {
             }
         },
         "items_type_id_items": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -375,6 +648,9 @@ function getValidationRules() {
             }
         },
         "description_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -398,6 +674,9 @@ function getValidationRules() {
         },
         // Поиск товара
         "name_search_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -420,6 +699,9 @@ function getValidationRules() {
             }
         },
         "description_search_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -442,6 +724,9 @@ function getValidationRules() {
             }
         },
         "items_type_id_search_items": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -461,6 +746,9 @@ function getValidationRules() {
             }
         },
         "min_cost_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -483,6 +771,9 @@ function getValidationRules() {
             }
         },
         "max_cost_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -505,6 +796,9 @@ function getValidationRules() {
             }
         },
         "min_count_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -527,6 +821,9 @@ function getValidationRules() {
             }
         },
         "max_count_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -549,6 +846,9 @@ function getValidationRules() {
             }
         },
         "strict_search": {
+            "wayDefineValue": function(input) {
+                return input.checked;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -568,6 +868,9 @@ function getValidationRules() {
             }
         },
         "popular_items": {
+            "wayDefineValue": function(input) {
+                return input.checked;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -588,6 +891,9 @@ function getValidationRules() {
         },
         // Комментарии
         "text_comments": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -610,6 +916,9 @@ function getValidationRules() {
             }
         },
         "rating_comments": {
+            "wayDefineValue": function(input) {
+                return input.querySelectorAll("svg.active").length;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -631,6 +940,9 @@ function getValidationRules() {
         },
         // Свойство у товаров
         "items_properties": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -655,6 +967,9 @@ function getValidationRules() {
             }
         },
         "attributes_select_property": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -674,6 +989,9 @@ function getValidationRules() {
             }
         },
         "attributes_select_value": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -694,6 +1012,9 @@ function getValidationRules() {
         },
         // Свойства товаров
         "id_properties": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": ["name_properties"],
@@ -716,6 +1037,9 @@ function getValidationRules() {
             }
         },
         "name_properties": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": ["id_properties"],
@@ -739,6 +1063,9 @@ function getValidationRules() {
         },
         //
         "attributes": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": null,
@@ -763,6 +1090,9 @@ function getValidationRules() {
             }
         },
         "attributes_search": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -782,6 +1112,9 @@ function getValidationRules() {
             }
         },
         "id_attributes": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -804,6 +1137,9 @@ function getValidationRules() {
             }
         },
         "value_attributes": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -827,6 +1163,9 @@ function getValidationRules() {
         },
         // Типы товаров
         "id_items_type": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": ["name_items_type"],
@@ -849,6 +1188,9 @@ function getValidationRules() {
             }
         },
         "name_items_type": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": ["id_items_type"],
@@ -872,6 +1214,9 @@ function getValidationRules() {
         },
         // Статус покупки
         "id_status": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": ["name_status"],
@@ -894,6 +1239,9 @@ function getValidationRules() {
             }
         },
         "name_status": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": true,
             "connectedRules": ["id_status"],
@@ -917,6 +1265,9 @@ function getValidationRules() {
         },
         // Заказы
         "street_address_orders": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -939,6 +1290,9 @@ function getValidationRules() {
             }
         },
         "home_address_orders": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -961,6 +1315,9 @@ function getValidationRules() {
             }
         },
         "number_address_orders": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -983,6 +1340,9 @@ function getValidationRules() {
             }
         },
         "datetime_plan_orders": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -1002,6 +1362,9 @@ function getValidationRules() {
             }
         },
         "note_orders": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
             "currentValue": null,
             "hasName": false,
             "connectedRules": null,
@@ -1033,305 +1396,16 @@ function getValidationRules() {
     return result;
 }
 
-function toggleNameInput(input, rule, isAdd) {
-    const isUpdate = rule.isInsertServer[input.id] == 0 && (rule.oldValue[input.id] != input.value || input?.files?.length > 0);
-    const isConnectedInputChange = rule.connectedInputs[input.id]?.some((input) => input.hasAttribute("name"));
-    if (isAdd && rule.hasName == true && (isUpdate || isConnectedInputChange)) {
-        input.setAttribute("name", rule.nameRule);
-    } else {
-        input.removeAttribute("name");
-    }
+let countInput = null;
+let validationRules = null;
+const validatedForm = document.querySelectorAll(".form");
+
+if (validatedForm) {
+    countInput = 0;
+    validationRules = getValidationRules();
+    validatedForm.forEach((form) => setValidationForm(form));
 }
 
-function checkInput(input, rule) {
-    let textMessage = "";
-    let isCorrect = true;
-
-    if (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0))) {
-        const result = rule.check(input);
-        if (result !== false) {
-            textMessage = result;
-            isCorrect = false;
-        }
-    }
-
-    if (rule.placeMsg[input.id]) {
-        if (textMessage == "") {
-            rule.timerId = setTimeout(() => {
-                clearTimeout(rule.timerId);
-                rule.placeMsg[input.id].textContent = textMessage;
-            }, 300);
-        } else {
-            rule.placeMsg[input.id].textContent = textMessage;
-        }
-        rule.placeMsg[input.id].classList.toggle("invisible", isCorrect);
-    }
-
-    if (isCorrect && rule.oldValue[input.id] == rule.currentValue[input.id]) {
-        input.dataset.isInsertServer = 1;
-    } else if (isCorrect && rule.oldValue[input.id] != rule.currentValue[input.id]) {
-        input.dataset.isInsertServer = 0;
-    }
-    rule.isInsertServer[input.id] = input.dataset.isInsertServer;
-
-    toggleNameInput(input, rule, isCorrect);
-    return isCorrect;
-}
-
-function setBasicSettingInput(inputs, form) {
-    const validatedRules = getValidationRules();
-    if (validatedRules == []) return;
-
-    Array.from(inputs).forEach((input) => {
-        input.id = `input_${countInput++}`;
-        input.removeAttribute("name");
-        const rule = validatedRules[input.dataset.name];
-
-        if (rule.inputs == null) {
-            rule.inputs = [];
-            rule.oldValue = []
-            rule.isInsertServer = [];
-            rule.placeMsg = [];
-            rule.connectedInputs = [];
-            rule.currentValue = [];
-        }
-
-        rule.inputs.push(input);
-        rule.isInsertServer[input.id] = input.dataset?.isInsertServer ?? 1;
-        if (rule.isInsertServer[input.id] == 1) {
-            rule.oldValue[input.id] = defineValueInput(input);
-        } else {
-            rule.oldValue[input.id] = "";
-        }
-        rule.currentValue[input.id] = defineValueInput(input);
-
-        const placeMsg = form.querySelector(`.field:not(.additional):has(#${input.id}) .error`);
-        if (placeMsg) {
-            placeMsg.classList.toggle("invisible", placeMsg.textContent == "");
-            rule.placeMsg[input.id] = placeMsg;
-        }
-
-        if (rule.connectedRules != null) {
-            rule.connectedInputs[input.id] = Array.from(document.querySelectorAll(`
-                .field.additional:has(#${input.id}) .input[data-name~=${rule.connectedRules.join("-")}],
-                .form:has(#${input.id}) .input[data-name~=${rule.connectedRules.join("-")}]
-            `));
-        }
-
-        if (rule.nameInput != null) {
-            const label = form.querySelector(`.field:not(.additional):has(#${input.id}) .label`);
-            if (label) {
-                label.setAttribute("for", input.id);
-                if (label.children.length > 0) {
-                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1) + label.innerHTML;
-                } else {
-                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1);
-                }
-                if (rule.required) {
-                    label.innerHTML += "<b>*</b>";
-                }
-            }
-        }
-
-        if (rule.length != null) {
-            input.setAttribute("maxlength", rule.length);
-        }
-
-        if (rule.nameInput != null) {
-            input.setAttribute("placeholder", `Введите ${rule.nameInput}`);
-        }
-
-        if (input.tagName != "SPAN" && (input.value != "" || input?.selectedIndex)) {
-            checkInput(input, rule);
-        }
-
-        if (input.tagName == "SPAN") {
-            input.addEventListener("click", () => {
-                rule.currentValue[input.id] = defineValueInput(input);
-                checkInput(input, rule);
-            });
-        } else {
-            input.addEventListener("change", () => {
-                rule.currentValue[input.id] = defineValueInput(input);
-                checkInput(input, rule);
-            });
-        }
-    });
-
-    return validatedRules;
-}
-
-function setValidatedForm(form) {
-    if (form == null) return;
-
-    if (["/adminEditItem.php", "/adminAddItem.php"].includes(window.location.pathname)) {
-        setAdditional(form);
-    }
-
-    const inputs = form.querySelectorAll(".input:not(input[type=submit])");
-    const validatedRules = setBasicSettingInput(inputs, form);
-
-    form.addEventListener("submit", (event) => {
-        let hasUpdate = false;
-        let hasError = false;
-        Array.from(inputs).forEach((input) => {
-            let isCorrect = checkInput(input, getInputRule(input, validatedRules));
-            if (!isCorrect) {
-                hasError = true;
-            } else if (isCorrect && input.hasAttribute("name")) {
-                hasUpdate = true;
-            }
-        });
-        // if (hasError || !hasUpdate) {
-        //     event.preventDefault()
-        // };
-    });
-}
-
-function defineValueInput(input) {
-    let value = null;
-    if (input.type == "checkbox") {
-        value = input.checked;
-    } else if (input.tagName == "SELECT") {
-        value = input.selectedIndex;
-    } else if (input.tagName == "SPAN") {
-        value = input.querySelectorAll("svg.active").length;
-    } else {
-        value = input.value;
-    }
-    return value;
-}
-
-function getInputRule(input, validatedRules) {
-    for (let keyRule in validatedRules) {
-        if (validatedRules[keyRule]?.inputs?.includes(input)) {
-            return validatedRules[keyRule];
-        }
-    }
-}
-
-function setAdditional(form) {
-    const additionalTemplate = document.querySelector("template[data-max-count][data-current-count]");
-    const additional = additionalTemplate.content.firstElementChild;
-    const maxCount = additionalTemplate.dataset.maxCount;
-    let count = parseInt(additionalTemplate.dataset.currentCount);
-
-    const dependenciesTemplate = document.querySelector("#dependencies");
-    const dependencies = JSON.parse(dependenciesTemplate.content.textContent);
-    dependenciesTemplate.remove();
-
-    const additionalButton = form.querySelector("button.additional");
-    const insertPlace = form.querySelector(".field-attributes");
-    const isEditFile = ["/adminEditItem.php"].includes(window.location.pathname);
-
-    const allAdditional = document.querySelectorAll(".field.additional select");
-    allAdditional.forEach((select) => {
-        changeSelect(select, dependencies);
-        select.addEventListener("change", () => {
-            changeSelect(select, dependencies);
-        });
-    });
-
-    additionalButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        if (count >= maxCount) return;
-        count++;
-        const clone = additional.cloneNode(true);
-        insertPlace.prepend(clone);
-
-        clone.querySelector(".button").addEventListener("click", () => {
-            count--;
-            clone.remove();
-        });
-
-        setBasicSettingInput([...clone.querySelectorAll(".field .input")], form);
-        const select = clone.querySelector("select");
-        select.addEventListener("change", () => {
-            changeSelect(select, dependencies);
-        });
-    });
-
-    if (isEditFile) {
-        const buttonsDelete = form.querySelectorAll(".field.additional .button");
-        buttonsDelete.forEach((button) => {
-            const parent = form.querySelector(`.field.additional:has(.button[data-id-property='${button.dataset.idProperty}'])`);
-            button.addEventListener("click", async (event) => {
-                event.preventDefault();
-                parent.classList.add("hidden");
-                const resultData = await sendToServer({
-                    "server_type": "delete_item_properties",
-                    "id_properties": button.dataset.idProperty
-                });
-                if (resultData["status"] == "OK") {
-                    parent.remove();
-                    count--;
-                } else {
-                    parent.classList.remove("hidden");
-                }
-            });
-        });
-
-        const deleteButton = document.querySelector(".button.delete");
-        deleteButton.addEventListener("click", async (event) => {
-            event.preventDefault()
-            const dataResult = await sendToServer({
-                "server_type": "delete_items",
-                "id_item": window.location.search.split("=")[1]
-            });
-            if (dataResult["status"] == "OK") {
-                window.location.href = "/";
-            } else {
-                showModal("Не удалось удалить товар");
-            }
-        });
-    }
-
-    form.addEventListener("submit", (event) => {
-        const input = document.querySelector(".input[data-name='items_properties']");
-        const additionalFiled = document.querySelectorAll(".field.additional");
-        const array = [];
-        additionalFiled.forEach((filed) => {
-            const updateInputCheckbox = Array.from(filed.querySelectorAll(".input[data-is-insert-server='0']:not(.input[data-name='attributes_select_property'])"));
-            updateInputCheckbox.forEach((input) => {
-                if (input.value != "") {
-                    array.push({
-                        "type": input.checked ? "add" : "remove",
-                        "id_attributes": input.value,
-                        "id_properties": document.querySelector(`.field.additional:has(#${input.id}) select`).value
-                    });
-                }
-            });
-        });
-        input.value = JSON.stringify(array ?? "");
-        input.dispatchEvent(new Event("change"));
-    });
-}
-
-function changeSelect(select, values) {
-    const properties = select.parentElement.nextElementSibling;
-    const selectedInput = select.dataset?.value?.split("|") ?? [];
-    for (const idAttribute in values) {
-        if (idAttribute == select.value) {
-            properties.querySelectorAll("label").forEach((label) => {
-                const input = label.firstElementChild;
-                const includesThisProperty = values[idAttribute].includes(+input.value);
-                if (!includesThisProperty) {
-                    input.removeAttribute("name");
-                }
-                label.classList.toggle("hidden", !includesThisProperty);
-                input.checked = selectedInput.includes(input.value) ? "checked" : "";
-                input.dispatchEvent(new Event("change"));
-            });
-        }
-    }
-}
-
-let countInput = 0;
-const formValidated = document.querySelectorAll(".form");
-
-formValidated?.forEach((form) => {
-    setValidatedForm(form);
-});
 
 async function sendToServer(data) {
     const result = await fetch("server.php", {

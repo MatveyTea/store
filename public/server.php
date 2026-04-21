@@ -11,7 +11,9 @@ if (!empty(file_get_contents("php://input"))) {
 
     if ($isAuth && $serverType == "change_basket" && !empty($json["id_items"]) && isset($json["count_items"]) && !empty($json["action_items"])) { // index.js и aboutItem.js - Добавление и удаление товаров в корзине
         changeBasket($json["id_items"], $json["count_items"], $json["action_items"]);
-    } else if ($isAuth && $serverType == "buy_items" && !empty($json["server_type"]) && !empty($json["address_orders"]) && isset($json["note_orders"]) && !empty($json["datetime_plan_orders"])) { // profile.js - Покупка товаров в корзине
+    } else if ($isAuth && $serverType == "delete_avatar") { // profile.js - Удаление аватарки
+        deleteAvatar();
+    } else if ($isAuth && $serverType == "buy_items" && !empty($json["server_type"]) && !empty($json["address_orders"]) && isset($json["note_orders"]) && !empty($json["datetime_plan_orders"])) { // basket.js - Покупка товаров в корзине
         buyItems($json);
     } else if ($isAdmin && $serverType == "delete_items" && !empty($json["id_item"])) { // adminEditItem.js - Удаление товара
         deleteItem($json["id_item"]);

@@ -162,11 +162,7 @@ $attributes = makeSelectQuery(
     false
 );
 if ($attributes == "FAIL") redirect();
-$dependencies = [];
-foreach ($attributes as $attribute) {
-    $dependencies[$attribute["id_properties"]][] = $attribute["id_attributes"];
-}
-$dependencies = json_encode($dependencies);
+
 
 $types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
 if ($types === "FAIL") {
@@ -179,9 +175,8 @@ foreach ($types as $type) {
 }
 
 include_once __DIR__ . "/header.php";
-getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $idItem);
+getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $attributes, $idItem);
 getModalHTML();
-echo "<template id='dependencies'>$dependencies</template>";
 ?>
 
 <main class="content">
@@ -189,17 +184,17 @@ echo "<template id='dependencies'>$dependencies</template>";
         <legend class="legend">Изменение товара</legend>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="text" value="<?= $itemInfo["name_items"] ?? "" ?>" data-name="name_items" data-is-insert-server="<?= !empty($itemInfo["name_items"]) ? 1 : 0 ?>">
+            <input class="input" type="text" value="<?= $itemInfo["name_items"] ?? "" ?>" data-name="name_items">
             <p class="error"></p>
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="number" value="<?= $itemInfo["count_items"] ?? "" ?>" data-name="count_items" data-is-insert-server="<?= !empty($itemInfo["count_items"]) ? 1 : 0 ?>">
+            <input class="input" type="number" value="<?= $itemInfo["count_items"] ?? "" ?>" data-name="count_items">
             <p class="error"></p>
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="number" value="<?= $itemInfo["cost_items"] ?? "" ?>" data-name="cost_items" data-is-insert-server="<?= !empty($itemInfo["cost_items"]) ? 1 : 0 ?>">
+            <input class="input" type="number" value="<?= $itemInfo["cost_items"] ?? "" ?>" data-name="cost_items">
             <p class="error"></p>
         </div>
         <div class="field">
@@ -209,37 +204,34 @@ echo "<template id='dependencies'>$dependencies</template>";
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="file" data-name="image_items" data-is-insert-server="1">
+            <input class="input" type="file" data-name="image_items">
             <img src="<?= getValidImage(FOLDER_UPLOAD . "/" . FOLDER_ITEMS, $itemInfo["image_items"]) ?>">
             <p class="error"></p>
         </div>
         <div class="field">
             <label class="label"></label>
-            <select class="input" data-name="items_type_id_items" data-is-insert-server="1">
+            <select class="input" data-name="items_type_id_items">
                 <option value="" disabled selected>Выбрать</option>
                 <?= $typesHTML ?>
             </select>
             <p class="error"></p>
         </div>
         <div class="field">
-            <input type="hidden" class="hidden input" data-name="items_properties" data-is-insert-server="1">
-            <button class="additional button">Добавить свойства</button>
+            <input type="hidden" class="hidden input" data-name="items_properties">
+            <button class="add-properties button">Добавить свойства</button>
             <p class="error"></p>
         </div>
-        <div class="field-attributes">
+        <div class="field-properties">
             <?= $attributesHTML ?>
         </div>
-
         <div class="field">
-            <input type="submit" class="input button" name="submit_button" value="Обновить">
-        </div>
-        <div class="field">
-            <button class='delete button'>Удалить товар</button>
+            <input type="submit" class="button" name="submit_button" value="Обновить">
         </div>
     </form>
-    <div>
+    <article>
         <a href="aboutItem.php?id_item=<?= $idItem ?>" class="button">Перейти к товару</a>
-    </div>
+        <button class='delete-item button'>Удалить товар</button>
+    </article>
 </main>
 
 <?php include_once __DIR__ . "/footer.php"; ?>
