@@ -121,6 +121,11 @@ if (isAdmin()) {
     $editItemHTML .="<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
 }
 
+$star = "<svg width='24' height='24' fill='#FFD700' class='inactive'>
+    <use xlink:href='" . FOLDER_IMG . "/" . FOLDER_MAIN . "/star.svg#star'></use>
+</svg>";
+$starsHTML = str_repeat($star, 5);
+
 $commentForm = "";
 if (isUserAuth()) { 
     $commentForm .= "<form class='form add-comment' method='POST' data-id='$_GET[id_item]'>
@@ -131,7 +136,9 @@ if (isUserAuth()) {
         </div>
         <div class='field'>
             <label class='label'></label>
-            <input type='number' class='input' data-name='rating_comments' data-is-server-insert='1'>
+            <span class='input' data-name='rating_comments' data-is-server-insert='1'>
+                $starsHTML
+            </span>
             <p class='error'></p>
         </div>
         <div class='field'>

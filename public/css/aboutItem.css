@@ -78,3 +78,13 @@ main > a {
 .comment-date, .comment-text, .comment-rating {
     width: 100%;
 }
+
+.add-comment svg {
+    transition: filter 0.3s linear;
+    cursor: pointer;
+    filter: brightness(0.5);
+}
+
+.add-comment svg.active {
+    filter: brightness(1);
+}

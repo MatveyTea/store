@@ -15,7 +15,7 @@ buyButton?.addEventListener("click", async () => {
                 "home": makeOrder.querySelector(".input[data-name='home_address_orders']").value,
                 "number": makeOrder.querySelector(".input[data-name='number_address_orders']").value,
             },
-            "note_orders": makeOrder.querySelector(".input[data-name='note_orders']").textContent,
+            "note_orders": makeOrder.querySelector(".input[data-name='note_orders']").value,
             "datetime_plan_orders": makeOrder.querySelector(".input[data-name='datetime_plan_orders']").value
         });
         if (resultData["status"] == "OK") {

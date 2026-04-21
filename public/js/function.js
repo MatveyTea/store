@@ -625,7 +625,8 @@ function getValidationRules() {
             "length": 5,
             "placeMsg": null,
             "check": function (input) {
-                return /^[1-5]$/.test(input.value) ? false : "Введите число от 1 до 5";
+                const activeStars = input.querySelectorAll("svg.active").length;
+                return activeStars > 0 && activeStars < 6 ? false : "Введите число от 1 до 5";
             }
         },
         // Свойство у товаров
@@ -1140,14 +1141,21 @@ function setBasicSettingInput(inputs, form) {
             input.setAttribute("placeholder", `Введите ${rule.nameInput}`);
         }
 
-        if (input.value != "" || input?.selectedIndex) {
+        if (input.tagName != "SPAN" && (input.value != "" || input?.selectedIndex)) {
             checkInput(input, rule);
         }
 
-        input.addEventListener("change", () => {
-            rule.currentValue[input.id] = defineValueInput(input);
-            checkInput(input, rule);
-        });
+        if (input.tagName == "SPAN") {
+            input.addEventListener("click", () => {
+                rule.currentValue[input.id] = defineValueInput(input);
+                checkInput(input, rule);
+            });
+        } else {
+            input.addEventListener("change", () => {
+                rule.currentValue[input.id] = defineValueInput(input);
+                checkInput(input, rule);
+            });
+        }
     });
 
     return validatedRules;
@@ -1186,6 +1194,8 @@ function defineValueInput(input) {
         value = input.checked;
     } else if (input.tagName == "SELECT") {
         value = input.selectedIndex;
+    } else if (input.tagName == "SPAN") {
+        value = input.querySelectorAll("svg.active").length;
     } else {
         value = input.value;
     }

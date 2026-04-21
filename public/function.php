@@ -908,7 +908,7 @@ function getValidationRules($file = "")
             "returned_value" => true,
             "pattern" => function ($value) {
                 if (!empty($value["street"]) && !empty($value["home"])) {
-                    return "Ул. $value[street], д. $value[home]" . (!empty($value["number"]) ? "д. $value[number]" : "");
+                    return "Ул. $value[street], д. $value[home]" . (!empty($value["number"]) ? ", кв. $value[number]" : "");
                 } else {
                     return false;
                 }
