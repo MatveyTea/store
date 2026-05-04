@@ -54,13 +54,24 @@ main > a {
     flex-wrap: wrap;
     align-items: center;
     gap: 20px;
+    background-color: var(--parent-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.comments * {
+    color: white;
+}
+
+.comments:has(.notfound) {
+    justify-content: center;
 }
 
 .comment {
     width: calc(50% - 10px);
     padding: 20px;
     border-radius: 20px;
-    background-color: var(--button-color-hover);
+    background-color: var(--child-bg-color);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -87,4 +98,8 @@ main > a {
 
 .add-comment svg.active {
     filter: brightness(1);
+}
+
+.add-comment .input[data-name=rating_comments] {
+    padding: 0;
 }

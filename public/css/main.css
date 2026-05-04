@@ -1,12 +1,15 @@
 /* ПЕРЕМЕННЫЕ */
 :root {
     --content-width: 95vw;
-    --header-color: #BE405F;
-    --green-color: #007d00;
-    --green-color-hover: #004c00;
+
+    --shell-color: #BE405F;
     --body-color: #F3C6C6;
-    --button-color: #9d2e3b;
-    --button-color-hover: #71212a;
+
+    --parent-bg-color: #d76572;
+    --child-bg-color: #c2404f;
+
+    --element-color: #9d2e3b;
+    --element-color-hover: #71212a;
 }
 
 /* ОБЩИЕ СВОЙСТВА */
@@ -18,7 +21,7 @@
     text-decoration: none;
     outline: none;
     border: none;
-    color: var(--button-color);
+    color: var(--element-color);
     letter-spacing: 1px;
     line-height: 150%;
 }
@@ -64,7 +67,7 @@ body main > .button  {
     align-items: center;
     cursor: pointer;
     color: white;
-    background-color: var(--button-color);
+    background-color: var(--element-color);
     padding: 15px;
     border-radius: 10px;
     transition: background-color 0.3s linear;
@@ -72,16 +75,7 @@ body main > .button  {
 
 .button:hover,
 .button:focus {
-    background-color: var(--button-color-hover);
-}
-
-.button.green {
-    background-color: var(--green-color);
-}
-
-.button.green:hover,
-.button.green:focus {
-    background-color: var( --green-color-hover);
+    background-color: var(--element-color-hover);
 }
 
 .invisible {
@@ -95,11 +89,21 @@ body main > .button  {
     border-radius: 40px;
 }
 
+.notfound {
+    width: 100%;
+    grid-column: 1 / -1;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
 /* ФУТЕР */
 footer {
     min-height: 150px;
     color: white;
-    background-color: var(--header-color);
+    background-color: var(--shell-color);
     flex-shrink: 0;
 }
 
@@ -304,7 +308,7 @@ footer {
     height: max-content;
     transition: all 0.3s linear;
     color: white;
-    background-color: var(--button-color);
+    background-color: var(--element-color);
     border-radius: 10px;
 }
 
@@ -320,13 +324,12 @@ footer {
 
 /* ТОВАРЫ */
 .items {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     padding: 15px;
     color: white;
-    background-color: var(--button-color-hover);
+    background-color: var(--parent-bg-color);
     border-radius: 20px;
 }
 
@@ -334,17 +337,9 @@ footer {
     color: white;
 }
 
-.items .notfound {
-    width: 100%;
-    color: white;
-    text-align: center;
-    border-radius: 20px;
-    padding: 20px;
-}
-
 .item {
-    background-color: var(--button-color);
-    width: calc(25% - 15px);
+    background-color: var(--child-bg-color);
+    width: 100%;
     height: max-content;
     padding: 10px;
     display: flex;
@@ -356,6 +351,7 @@ footer {
 
 .items h2 {
     width: 100%;
+    grid-column: 1 / -1;
 }
 
 .item-link {
@@ -373,7 +369,7 @@ footer {
 
 .item-image {
     width: 100%;
-    height: 250px;
+    height: auto;
     user-select: none;
     align-self: center;
     border-radius: 15px;
@@ -400,13 +396,13 @@ footer {
     height: 30px;
     cursor: pointer;
     border-radius: 50px;
-    background-color: rgba(135, 222, 155, 0.7);
+    background-color: var(--element-color);
     transition: 0.4s background-color;
 }
 
 .item-counter-minus:hover, .item-counter-plus:hover,
 .item-counter-minus:focus, .item-counter-plus:focus {
-    background-color: rgba(135, 222, 155, 1);
+    background-color: var(--element-color-hover);
 }
 
 .item-counter-container p {
@@ -421,7 +417,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--header-color);
+    background-color: var(--shell-color);
     margin-bottom: 50px;
     flex-shrink: 0;
     position: fixed;
@@ -438,7 +434,7 @@ header nav a {
 
 header nav a:hover,
 header nav a:focus {
-    color: var(--button-color-hover);
+    color: var(--element-color-hover);
 }
 
 .header-desktop {
@@ -498,7 +494,7 @@ header nav a:focus {
     top: 100%;
     left: 0;
     transform: translate(-1.45%, 3.7%);
-    background-color: var(--header-color);
+    background-color: var(--shell-color);
     width: 100vw;
     justify-content: space-evenly;
     align-items: center;
@@ -511,7 +507,7 @@ header nav a:focus {
 
 .header-mobile-content a {
     width: 90%;
-    background-color: var(--button-color);
+    background-color: var(--element-color);
     text-align: center;
     padding: 20px;
     border-radius: 20px;
@@ -540,7 +536,7 @@ header nav a:focus {
     display: flex;
     width: 100%;
     height: 100%;
-    background-color: var(--button-color-hover);
+    background-color: var(--element-color-hover);
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -558,6 +554,7 @@ header nav a:focus {
     /* ОБЩИЕ СВОЙСТВА */
     html {
         --content-width: 96vw !important;
+        font-size: 14px;
     }
 
     /* ФОРМА */
@@ -566,8 +563,8 @@ header nav a:focus {
     }
 
     /* ТОВАРЫ */
-    .item {
-        width: calc(33% - 15px);
+    .items {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
@@ -576,6 +573,7 @@ header nav a:focus {
     /* ОБЩИЕ СВОЙСТВА */
     html {
         --content-width: 97vw !important;
+        font-size: 14px;
     }
 
     /* ШАПКА */
@@ -601,8 +599,8 @@ header nav a:focus {
     }
 
     /* ТОВАРЫ */
-    .item {
-        width: calc(50% - 15px);
+    .items {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -610,7 +608,8 @@ header nav a:focus {
 @media  (min-width: 1px) and (max-width: 400px) {
     /* ОБЩИЕ СВОЙСТВА */
     html {
-        --content-width: 97vw !important; 
+        --content-width: 97vw !important;
+        font-size: 12px;
     }
 
     /* ШАПКА */
@@ -650,8 +649,8 @@ header nav a:focus {
     }
 
     /* ТОВАРЫ */
-    .item {
-        width: 100%;
+    .items {
+        grid-template-columns: 1fr;
     }
 
     /* ФУТЕР */

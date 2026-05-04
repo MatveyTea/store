@@ -7,6 +7,7 @@ if (empty($_GET["id_item"])) {
 }
 
 $item = makeSelectQuery("SELECT
+    `id_items`,
     `name_items`,
     `count_items`,
     `image_items`,
@@ -17,7 +18,7 @@ $item = makeSelectQuery("SELECT
     `items_type`.`name_items_type`,
     `attributes`.`properties_id_attributes`
     FROM `items`
-    JOIN `items_type` ON `items_type`.`id_items_type` = `items_type_id_items`
+    LEFT JOIN `items_type` ON `items_type`.`id_items_type` = `items_type_id_items`
     LEFT JOIN `items_properties` ON `id_items_properties` = `id_items`
     LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
     LEFT JOIN `properties` ON `properties_id_attributes` = `id_properties`
@@ -87,16 +88,18 @@ foreach  ($attributes as $index => $attribute) {
 $itemHTML .= "</p></div>";
 
 if (isUserAuth()) {
-    $basket = makeSelectQuery("SELECT
-        `count_baskets` FROM `baskets`
-        JOIN `orders` ON `id_orders` = `orders_id_baskets`
-        WHERE `status_id_orders` = ? AND `items_id_baskets` = ? AND `users_id_orders` = ?
-        ", [1, $_GET["id_item"], getUserID()], true
-    );
-    if ($basket === "FAIL") {
+    $itemBasket = makeSelectQuery("SELECT
+        `items_id_baskets`,
+        `count_baskets`
+        FROM `baskets`
+        LEFT JOIN `orders` ON `id_orders` = `orders_id_baskets`
+        WHERE `items_id_baskets` = ? AND `users_id_orders` = ? AND `status_id_orders` = ?
+    ", [$_GET["id_item"], getUserID(), 1], true);
+    if ($itemBasket === "FAIL") {
         redirect();
     } else {
-        $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>" . getBuyBasketHTML() . "</span>";
+        $userItems = count($itemBasket) == 0 ? [] : [$itemBasket];
+        $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>" . getBuyBasketHTML($userItems, $item) . "</span>";
     }
 }
 
@@ -105,7 +108,7 @@ if (isAdmin()) {
     $editItemHTML .="<a href='adminEditItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
 }
 
-$star = "<svg width='24' height='24' fill='#FFD700' class='inactive'>
+$star = "<svg width='30' height='30' fill='#FFD700' class='inactive'>
     <use xlink:href='" . FOLDER_IMG . "/" . FOLDER_MAIN . "/star.svg#star'></use>
 </svg>";
 $starsHTML = str_repeat($star, 5);
@@ -129,7 +132,12 @@ if (isUserAuth()) {
             <input type='submit' class='button'>
         </div>
     </form>";
-} 
+}
+
+$commentsHTML = getCommentsHTML($comments);
+if ($commentsHTML == "") {
+    $commentsHTML .= "<p class='notfound'>Здесь нет отзывов</p>";
+}
 
 getModalHTML();
 include_once __DIR__ . "/header.php";
@@ -140,8 +148,9 @@ include_once __DIR__ . "/header.php";
         <?= $itemHTML ?>
     </section>
     <?= $editItemHTML ?>
+    <?= $commentForm ?>
     <section class="comments">
-        <?= $commentForm . getCommentsHTML($comments) ?>
+        <?= $commentsHTML ?>
     </section>
     <section class="content items">
         <h2>Похожие товары</h2>

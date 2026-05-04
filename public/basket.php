@@ -14,10 +14,12 @@ $basket = makeSelectQuery("SELECT
     `id_items`,
     `name_items`,
     `image_items`,
-    `cost_items`
+    `cost_items`,
+    `name_status`
     FROM `baskets`
     JOIN `items` ON `id_items` = `items_id_baskets`
     JOIN `orders` ON `id_orders` = `orders_id_baskets`
+    JOIN `status` ON `id_status` = `status_id_orders`
     WHERE `users_id_orders` = ?
     ORDER BY CASE WHEN `datetime_buy_orders` IS NULL THEN 0 ELSE 1 END, `datetime_buy_orders` DESC
 ", [getUserID()], false);
@@ -26,11 +28,40 @@ if ($basket === "FAIL") {
     redirect();
 }
 
-extract(getBasketHTML($basket));
+$basketsHTML = getBasketHTML($basket);
+extract($basketsHTML);
 
-$timeOrders = ["10:00 - 11:00", "12:00 - 13:00"]; //
+// $freeDeliver = makeSelectQuery("SELECT
+//     `datetime_start_orders`,
+//     `datetime_end_orders`
+//     FROM `orders`
+//     WHERE `datetime_start_orders` IS NOT NULL AND `status_id_orders` != 5 AND 
+// ", [], false);
+// print_r($freeDeliver);
+
+// if ($freeDeliver == "FAIL") {
+//     // redirect();
+// }
+
+// $timeOrders = []; // 10:00 - 11:00
+// $startHour = date("H") + 1;
+// for ($i = $startHour; $i < 24; $i++) {
+//     "SELECT
+//     `datetime_start_orders`,
+//     `datetime_end_orders`
+//     FROM `orders`
+//     WHERE `datetime_start_orders` >= $i AND `status_id_orders` != 5 AND 
+// ";
+//     // if (true) {
+//     //     $timeOrders[] = "$i:00 - " . $i + 1 . ":00";
+//     // }
+// }
+
+// print_r($timeOrders);
+
+
 $timeOrdersHTML = "";
-foreach ($timeOrders as $time) {
+foreach (["10:00 - 11:00", "11:00 - 12:00"] as $time) {
     $timeOrdersHTML .= "<option>$time</option>";
 }
 

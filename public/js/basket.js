@@ -8,6 +8,8 @@ const cancelBasket = document.querySelector(".cancel-basket");
 buyButton?.addEventListener("click", async () => {
     const makeOrder = document.querySelector(".make-order");
     makeOrder.classList.remove("hidden");
+    makeOrder.style.top = `${scrollY}px`;
+
     makeOrder.querySelector(".form").addEventListener("submit", async (event) => {
         event.preventDefault();
         const resultData = await sendToServer({
@@ -32,7 +34,7 @@ buyButton?.addEventListener("click", async () => {
     });
 });
 
-cancelBasket.addEventListener("click", (event) => {
+cancelBasket?.addEventListener("click", (event) => {
     event.preventDefault();
     const makeOrder = document.querySelector(".make-order");
     makeOrder.classList.add("hidden");

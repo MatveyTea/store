@@ -1,8 +1,10 @@
 "use strict";
 
 const addComment = document.querySelector(".add-comment");
+const commentsSection = document.querySelector(".comments");
 
 if (addComment) {
+    const ratingItem = document.querySelector(".about h2 b");
     const textComment = addComment.querySelector("textarea.textarea");
     const ratingComments = Array.from(addComment.querySelectorAll("svg"));
     const commentButton = addComment.querySelector(".button");
@@ -11,7 +13,6 @@ if (addComment) {
         const currentIndexStar = ratingComments.indexOf(svg);
         svg.addEventListener("click", () => selectStar(ratingComments, currentIndexStar));
     });
-
 
     commentButton?.addEventListener("click", async (event) => {
         event.preventDefault();
@@ -25,9 +26,10 @@ if (addComment) {
             document.querySelector(".form").reset();
             textComment.textContent = "";
             selectStar(ratingComments, -1);
-            addComment.insertAdjacentHTML("afterend", resultData["data"]["comments"]);
-            document.querySelector(".about h2 b").innerHTML = resultData["data"]["rating"];
+            commentsSection.insertAdjacentHTML("afterbegin", resultData["data"]["comments"]);
+            ratingItem.innerHTML = resultData["data"]["rating"];
             document.querySelector(".comment:first-of-type .button").addEventListener("click", commentAction);
+            commentsSection.querySelector(".notfound")?.remove();
         } else {
             ratingComments[0].parentElement.click();
             showModal("Не удалось добавить комментарий");
@@ -56,14 +58,21 @@ function selectStar(allStars, currentIndexStar) {
 async function commentAction() {
     const parent = document.querySelector(`div:has(.button[data-id='${this.dataset.id}'])`);
     parent.classList.add("hidden");
+    if (commentsSection.children.length < 2) {
+        commentsSection.innerHTML += "<p class='notfound hidden'>У товара нет отзывов</p>";
+    }
     const resultData = await sendToServer({
         "server_type": "delete_comment",
         "id_comment": this.dataset.id
     });
     if (resultData["status"] == "OK") {
         parent.remove();
+        commentsSection.lastElementChild.classList.remove("hidden");
     } else {
         showModal("Не удалось удалить комментарий");
         parent.classList.remove("hidden");
+        if (commentsSection.children.length < 2) {
+            commentsSection.lastElementChild.remove();
+        }
     }
 }

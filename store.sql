@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Апр 14 2026 г., 00:06
+-- Время создания: Май 04 2026 г., 22:15
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -352,7 +352,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (256, 'Товар 256', 18, 'default.png', 763, '2026-01-14', 1, NULL, 0),
 (257, 'Товар 257', 30, 'default.png', 229, '2026-01-14', 2, NULL, 0),
 (258, 'Товар 258', 25, 'default.png', 77, '2026-01-14', 1, NULL, 0),
-(259, 'Товар 259', 27, 'default.png', 625, '2026-01-14', 2, NULL, 0),
+(259, 'Товар 259', 27, 'default.png', 625, '2026-01-14', 2, NULL, 1),
 (260, 'Товар 260', 17, 'default.png', 336, '2026-01-14', 1, NULL, 0),
 (261, 'Товар 261', 17, 'default.png', 102, '2026-01-14', 2, NULL, 0),
 (262, 'Товар 262', 27, 'default.png', 325, '2026-01-14', 1, NULL, 0),
@@ -480,9 +480,8 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (384, '123', 24, 'default.png', 937, '2026-01-14', 1, NULL, 0),
 (385, '123', 22, 'default.png', 483, '2026-01-14', 2, NULL, 0),
 (386, '123', 11, 'default.png', 604, '2026-01-14', 1, NULL, 0),
-(387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 0),
-(388, '123', 13, 'default.png', 100, '2026-01-14', 1, NULL, 0),
-(389, '123', 11, 'default.png', 869, '2026-01-14', 2, NULL, 0);
+(387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 1),
+(388, '123', 13, 'default.png', 100, '2026-01-14', 1, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -532,7 +531,9 @@ CREATE TABLE `orders` (
   `note_orders` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `datetime_start_orders` datetime DEFAULT NULL,
   `datetime_end_orders` datetime DEFAULT NULL,
-  `users_deliver_orders` int DEFAULT NULL
+  `users_deliver_orders` int DEFAULT NULL,
+  `datetime_start_deliver_orders` datetime DEFAULT NULL,
+  `datetime_end_deliver_orders` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -603,7 +604,8 @@ INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, 
 (2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 0),
 (3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 0),
 (4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 1),
-(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 1);
+(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 1),
+(6, 'sdf@sdf.com', '$2y$12$40lyivtAWe4d8XVxc0Od/OMJ60NjsLZaUFq/0JCm./kULZgDCWuAG', 'ваы', '2026-04-21', NULL, 0, 0);
 
 --
 -- Индексы сохранённых таблиц
@@ -695,25 +697,25 @@ ALTER TABLE `attributes`
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=390;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=392;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -725,7 +727,7 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT для таблицы `properties`
@@ -743,7 +745,7 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц

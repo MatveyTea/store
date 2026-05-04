@@ -162,10 +162,14 @@ function makeSelectQuery($query, $params = [], $getOne = false)
     } catch (Throwable $e) {
         return "FAIL";
     }
+
+    $result = [];
     if ($getOne) {
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result === false ? [] : $result;
     } else {
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $result === false ? [] : $result;
     }
 }
 
@@ -293,6 +297,7 @@ function getBasketHTML($basket)
     $historyCost = 0;
 
     $idOrder = null;
+    $nameStatus = null;
     $lastUserItem = end($basket);
     foreach ($basket as $item) {
         if (empty($item["datetime_buy_orders"])) {
@@ -303,6 +308,7 @@ function getBasketHTML($basket)
                 if ($idOrder != null) {
                     $historyHTML .= "</div>
                         <p>Всего: {$historyCost}р</p>
+                        <p>Статус: $nameStatus</p>
                         <a href='deliveryItem.php?id_order=$idOrder' class='button'>Информация о доставке</a>
                         </article>
                     ";
@@ -313,12 +319,14 @@ function getBasketHTML($basket)
                     <div class='items'>
                 ";
                 $idOrder = $item["id_orders"];
+                $nameStatus = $item["name_status"];
             }
             $historyHTML .= getItemHTML($item);
             $historyCost += $item["cost_items"] * $item["count_baskets"];
             if ($item["id_baskets"] == $lastUserItem["id_baskets"]) {
                 $historyHTML .= "</div>
                     <p>Всего: {$historyCost}р</p>
+                    <p>Статус: $item[name_status]</p>
                     <a href='deliveryItem.php?id_order=$item[id_orders]' class='button'>Информация о доставке</a>
                     </article>
                 ";
@@ -380,8 +388,8 @@ function getUsers($where = "", $params = [])
         $usersHTML .= "<div class='user'>
             <p>Имя:<br>$user[name_users]</p>
             <p>Почта:<br>$user[email_users]</p>
-            <p class='user-status'>Статус:<br><span>" . ($isBanned ? "Заблокирован" : "Разблокирован") . "</span></p>
-            <p class='user-role'>$statusDeliver</p>
+            <p class='user-status'>Статус:<br><span>" . ($isBanned == "Разблокировать" ? "Заблокирован" : "Разблокирован") . "</span></p>
+            <p class='user-role'>Роль:<br>$statusDeliver</p>
             <button class='button deliver' data-id='$user[id_users]' data-is-deliver='$user[is_deliver_users]'>$isDeliver</button> 
             <button class='button banned' data-id='$user[id_users]' data-is-banned='$user[is_banned_users]'>$isBanned</button>
             <button class='button delete' data-id='$user[id_users]'>Удалить</button> 
@@ -1159,12 +1167,13 @@ function deleteAvatar()
     $user = getUserInfo();
     if (count($user) < 1 || $user["avatar_users"] == null) setAnswer("FAIL");
 
-    $isSuccess = makeSafeQuery("UPDATE `users` SET `avatar_users` = NULL WHERE `id_users` = ?", [$user["id_users"]]);
-    if (!$isSuccess) setAnswer("FAIL");
-
     $file = __DIR__ . "/" . FOLDER_IMG . "/" . FOLDER_UPLOAD . "/" . FOLDER_AVATARS;
     if (!file_exists($file)) setAnswer("3FAIL");
     // unlink($file);
+
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `avatar_users` = NULL WHERE `id_users` = ?", [$user["id_users"]]);
+    if (!$isSuccess) setAnswer("FAIL");
+
     setAnswer("OK", ["src" => FOLDER_IMG . "/" . FOLDER_MAIN . "/default.png"]);
 }
 
@@ -1204,10 +1213,12 @@ function buyItems($json)
         `id_items`,
         `name_items`,
         `image_items`,
-        `cost_items`
+        `cost_items`,
+        `name_status`
         FROM `baskets`
         JOIN `items` ON `id_items` = `items_id_baskets`
         JOIN `orders` ON `id_orders` = `orders_id_baskets`
+        JOIN `status` ON `id_status` = `status_id_orders`
         WHERE `users_id_orders` = ? AND `status_id_orders` = ? AND `datetime_buy_orders` = ?
     ", [getUserID(), 2, $datetime], false);
 
@@ -1435,7 +1446,7 @@ function acceptOrders($id)
     $validatedData = getValidatedData(["id_orders" => $id], "allOrders.php");
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
-    $isSuccess = makeSafeQuery("UPDATE `orders` SET `status_id_orders` = ?, `users_deliver_orders` = ? WHERE `id_orders` = ?", [3, getUserID(), $id]);
+    $isSuccess = makeSafeQuery("UPDATE `orders` SET `status_id_orders` = ?, `users_deliver_orders` = ?, `datetime_start_deliver_orders` = ? WHERE `id_orders` = ?", [3, getUserID(), date("y-m-d H:i:s"), $id]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
@@ -1445,7 +1456,14 @@ function statusOrders($id)
 
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
-    $isSuccess = makeSafeQuery("UPDATE `orders` SET `status_id_orders` = `status_id_orders` + 1 WHERE `id_orders` = ? AND `status_id_orders` < 5", [$id]);
+    $isSuccess = makeSafeQuery("UPDATE `orders` SET `status_id_orders` = `status_id_orders` + 1,
+        `datetime_end_deliver_orders` =
+        CASE
+            WHEN `status_id_orders` = 5 THEN ?
+            ELSE NULL
+        END
+        WHERE `id_orders` = ? AND `status_id_orders` < 5
+    ", [date("y-m-d H:i:s"), $id]);
     if (!$isSuccess) setAnswer("FAIL");
 
     $status = makeSelectQuery("SELECT `name_status`

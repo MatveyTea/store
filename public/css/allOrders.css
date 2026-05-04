@@ -1,0 +1,51 @@
+.orders {
+    background-color: var(--parent-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.orders * {
+    color: white;
+}
+
+.orders .basket {
+    background-color: var(--child-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.orders .basket .button {
+    margin: 0 auto;
+    width: 33%;
+}
+
+.orders .basket .items {
+    background-color: unset;
+    padding: 0;
+}
+
+.orders .basket .items .item {
+    background-color: var(--element-color);
+}
+
+@media (min-width: 769px) and (max-width: 1440px) {
+
+}
+
+@media (min-width: 401px) and (max-width: 768px) {
+    .orders .basket .button {
+        width: calc(50% - 20px);
+    }
+}
+
+@media (min-width: 1px) and (max-width: 400px) {
+    .orders .basket .button {
+        width: 100%;
+    }
+}

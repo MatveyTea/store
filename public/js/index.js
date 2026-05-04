@@ -54,9 +54,22 @@ async function getSearchItems() {
     }
 
     maxScroll = document.body.scrollHeight - window.innerHeight * 2;
-    setTimeout(() => {
-        isCanGet = true;
-    }, 500);
+    setTimeout(() => isCanGet = true, 100);
+}
+
+function uploadItems() {
+    const itemsSectionRect = itemsSection.getBoundingClientRect();
+    const itemRect = items[0].getBoundingClientRect();
+    const distance = footer.getBoundingClientRect().top - itemsSectionRect.bottom;
+    const countRow = distance / itemRect.height;
+    const countInRow = parseInt(itemsSectionRect.width / itemRect.width);
+    const countTotalItems = countRow * countInRow;
+    const countRequest = Math.ceil(countTotalItems / countGetMaxItems);
+    for (let i = 1; i < countRequest; i++) {
+        isCanGet = false;
+        getSearchItems();
+    }
+    maxScroll = document.body.scrollHeight - window.innerHeight * 2;
 }
 
 const itemsSection = document.querySelector(".items");
@@ -65,17 +78,26 @@ const isAuth = items[0]?.querySelector(".item-basket");
 
 const countGetMaxItems = 50;
 let isCanGet = true;
-let maxScroll = document.body.scrollHeight - window.innerHeight * 2;
+let maxScroll = 0;
 let offset = items.length ?? 0;
 let isResetSearch = false;
 
 const form = document.querySelector(".form");
 const formInputs = Array.from(form.querySelectorAll(".input[data-name]"));
 const searchButton = form.querySelector(".button");
+const footer = document.querySelector("footer");
 
 if (isAuth) {
     items.forEach((item) => clickableItem(item));
 }
+
+window.addEventListener("DOMContentLoaded", uploadItems);
+
+let timerId = null;
+window.addEventListener("resize", () => {
+    clearTimeout(timerId);
+    timerId = setTimeout(uploadItems, 200);
+});
 
 window.addEventListener("scroll", async () => {
     if (isCanGet && scrollY >= maxScroll) {

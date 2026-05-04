@@ -3,7 +3,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 20px;
-    background-color: var(--button-color);
+    background-color: var(--parent-bg-color);
     padding: 20px;
     border-radius: 20px;
 }
@@ -21,7 +21,7 @@
     flex-direction: column;
     gap: 20px;
     color: white;
-    background-color: var(--button-color-hover);
+    background-color: var(--child-bg-color);
     border-radius: 20px;
     padding: 20px;
 }

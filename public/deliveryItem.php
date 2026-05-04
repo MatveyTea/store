@@ -43,10 +43,7 @@ if ($allStatus == "FAIL") {
 $currentStatusItemInBasket = $itemsInBasket[0]["id_status"];
 foreach ($allStatus as $index => $status) {
     $activeClass = $status["id_status"] <= $currentStatusItemInBasket ? "completed" : "";
-    $allStatusHTML .= "<p class='$activeClass'>$status[name_status]</p>";
-    if ($index != count($allStatus) - 1) {
-        $allStatusHTML .= "<img src='img/main/statusArrow.png'>";
-    }
+    $allStatusHTML .= "<p class='$activeClass'>" . $index + 1 . ". $status[name_status]</p>";
 }
 
 if ($currentStatusItemInBasket == 5) {

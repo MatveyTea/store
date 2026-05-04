@@ -1,0 +1,65 @@
+.current-orders *,
+.history-orders * {
+    color: white;
+}
+
+.current-orders {
+    border-radius: 20px;
+    padding: 20px;
+    background-color: var(--parent-bg-color);
+}
+
+.current-orders .action {
+    width: calc(25% - 10px);
+}
+
+.current-orders .name-status {
+    display: flex;
+}
+
+.history-orders {
+    border-radius: 20px;
+    padding: 20px;
+    background-color: var(--parent-bg-color);
+    margin-top: 50px;
+}
+
+.items {
+    background-color: transparent;
+    justify-content: start;
+    padding: 0;
+}
+
+.items .item {
+    background-color: var(--element-color);
+    padding: 20px;
+}
+
+.basket {
+    display: grid;
+    grid-template-columns: 4fr;
+    gap: 20px;
+    margin: 20px 0;
+    color: white;
+    border-radius: 20px;
+    background-color: var(--child-bg-color);
+    padding: 20px;
+}
+
+@media (min-width: 769px) and (max-width: 1440px) {
+    .current-orders .action {
+        width: calc(33% - 10px);
+    }
+}
+
+@media (min-width: 401px) and (max-width: 768px) {
+    .current-orders .action {
+        width: calc(50% - 10px);
+    }
+}
+
+@media (min-width: 1px) and (max-width: 400px) {
+    .current-orders .action {
+        width: 100%;
+    }
+}

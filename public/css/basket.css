@@ -1,7 +1,7 @@
 .current-basket {
     border-radius: 20px;
     padding: 20px;
-    background-color: var(--button-color-hover);
+    background-color: var(--parent-bg-color);
 }
 
 .current-basket .buy {
@@ -17,7 +17,7 @@
 .history-basket {
     border-radius: 20px;
     padding: 20px;
-    background-color: var(--button-color-hover);
+    background-color: var(--parent-bg-color);
     margin-top: 50px;
 
 }
@@ -34,7 +34,8 @@
 }
 
 .items .item {
-    background-color: var(--button-color-hover);
+    background-color: var(--element-color);
+    padding: 20px;
 }
 
 .basket {
@@ -44,8 +45,13 @@
     margin: 20px 0;
     color: white;
     border-radius: 20px;
-    background-color: var(--button-color);
+    background-color: var(--child-bg-color);
     padding: 20px;
+}
+
+.current-basket .basket {
+    background-color: unset;
+    padding: 0;
 }
 
 .make-order {
@@ -74,11 +80,19 @@
 
 .form {
     margin: 0;
-    background-color: var(--button-color-hover);
+    background-color: var(--parent-bg-color);
     padding: 20px;
     border-radius: 20px;
 }
 
+.form .field:has(.cancel-basket) {
+    width: 100%;
+    justify-content: end;
+}
+
+.cancel-basket {
+    width: 15%;
+}
 
 html:has(.make-order:not(.hidden)) {
     overflow: hidden;

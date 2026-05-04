@@ -57,8 +57,9 @@ include_once __DIR__ . "/header.php";
 ?>
 
 <main class="content">
-    <section>
-        <?= $basketsHTML ?>
+    <section class="orders">
+        
+        <?= $basketsHTML === "" ? "<h1>Нет заказов</h1>" : "<h1>Все доступные заказы</h1>$basketsHTML" ?>
     </section>
 </main>
 
