@@ -6,6 +6,57 @@ if (!isUserAuth()) {
     redirect("auth.php");
 }
 
+$delivers = makeSelectQuery("SELECT COUNT(*) as `count` FROM `users` WHERE `roles_id_users` = ?", [3], true);
+if ($delivers == "FAIL") {
+    redirect();
+}
+
+$currentTime = new DateTime()->modify("+1 hour");
+$currentHour = $currentTime->format("H");
+$busyTimes = makeSelectQuery("SELECT
+    CONCAT(
+        YEAR(`datetime_start_orders`),
+        '-',
+        LPAD(MONTH(`datetime_start_orders`), 2, '0'),
+        '-',
+        LPAD(DAY(`datetime_start_orders`), 2, '0'),
+        ' ',
+        LPAD(HOUR(`datetime_start_orders`), 2, '0')
+    ) AS `datetime_start_orders`
+    FROM `orders`
+    WHERE `status_id_orders` > ? AND `status_id_orders` < ? AND `datetime_start_orders` >= ?
+    GROUP BY `datetime_start_orders`, `datetime_end_orders`
+    HAVING COUNT(*) = ?
+", [1, 5, $currentTime->format("Y-m-d H:i:s"), $delivers["count"]], false);
+
+if ($busyTimes == "FAIL") {
+    redirect();
+}
+
+$arrayBusyTimes = array_column($busyTimes, "datetime_start_orders");
+$timesOrders = [];
+
+$endTime = (clone $currentTime)->modify("+1 day")->setTime(0, 0);
+while ($currentTime < $endTime) {
+    if (!in_array($currentTime->format("Y-m-d H"), $arrayBusyTimes)) {
+        $timesOrders[] = "Сегодня, " . $currentTime->format("H") . ":00 - " . $currentTime->format("H") + 1 . ":00";
+    }
+    $currentTime->modify("+1 hour");
+}
+
+$endTime->setTime($currentHour, 0);
+while ($currentTime < $endTime) {
+    if (!in_array($currentTime->format("Y-m-d H"), $arrayBusyTimes)) {
+        $timesOrders[] = "Завтра, " . $currentTime->format("H") . ":00 - " . $currentTime->format("H") + 1 . ":00";
+    }
+    $currentTime->modify("+1 hour");
+}
+
+$timesOrdersHTML = "";
+foreach ($timesOrders as $time) {
+    $timesOrdersHTML .= "<option>$time</option>";
+}
+
 $basket = makeSelectQuery("SELECT
     `id_orders`,
     `id_baskets`,
@@ -31,43 +82,11 @@ if ($basket === "FAIL") {
 $basketsHTML = getBasketHTML($basket);
 extract($basketsHTML);
 
-// $freeDeliver = makeSelectQuery("SELECT
-//     `datetime_start_orders`,
-//     `datetime_end_orders`
-//     FROM `orders`
-//     WHERE `datetime_start_orders` IS NOT NULL AND `status_id_orders` != 5 AND 
-// ", [], false);
-// print_r($freeDeliver);
-
-// if ($freeDeliver == "FAIL") {
-//     // redirect();
-// }
-
-// $timeOrders = []; // 10:00 - 11:00
-// $startHour = date("H") + 1;
-// for ($i = $startHour; $i < 24; $i++) {
-//     "SELECT
-//     `datetime_start_orders`,
-//     `datetime_end_orders`
-//     FROM `orders`
-//     WHERE `datetime_start_orders` >= $i AND `status_id_orders` != 5 AND 
-// ";
-//     // if (true) {
-//     //     $timeOrders[] = "$i:00 - " . $i + 1 . ":00";
-//     // }
-// }
-
-// print_r($timeOrders);
-
-
-$timeOrdersHTML = "";
-foreach (["10:00 - 11:00", "11:00 - 12:00"] as $time) {
-    $timeOrdersHTML .= "<option>$time</option>";
-}
-
 if (!empty($currentHTML)) {
     $currentHTML = "<h2>Товары в корзине</h2>
-        <article class='basket'><div class='items'>$currentHTML</div></article>
+        <article class='basket'>
+            <div class='items'>$currentHTML</div>
+        </article>
         <button class='button buy'>Оформить заказ на <b>{$currentCost}р</b></button>
 
         <article class='make-order hidden'>
@@ -92,7 +111,7 @@ if (!empty($currentHTML)) {
                     <label class='label'></label>
                     <select class='input' data-name='datetime_plan_orders' data-is-insert-server='1'>
                         <option selected disabled value=''>Выбрать</option>
-                        $timeOrdersHTML
+                        $timesOrdersHTML
                     </select>
                     <p class='error'></p>
                 </div>

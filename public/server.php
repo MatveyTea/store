@@ -15,6 +15,8 @@ if (!empty(file_get_contents("php://input"))) {
         deleteAvatar();
     } else if ($isAuth && $serverType == "buy_items" && !empty($json["server_type"]) && !empty($json["address_orders"]) && isset($json["note_orders"]) && !empty($json["datetime_plan_orders"])) { // basket.js - Покупка товаров в корзине
         buyItems($json);
+    } else if($isAuth && $serverType == "change_favorites" && !emptY($json["id_items"])) { // function.js - Добавление в избраное
+        changeFavorites($json["id_items"]);
     } else if ($isAdmin && $serverType == "delete_items" && !empty($json["id_item"])) { // adminEditItem.js - Удаление товара
         deleteItem($json["id_item"]);
     } else if ($serverType == "search_items" && isset($json["offset_search_items"])) { // index.js - Поиск товаров

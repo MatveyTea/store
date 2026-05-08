@@ -95,12 +95,13 @@ if (isUserAuth()) {
         LEFT JOIN `orders` ON `id_orders` = `orders_id_baskets`
         WHERE `items_id_baskets` = ? AND `users_id_orders` = ? AND `status_id_orders` = ?
     ", [$_GET["id_item"], getUserID(), 1], true);
-    if ($itemBasket === "FAIL") {
-        redirect();
-    } else {
-        $userItems = count($itemBasket) == 0 ? [] : [$itemBasket];
-        $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>" . getBuyBasketHTML($userItems, $item) . "</span>";
-    }
+    if ($itemBasket === "FAIL") redirect();
+
+    $favoritesItems = makeSelectQuery("SELECT `items_id_favorites` FROM `favorites` WHERE `users_id_favorites` = ?", [getUserID()], false);
+    if ($favoritesItems == "FAIL") redirect();
+    
+    $userItems = count($itemBasket) == 0 ? [] : [$itemBasket];
+    $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>" . getBuyBasketHTML($userItems, $item, $favoritesItems) . "</span>";
 }
 
 $editItemHTML = "";

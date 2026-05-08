@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Май 04 2026 г., 22:15
+-- Время создания: Май 08 2026 г., 23:08
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -69,6 +69,18 @@ CREATE TABLE `comments` (
   `rating_comments` int NOT NULL,
   `date_add_comments` datetime NOT NULL,
   `items_id_comments` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `favorites`
+--
+
+CREATE TABLE `favorites` (
+  `id_favorites` int NOT NULL,
+  `items_id_favorites` int NOT NULL,
+  `users_id_favorites` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -352,7 +364,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (256, 'Товар 256', 18, 'default.png', 763, '2026-01-14', 1, NULL, 0),
 (257, 'Товар 257', 30, 'default.png', 229, '2026-01-14', 2, NULL, 0),
 (258, 'Товар 258', 25, 'default.png', 77, '2026-01-14', 1, NULL, 0),
-(259, 'Товар 259', 27, 'default.png', 625, '2026-01-14', 2, NULL, 1),
+(259, 'Товар 259', 27, 'default.png', 625, '2026-01-14', 2, NULL, 0),
 (260, 'Товар 260', 17, 'default.png', 336, '2026-01-14', 1, NULL, 0),
 (261, 'Товар 261', 17, 'default.png', 102, '2026-01-14', 2, NULL, 0),
 (262, 'Товар 262', 27, 'default.png', 325, '2026-01-14', 1, NULL, 0),
@@ -480,7 +492,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (384, '123', 24, 'default.png', 937, '2026-01-14', 1, NULL, 0),
 (385, '123', 22, 'default.png', 483, '2026-01-14', 2, NULL, 0),
 (386, '123', 11, 'default.png', 604, '2026-01-14', 1, NULL, 0),
-(387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 1),
+(387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 0),
 (388, '123', 13, 'default.png', 100, '2026-01-14', 1, NULL, 0);
 
 -- --------------------------------------------------------
@@ -558,6 +570,26 @@ INSERT INTO `properties` (`id_properties`, `name_properties`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `roles`
+--
+
+CREATE TABLE `roles` (
+  `id_roles` int NOT NULL,
+  `name_roles` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Дамп данных таблицы `roles`
+--
+
+INSERT INTO `roles` (`id_roles`, `name_roles`) VALUES
+(1, 'Администратор'),
+(2, 'Пользователь'),
+(3, 'Доставщик');
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `status`
 --
 
@@ -592,20 +624,19 @@ CREATE TABLE `users` (
   `date_create_users` date DEFAULT NULL,
   `avatar_users` varchar(100) DEFAULT NULL,
   `is_banned_users` tinyint(1) NOT NULL DEFAULT '0',
-  `is_deliver_users` tinyint(1) NOT NULL DEFAULT '0'
+  `roles_id_users` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`, `is_banned_users`, `is_deliver_users`) VALUES
+INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`, `is_banned_users`, `roles_id_users`) VALUES
 (1, 'admin@admin.com', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'Админ', '2025-11-30', NULL, 0, 1),
-(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 0),
-(3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 0),
-(4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 1),
-(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 1),
-(6, 'sdf@sdf.com', '$2y$12$40lyivtAWe4d8XVxc0Od/OMJ60NjsLZaUFq/0JCm./kULZgDCWuAG', 'ваы', '2026-04-21', NULL, 0, 0);
+(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 2),
+(3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 2),
+(4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 3),
+(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 3);
 
 --
 -- Индексы сохранённых таблиц
@@ -633,6 +664,14 @@ ALTER TABLE `comments`
   ADD PRIMARY KEY (`id_comments`),
   ADD KEY `id_users_comments` (`users_id_comments`),
   ADD KEY `items_id_comments` (`items_id_comments`);
+
+--
+-- Индексы таблицы `favorites`
+--
+ALTER TABLE `favorites`
+  ADD PRIMARY KEY (`id_favorites`),
+  ADD KEY `items_id_favorites` (`items_id_favorites`),
+  ADD KEY `users_id_favorites` (`users_id_favorites`);
 
 --
 -- Индексы таблицы `items`
@@ -671,6 +710,12 @@ ALTER TABLE `properties`
   ADD PRIMARY KEY (`id_properties`);
 
 --
+-- Индексы таблицы `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id_roles`);
+
+--
 -- Индексы таблицы `status`
 --
 ALTER TABLE `status`
@@ -681,7 +726,8 @@ ALTER TABLE `status`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id_users`),
-  ADD UNIQUE KEY `login_users` (`email_users`);
+  ADD UNIQUE KEY `login_users` (`email_users`),
+  ADD KEY `roles_id_users` (`roles_id_users`);
 
 --
 -- AUTO_INCREMENT для сохранённых таблиц
@@ -697,25 +743,31 @@ ALTER TABLE `attributes`
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
+-- AUTO_INCREMENT для таблицы `favorites`
+--
+ALTER TABLE `favorites`
+  MODIFY `id_favorites` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=392;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=389;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -727,13 +779,19 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `properties`
 --
 ALTER TABLE `properties`
   MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT для таблицы `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id_roles` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -745,7 +803,7 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -772,6 +830,13 @@ ALTER TABLE `comments`
   ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`items_id_comments`) REFERENCES `items` (`id_items`) ON DELETE CASCADE ON UPDATE RESTRICT;
 
 --
+-- Ограничения внешнего ключа таблицы `favorites`
+--
+ALTER TABLE `favorites`
+  ADD CONSTRAINT `favorites_ibfk_1` FOREIGN KEY (`items_id_favorites`) REFERENCES `items` (`id_items`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `favorites_ibfk_2` FOREIGN KEY (`users_id_favorites`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
 -- Ограничения внешнего ключа таблицы `items`
 --
 ALTER TABLE `items`
@@ -791,6 +856,12 @@ ALTER TABLE `orders`
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`status_id_orders`) REFERENCES `status` (`id_status`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`users_id_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`users_deliver_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Ограничения внешнего ключа таблицы `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`roles_id_users`) REFERENCES `roles` (`id_roles`) ON DELETE CASCADE ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

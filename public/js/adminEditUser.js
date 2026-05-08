@@ -59,14 +59,14 @@ async function deliverAction() {
         "id_users": this.dataset.id
     });
     if (resultData["status"] == "OK") {
-        if (this.dataset.deliver == 0) {
-            this.parentElement.querySelector(".user-role").textContent = "Доставщик";
+        if (this.dataset.deliver == 3) {
+            this.parentElement.querySelector(".user-role span").textContent = "Доставщик";
             this.textContent = "Убрать из доставщика";
-            this.dataset.deliver = 1;
+            this.dataset.deliver = 2;
         } else {
-            this.parentElement.querySelector(".user-role").textContent = "Пользователь";
+            this.parentElement.querySelector(".user-role span").textContent = "Пользователь";
             this.textContent = "Сделать доставщиком";
-            this.dataset.deliver = 0;
+            this.dataset.deliver = 3;
         }
     } else {
         showModal("Не удалось");

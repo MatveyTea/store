@@ -134,8 +134,8 @@ function isAdmin()
 
 function isDeliver()
 {
-    $isSuccess = makeSelectQuery("SELECT `is_deliver_users` FROM `users` WHERE `id_users` = ?", [getUserID()], true);
-    return $isSuccess == "FAIL" ? false : $isSuccess["is_deliver_users"] == 1;
+    $isSuccess = makeSelectQuery("SELECT `roles_id_users` FROM `users` WHERE `id_users` = ?", [getUserID()], true);
+    return $isSuccess == "FAIL" ? false : $isSuccess["roles_id_users"] == 3;
 }
 
 function getUserInfo()
@@ -160,6 +160,8 @@ function makeSelectQuery($query, $params = [], $getOne = false)
     try {
         $stmt->execute($params);
     } catch (Throwable $e) {
+        echo "<pre>";
+        print_r($e);
         return "FAIL";
     }
 
@@ -189,6 +191,7 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
     $result = "";
     $items = [];
     $userItems = [];
+    $favoritesItems = [];
 
     $orderBy = $isPopularItems ? "`views_items` DESC," : "";
     $items = makeSelectQuery(
@@ -218,18 +221,21 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
             ", [getUserID(), 1], false
         );
         if ($userItems == "FAIL") return $result;
+
+        $favoritesItems = makeSelectQuery("SELECT `items_id_favorites` FROM `favorites` WHERE `users_id_favorites` = ?", [getUserID()], false);
+        if ($userItems == "FAIL") return $result;
     }
 
-    $result = getItemsHTML($items, $userItems);
+    $result = getItemsHTML($items, $userItems, $favoritesItems);
 
     return $result;
 }
 
-function getItemsHTML($items, $userItems)
+function getItemsHTML($items, $userItems, $favoritesItems = [])
 {
     $result = "";
     foreach ($items as $item) {
-        $basket = getBuyBasketHTML($userItems, $item);
+        $basket = getBuyBasketHTML($userItems, $item, $favoritesItems);
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
                 <a href ='aboutItem.php?id_item=$item[id_items]' class='item-link' >
                     <p>№ $item[id_items]</p>
@@ -258,7 +264,7 @@ function getItemHTML($item)
     return $result;
 }
 
-function getBuyBasketHTML($userItems = [], $item = [])
+function getBuyBasketHTML($userItems = [], $item = [], $favoritesItems = [])
 {
     if (!isUserAuth()) return;
 
@@ -266,14 +272,23 @@ function getBuyBasketHTML($userItems = [], $item = [])
     $countBasket = "0";
     $classBasket = "invisible";
     $type = "add";
+    $textFavorites = "Добавить в избранное";
+    $classFavorites = "";
 
-    if (count($userItems) > 0 && count($item) > 0) {
+    if (count($userItems) > 0 && count($item) > 0  && count($favoritesItems) > 0) {
         foreach ($userItems as $userItem) {
             if ($userItem["items_id_baskets"] == $item["id_items"]) {
                 $textBasket = "Убрать из корзины";
                 $countBasket = "$userItem[count_baskets]";
                 $classBasket = "";
                 $type = "remove";
+                break;
+            }
+        }
+        foreach ($favoritesItems as $favoriteItem) {
+            if ($favoriteItem["items_id_favorites"] == $item["id_items"]) {
+                $textFavorites = "Убрать из избранного";
+                $classFavorites = "favorite";
                 break;
             }
         }
@@ -285,7 +300,8 @@ function getBuyBasketHTML($userItems = [], $item = [])
             <p>В корзине: <b class='item-counter-text'>$countBasket</b></p>
             <button class='item-counter-plus button'>+</button>
         </span>
-        <button class='item-basket button green' data-type='$type'>$textBasket</button>
+        <button class='item-basket button' data-type='$type'>$textBasket</button>
+        <button class='item-favorites button $classFavorites'>$textFavorites</button>
     ";
 }
 
@@ -374,7 +390,18 @@ function searchUsers($json)
 }
 function getUsers($where = "", $params = [])
 {
-    $users = makeSelectQuery("SELECT * FROM `users` $where ORDER BY `is_banned_users` DESC", $params, false);
+    $users = makeSelectQuery("SELECT
+        `is_banned_users`,
+        `roles_id_users`,
+        `name_users`,
+        `email_users`,
+        `id_users`,
+        `name_roles`
+        FROM `users`
+        JOIN `roles` ON `id_roles` = `roles_id_users`
+        $where
+        ORDER BY `id_users` DESC
+    ", $params, false);
     $usersHTML = "";
 
     if ($users == "FAIL") {
@@ -383,14 +410,13 @@ function getUsers($where = "", $params = [])
 
     foreach ($users as $user) {
         $isBanned = $user["is_banned_users"] === 1 ? "Разблокировать" : "Заблокировать";
-        $isDeliver = $user["is_deliver_users"] === 1 ? "Убрать из доставщика" : "Сделать доставщиком" ;
-        $statusDeliver = $user["is_deliver_users"] === 1 ? "Доставщик" : "Пользователь";
+        $isDeliver = $user["roles_id_users"] === 3 ? "Убрать из доставщика" : "Сделать доставщиком" ;
         $usersHTML .= "<div class='user'>
             <p>Имя:<br>$user[name_users]</p>
             <p>Почта:<br>$user[email_users]</p>
             <p class='user-status'>Статус:<br><span>" . ($isBanned == "Разблокировать" ? "Заблокирован" : "Разблокирован") . "</span></p>
-            <p class='user-role'>Роль:<br>$statusDeliver</p>
-            <button class='button deliver' data-id='$user[id_users]' data-is-deliver='$user[is_deliver_users]'>$isDeliver</button> 
+            <p class='user-role'>Роль:<br><span>$user[name_roles]</span></p>
+            <button class='button deliver' data-id='$user[id_users]' data-id-status='$user[roles_id_users]'>$isDeliver</button> 
             <button class='button banned' data-id='$user[id_users]' data-is-banned='$user[is_banned_users]'>$isBanned</button>
             <button class='button delete' data-id='$user[id_users]'>Удалить</button> 
         </div>";
@@ -1227,6 +1253,24 @@ function buyItems($json)
     setAnswer("OK", getBasketHTML($basketInfo));
 }
 
+function changeFavorites($idItem)
+{
+    $validatedData = getValidatedData(["id_items" => $idItem], "index.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSelectQuery("SELECT `id_favorites` FROM `favorites` WHERE `users_id_favorites` = ? AND `items_id_favorites` = ?", [getUserID(), $idItem], false);
+    if ($isSuccess == "FAIL") setAnswer("FAIL");
+
+    if (count($isSuccess) == 0) {
+        $isSuccess = makeSafeQuery("INSERT INTO `favorites` (`users_id_favorites`, `items_id_favorites`) VALUES (?, ?)", [getUserID(), $idItem]);
+    } else {
+        $isSuccess = makeSafeQuery("DELETE FROM `favorites` WHERE `users_id_favorites` = ? AND `items_id_favorites` = ?", [getUserID(), $idItem]);
+    }
+
+    setAnswer($isSuccess ? "OK" : "FA6IL");
+}
+
 function deleteItem($idItem)
 {
     $validatedData = getValidatedData(["id_items" => $idItem,  "name_items" => 1, "count_items" => 1, "cost_items" => 1, "items_type_id_items" => 1], "adminEditItem.php");
@@ -1437,7 +1481,7 @@ function deliverUsers($id)
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
 
-    $isSuccess = makeSafeQuery("UPDATE `users` SET `is_deliver_users` = CASE WHEN `is_deliver_users` = 0 THEN 1 ELSE 0 END WHERE `id_users` = ?", [$id]);
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `roles_id_users` = CASE WHEN `roles_id_users` = 3 THEN 2 ELSE 3 END WHERE `id_users` = ? AND `roles_id_users` != ?", [$id, 1]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 

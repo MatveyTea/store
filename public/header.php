@@ -14,6 +14,7 @@ if (isUserAuth()) {
     }
     $img = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, getUserInfo()["avatar_users"]);
     $partHeader .= "<a href='basket.php'>Корзина</a>
+        <a href='favorites.php'>Избранные</a>
         <a href='profile.php'><img class='avatar' src=$img></a>
     ";
     $partHeaderMobile = $partHeader;

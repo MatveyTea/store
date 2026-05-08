@@ -149,7 +149,7 @@ function setBasicSettingInput(inputs, form) {
         }
 
         rule.inputs.push(input);
-        if (!input.hasAttribute("is-insert-server")) {
+        if (!input.hasAttribute("data-is-insert-server")) {
             input.dataset.isInsertServer = 1;
         }
         rule.isInsertServer[input.id] = input.dataset.isInsertServer;
@@ -193,7 +193,7 @@ function setBasicSettingInput(inputs, form) {
             input.setAttribute("placeholder", `Введите ${rule.nameInput}`);
         }
 
-        if (input.tagName != "SPAN" && (input.value != "" || input?.selectedIndex)) {
+        if (input.tagName != "SPAN" && (input.value != "" || input?.selectedIndex || input.isInsertServer == 0)) {
             checkInput(input, rule);
         }
 
@@ -1424,11 +1424,13 @@ function clickableItem(item) {
     const minusButton = counterContainer.querySelector(".item-counter-minus");
     const counterText = counterContainer.querySelector(".item-counter-text");
     const plusButton = counterContainer.querySelector(".item-counter-plus");
+    const favoritesButton = item.querySelector(".item-favorites");
 
     basketButton.addEventListener("click", async () => {
         changeButtonBasket(basketButton.dataset.type == "add", counterContainer, counterText, basketButton);
         await sendItem(item, counterContainer, counterText, basketButton);
     });
+    favoritesButton.addEventListener("click", async () => changeFavorites(favoritesButton, item));
 
     minusButton.addEventListener("click", async () => {
         if (parseInt(counterText.textContent) <= 1) {
@@ -1459,6 +1461,29 @@ function changeButtonBasket(status, counterContainer, counterText, basketButton)
         counterContainer.classList.add("invisible");
         basketButton.textContent = "Добавить в корзину";
         basketButton.dataset.type = "add";
+    }
+}
+
+async function changeFavorites(favoritesButton, item) {
+    if (!favoritesButton.classList.contains("favorite")) {
+        favoritesButton.textContent = "Убрать из избранного";
+        favoritesButton.classList.add("favorite");
+    } else {
+        favoritesButton.textContent = "Добавить в избранное";
+        favoritesButton.classList.remove("favorite");
+    }
+    const dataResult = await sendToServer({
+        "server_type": "change_favorites",
+        "id_items": item.dataset.id
+    });
+    if (dataResult["status"] != "OK") {
+        if (!favoritesButton.classList.contains("favorite")) {
+            favoritesButton.textContent = "Убрать из избранного";
+            favoritesButton.classList.add("favorite");
+        } else {
+            favoritesButton.textContent = "Добавить в избранное";
+            favoritesButton.classList.remove("favorite");
+        }
     }
 }
 

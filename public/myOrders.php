@@ -26,7 +26,7 @@ $baskets = makeSelectQuery("SELECT
     JOIN `items` ON `id_items` = `items_id_baskets`
     JOIN `orders` ON `id_orders` = `orders_id_baskets`
     JOIN `status` ON `status`.`id_status` = `status_id_orders`
-    WHERE `status_id_orders` > ? AND `users_id_orders` = ?
+    WHERE `status_id_orders` > ? AND `users_deliver_orders` = ?
     ORDER BY `datetime_start_deliver_orders` DESC
 ", [2, getUserID()], false);
 if ($baskets == "FAIL") {
@@ -47,6 +47,7 @@ foreach ($baskets as $index => $basket) {
             ";
             $datetimeBuy = $basket["datetime_buy_orders"];
         }
+
         $basketsCurrentHTML .= getItemHTML($basket);
         if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_orders"] != $datetimeBuy) {
             $basketsCurrentHTML .= "
