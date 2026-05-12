@@ -1,5 +1,4 @@
 <?php
-include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
 if (!isAdmin() || empty($_GET["table"])) {
@@ -155,7 +154,7 @@ foreach ($table as $row) {
         foreach ($attributesProperties as $attribute) {
             if ($attribute["properties_id_attributes"] == $row["id_properties"]) {
                 $formEditHTML .= "
-                    <div class='field additional'>
+                    <div class='field property'>
                         <div class='field hidden'>
                             <label class='label'></label>
                             <input class='input' data-name='id_attributes' data-is-insert-server='1' value='$attribute[id_attributes]'>
@@ -203,7 +202,7 @@ include_once __DIR__ . "/header.php";
 </main>
 
 <template id="add-one-template">
-    <div class="field additional">
+    <div class="field property">
         <div class="field hidden">
             <label class="label"></label>
             <input class="input" data-name="id_attributes" data-is-insert-server="1">

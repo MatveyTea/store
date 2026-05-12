@@ -5,10 +5,10 @@ if ($randomItem == "FAIL") {
     $randomItem["id_items"] = 1;
 }
 
-$popularItem = makeSelectQuery("SELECT `id_items` FROM `items` ORDER BY `views_items` DESC LIMIT 1", [], true);
-if ($popularItem == "FAIL") {
-    $popularItem = [];
-    $popularItem["id_items"] = 1;
+$randomCategory = makeSelectQuery("SELECT `id_items_type` FROM `items_type` ORDER BY RAND() LIMIT 1", [], true);
+if ($randomCategory == "FAIL") {
+    $randomCategory = [];
+    $randomCategory["id_items_type"] = 1;
 }
 ?>
 
@@ -18,7 +18,7 @@ if ($popularItem == "FAIL") {
         <div class="footer-items">
             <a href="aboutItem.php?id_item=<?= $randomItem["id_items"] ?>" class="footer-item button">Случайный товар</a>
             <a href="/" class="footer-item"><img src="img/main/logo.png"></a>
-            <a href="aboutItem.php?id_item=<?= $popularItem["id_items"] ?>" class="footer-item button">Популярный товар</a>
+            <a href="index.php?items_type_id_items=<?= $randomCategory["id_items_type"] ?>" class="footer-item button">Случайная категория</a>
         </div>
         <p class="footer-copyright">© 2026 Интернет-магазин. <br>Все права защищены.</p>
     </div>

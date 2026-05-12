@@ -102,7 +102,7 @@ function checkInput(input, rule) {
     }
 
     if (rule.placeMsg[input.id]) {
-        if (textMessage == "") {
+        if (textMessage == "") {//
             rule.timerId = setTimeout(() => {
                 clearTimeout(rule.timerId);
                 rule.placeMsg[input.id].textContent = textMessage;
@@ -990,7 +990,7 @@ function getValidationRules() {
         },
         "attributes_select_value": {
             "wayDefineValue": function(input) {
-                return input.selectedIndex;
+                return input.checked ? input.value : null;
             },
             "currentValue": null,
             "hasName": false,

@@ -1,7 +1,4 @@
 <?php
-include_once __DIR__ . "/config/config.php";
-include_once __DIR__ . "/function.php";
-
 $partHeader = "";
 $partHeaderMobile = "";
 
@@ -12,10 +9,11 @@ if (isUserAuth()) {
     if (isDeliver()) {
         $partHeader .= "<a href='allOrders.php'>Все заказы</a><a href='myOrders.php'>Мои заказы</a>";
     }
-    $img = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, getUserInfo()["avatar_users"]);
+    $userInfo = getUserInfo();
+    $img = empty($userInfo) ? "" : $userInfo["avatar_users"];
     $partHeader .= "<a href='basket.php'>Корзина</a>
         <a href='favorites.php'>Избранные</a>
-        <a href='profile.php'><img class='avatar' src=$img></a>
+        <a href='profile.php'><img class='avatar' src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, $img) . "'></a>
     ";
     $partHeaderMobile = $partHeader;
 } else {

@@ -1,5 +1,4 @@
 <?php
-include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
 if (!isUserAuth() || empty($_GET["id_order"])) {

@@ -37,9 +37,13 @@ if (addComment) {
     });
 }
 
-document.querySelectorAll(".items .item, .about .basket").forEach((item) => clickableItem(item));
+const items = document.querySelectorAll(".items .item:has(.item-basket), .about .basket");
+if (items != null) {
+    items.forEach((item) => clickableItem(item));
+}
 
-document.querySelectorAll("div .button[data-id]").forEach((button) => button.addEventListener("click", commentAction));
+
+document.querySelectorAll("div .button[data-id]")?.forEach((button) => button.addEventListener("click", commentAction));
 
 const idItem = window.location.search.split("?id_item=")[1];
 addEventListener("DOMContentLoaded", async () => {

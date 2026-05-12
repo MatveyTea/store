@@ -58,6 +58,7 @@ async function getSearchItems() {
 }
 
 function uploadItems() {
+    if (items[0] == null) return;
     const itemsSectionRect = itemsSection.getBoundingClientRect();
     const itemRect = items[0].getBoundingClientRect();
     const distance = footer.getBoundingClientRect().top - itemsSectionRect.bottom;
@@ -86,6 +87,17 @@ const form = document.querySelector(".form");
 const formInputs = Array.from(form.querySelectorAll(".input[data-name]"));
 const searchButton = form.querySelector(".button");
 const footer = document.querySelector("footer");
+
+const url = new URL(document.location);
+const idType = url.searchParams.get("items_type_id_items");
+url.searchParams.delete("items_type_id_items");
+window.history.pushState({}, "", url.toString());
+if (idType != null) {
+    const needInputItemsType = form.querySelector(`.input[data-name='items_type_id_search_items'][value='${idType}']`);
+    needInputItemsType.checked = true;
+    needInputItemsType.dispatchEvent(new Event("change"));
+}
+
 
 if (isAuth) {
     items.forEach((item) => clickableItem(item));

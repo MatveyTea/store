@@ -1,5 +1,4 @@
 <?php
-include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
 if (!isAdmin()) {
@@ -20,6 +19,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $params = [];
 
         $itemProperties = $validatedData["data"]["items_properties"] ?? [];
+        print_r($validatedData["data"]);
         foreach ($itemProperties as $property) {
             $sql .= "INSERT INTO `items_properties` (`items_id_items_properties`, `attributes_id_items_properties`) VALUES (?, ?);";
             array_push($params, $id, $property["id_attributes"]);
@@ -37,7 +37,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $_SESSION["data"]["item_properties"] = $validatedData["data"]["items_properties"] ?? [];
     }
 
-    redirectYourself();
+    //redirectYourself();
 }
 
 $allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);

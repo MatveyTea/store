@@ -1,5 +1,4 @@
 <?php
-include_once __DIR__ . "/config/config.php";
 include_once __DIR__ . "/function.php";
 
 $typesHTML = "";
@@ -38,6 +37,18 @@ foreach  ($attributes as $attribute) {
     $attributesHTML .= "<label>$attribute[value_attributes]<input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_search'></label>";
 }
 $attributesHTML .= "</div>";
+
+$items = "";
+if (!empty($_GET["items_type_id_items"])) {
+    $tempItems = getItems(0, "WHERE `items_type_id_items` = ?", [$_GET["items_type_id_items"]]);
+    if ($tempItems == "") {
+        $items = "<p class='notfound'>Ничего не найдено</p>";
+    } else {
+        $items = $tempItems;
+    }
+} else {
+    $items = getItems();
+}
 
 include_once __DIR__ . "/header.php";
 ?>
@@ -93,7 +104,7 @@ include_once __DIR__ . "/header.php";
         </div>
     </form>
     <section class="content items">
-        <?= getItems() ?>
+        <?= $items ?>
     </section>
 </main>
 

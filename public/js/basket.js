@@ -20,7 +20,7 @@ buyButton?.addEventListener("click", async () => {
                 "number": makeOrder.querySelector(".input[data-name='number_address_orders']").value,
             },
             "note_orders": makeOrder.querySelector(".input[data-name='note_orders']").value,
-            "datetime_plan_orders": makeOrder.querySelector(".input[data-name='datetime_plan_orders']").value
+            "datetime_plan_orders": makeOrder.querySelector(".input[data-name='datetime_plan_orders']").value.split(", ")[1]
         });
         if (resultData["status"] == "OK") {
             historyBasket.querySelector("h2").textContent = "История покупок";

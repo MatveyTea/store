@@ -114,7 +114,7 @@ function redirectYourself($params = "")
     redirect(basename($_SERVER["SCRIPT_FILENAME"]), $params);
 }
 
-function getValidImage($folder, $img)
+function getValidImage($folder, $img = "")
 {
     if ($img == "" || !file_exists(__DIR__ . "/" . FOLDER_IMG . "/$folder/$img")) {
         return "/" . FOLDER_IMG . "/" . FOLDER_MAIN . "/default.png";
@@ -135,7 +135,7 @@ function isAdmin()
 function isDeliver()
 {
     $isSuccess = makeSelectQuery("SELECT `roles_id_users` FROM `users` WHERE `id_users` = ?", [getUserID()], true);
-    return $isSuccess == "FAIL" ? false : $isSuccess["roles_id_users"] == 3;
+    return $isSuccess == "FAIL" || !isset($isSuccess["roles_id_users"]) ? false : $isSuccess["roles_id_users"] == 3 || $isSuccess["roles_id_users"] == 1;
 }
 
 function getUserInfo()
@@ -160,8 +160,6 @@ function makeSelectQuery($query, $params = [], $getOne = false)
     try {
         $stmt->execute($params);
     } catch (Throwable $e) {
-        echo "<pre>";
-        print_r($e);
         return "FAIL";
     }
 
@@ -275,7 +273,7 @@ function getBuyBasketHTML($userItems = [], $item = [], $favoritesItems = [])
     $textFavorites = "Добавить в избранное";
     $classFavorites = "";
 
-    if (count($userItems) > 0 && count($item) > 0  && count($favoritesItems) > 0) {
+    if (count($userItems) > 0) {
         foreach ($userItems as $userItem) {
             if ($userItem["items_id_baskets"] == $item["id_items"]) {
                 $textBasket = "Убрать из корзины";
@@ -285,6 +283,9 @@ function getBuyBasketHTML($userItems = [], $item = [], $favoritesItems = [])
                 break;
             }
         }
+
+    }
+    if (count($favoritesItems) > 0) {
         foreach ($favoritesItems as $favoriteItem) {
             if ($favoriteItem["items_id_favorites"] == $item["id_items"]) {
                 $textFavorites = "Убрать из избранного";
@@ -1228,7 +1229,7 @@ function buyItems($json)
         $json["datetime_plan_orders"]["end"],
         getUserID(), 1,]);
 
-    if (!$isSuccess) setAnswer("FAIL");
+    if (!$isSuccess) setAnswer("2FAIL");
 
     $basketInfo = makeSelectQuery("SELECT
         `id_orders`,
