@@ -1,5 +1,5 @@
 <?php
-$partHeader = "";
+$partHeader = "<a href='/'>Каталог</a>";
 $partHeaderMobile = "";
 
 if (isUserAuth()) {
@@ -9,6 +9,11 @@ if (isUserAuth()) {
     if (isDeliver()) {
         $partHeader .= "<a href='allOrders.php'>Все заказы</a><a href='myOrders.php'>Мои заказы</a>";
     }
+    if (isSupport()) {
+        $partHeader .= "<a href='allSupport.php'>Все вопросы</a><a href='support.php'>Мои вопросы</a>";
+    } else {
+        $partHeader .= "<a href='support.php'>Техподдержка</a>";
+    }
     $userInfo = getUserInfo();
     $img = empty($userInfo) ? "" : $userInfo["avatar_users"];
     $partHeader .= "<a href='basket.php'>Корзина</a>
@@ -17,7 +22,7 @@ if (isUserAuth()) {
     ";
     $partHeaderMobile = $partHeader;
 } else {
-    $partHeader = "<span>
+    $partHeader .= "<span>
         <a href='auth.php'>Вход</a>
         <a href='reg.php'>Регистрация</a>
     </span>";
@@ -52,7 +57,6 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
 <body>
     <header class="header">
         <nav class="content header-desktop">
-            <a href="/">Каталог</a>
             <?= $partHeader ?>
         </nav>
         <nav class="content header-mobile">
@@ -62,7 +66,6 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
                 <span></span>
             </div>
             <div class="header-mobile-content">
-                <a href="/">Каталог</a>
                 <?= $partHeaderMobile ?>
             </div>
         </nav>

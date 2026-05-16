@@ -6,6 +6,7 @@ const FOLDER_MAIN = "main";
 const FOLDER_UPLOAD = "upload";
 const FOLDER_AVATARS = "avatars";
 const FOLDER_ITEMS = "items";
+const FOLDER_SUPPORT = "support";
 
 function getModalHTML()
 {
@@ -136,6 +137,12 @@ function isDeliver()
 {
     $isSuccess = makeSelectQuery("SELECT `roles_id_users` FROM `users` WHERE `id_users` = ?", [getUserID()], true);
     return $isSuccess == "FAIL" || !isset($isSuccess["roles_id_users"]) ? false : $isSuccess["roles_id_users"] == 3 || $isSuccess["roles_id_users"] == 1;
+}
+
+function isSupport()
+{
+    $isSuccess = makeSelectQuery("SELECT `roles_id_users` FROM `users` WHERE `id_users` = ?", [getUserID()], true);
+    return $isSuccess == "FAIL" || !isset($isSuccess["roles_id_users"]) ? false : $isSuccess["roles_id_users"] == 4 || $isSuccess["roles_id_users"] == 1;
 }
 
 function getUserInfo()
@@ -411,13 +418,15 @@ function getUsers($where = "", $params = [])
 
     foreach ($users as $user) {
         $isBanned = $user["is_banned_users"] === 1 ? "Разблокировать" : "Заблокировать";
-        $isDeliver = $user["roles_id_users"] === 3 ? "Убрать из доставщика" : "Сделать доставщиком" ;
+        $isDeliver = $user["roles_id_users"] === 3 ? "Убрать из доставщика" : "Сделать доставщиком";
+        $isSupport =  $user["roles_id_users"] === 4 ? "Убрать из поддержки" : "Сделать поддержкой";
         $usersHTML .= "<div class='user'>
             <p>Имя:<br>$user[name_users]</p>
             <p>Почта:<br>$user[email_users]</p>
             <p class='user-status'>Статус:<br><span>" . ($isBanned == "Разблокировать" ? "Заблокирован" : "Разблокирован") . "</span></p>
             <p class='user-role'>Роль:<br><span>$user[name_roles]</span></p>
-            <button class='button deliver' data-id='$user[id_users]' data-id-status='$user[roles_id_users]'>$isDeliver</button> 
+            <button class='button deliver' data-id='$user[id_users]' data-id-status='$user[roles_id_users]'>$isDeliver</button>
+            <button class='button support' data-id='$user[id_users]' data-id-status='$user[roles_id_users]'>$isSupport</button> 
             <button class='button banned' data-id='$user[id_users]' data-is-banned='$user[is_banned_users]'>$isBanned</button>
             <button class='button delete' data-id='$user[id_users]'>Удалить</button> 
         </div>";
@@ -979,6 +988,66 @@ function getValidationRules($file = "")
                 $split = explode(" - ", $value);
                 return ["start" => date("y-m-d") . " " . $split[0] . ":00", "end" => date("y-m-d") . " " . $split[1] . ":00"];
             }
+        ],
+        // Техподдержка
+        "title_talks" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
+            }
+        ],
+        "text_supports" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
+            }
+        ],
+        "image_supports" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if (preg_match("/^data:([^;]+);base64,(.*)$/", $value, $matches)) {
+                    $pureBase64 = $matches[2];
+                    $decodedFile = base64_decode($pureBase64);
+                    if ($decodedFile !== false) {
+                        $finfo = new finfo(FILEINFO_MIME_TYPE);
+                        $realMimeType = $finfo->buffer($decodedFile);
+                        if (in_array($realMimeType, ["image/jpg", "image/png", "image/webp"]) && strlen($decodedFile) < 3_000_000) {
+                            $datetime = date("Y-m-d-H-i-s") . "." . explode("/", $realMimeType)[1];
+                            if (file_put_contents(__DIR__ . "/" . FOLDER_IMG . "/" . FOLDER_UPLOAD . "/" . FOLDER_SUPPORT . "/$datetime", $decodedFile)) {
+                                return $datetime;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+        ],
+        "id_talks" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
+        ],
+        "talks_id_supports" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/", $value);
+            }
         ]
     ];
 
@@ -1529,4 +1598,165 @@ function receiptOrders($id)
 
     $isSuccess = makeSafeQuery("UPDATE `orders` SET `status_id_orders` = ?, `datetime_receipt_orders` = ? WHERE `id_orders` = ? AND `users_id_orders` = ?", [6, date("y-m-d H:i:s"), $id, getUserID()]);
     setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function startTalk($json)
+{
+    $validatedData = getValidatedData($json, "support.php");
+
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("INSERT INTO `talks` (`users_id_talks`, `title_talks`) VALUES (?, ?)", [getUserID(), $validatedData["data"]["title_talks"]]);
+    if (!$isSuccess) setAnswer("FAIL");
+
+    unset($validatedData["data"]["title_talks"]);
+    $talksId = $GLOBALS["link"]->lastInsertId();
+
+    $sql = getInsertSQL(array_merge($validatedData["data"], ["datetime_supports" => date("y-m-d H:i:s"), "users_write_supports" => getUserID(), "talks_id_supports" => $talksId]));
+    $isSuccess = makeSafeQuery("INSERT INTO `supports` ($sql[sql]) VALUES ($sql[question])", $sql["params"]);
+
+    $messages = makeSelectQuery("SELECT
+        `user`.`id_users` AS `user_id`,
+        `user`.`name_users` AS `user_name`,
+        `user`.`roles_id_users` AS `user_role`,
+        `support`.`id_users` AS `support_id`,
+        `support`.`name_users` AS `support_name`,
+        `support`.`roles_id_users` AS `support_role`,
+        `users_write_supports`,
+        `title_talks`,
+        `is_end_talks`,
+        `talks_id_supports`,
+        `text_supports`,
+        `image_supports`,
+        `datetime_supports`,
+        `users_id_talks`
+        FROM `supports`
+        JOIN `talks` ON `id_talks` = `talks_id_supports`
+        JOIN `users` AS `user` ON `user`.`id_users` = `users_id_talks`
+        LEFT JOIN `users` AS `support` ON `support`.`id_users` = `users_support_talks`
+        WHERE `id_supports` = ? ", [$GLOBALS["link"]->lastInsertId()], false);
+    if ($messages == "FAIL") setAnswer("FAIL");
+
+    setAnswer("OK", ["message" => getStartMessageHTML($messages, isSupport())]);
+}
+
+function continueTalk($json)
+{
+    $validatedData = getValidatedData($json, "support.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $datetime = date("Y-m-d H:i:s");
+
+    $sql = getInsertSQL(array_merge($validatedData["data"], ["datetime_supports" => $datetime, "users_write_supports" => getUserID()]));
+
+    $isSuccess = makeSafeQuery("INSERT INTO `supports` ($sql[sql]) VALUES ($sql[question])", $sql["params"]);
+    if (!$isSuccess) setAnswer("2FAIL");
+        
+    $userInfo = getUserInfo();
+
+    if (empty($userInfo["name_users"])) setAnswer("3FAIL");
+    
+    $message = [
+        "name" => $userInfo["name_users"],
+        "text" => $validatedData["data"]["text_supports"],
+        "date" => dateformat($datetime),
+        "image" => $validatedData["data"]["image_supports"] ?? ""
+    ];
+
+    setAnswer($userInfo ? "OK" : "4FAIL", ["message" => getMessageHTML($message, "me")]);
+}
+
+function endTalk($idTalks)
+{
+    $validatedData = getValidatedData(["talks_id_supports" => $idTalks], "support.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `talks` SET `is_end_talks` = ?, `datetime_end_user_talks` = ? WHERE `id_talks` = ?", [1, date("y-m-d H:i:s"), $idTalks]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function acceptSupport($idTalks)
+{
+    $validatedData = getValidatedData(["id_talks" => $idTalks], "support.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $check = makeSelectQuery("SELECT `users_support_talks` FROM `talks` WHERE `id_talks` = ?", [$idTalks], true);
+    if ($check == "FAIL" || $check["users_support_talks"] != null) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `talks` SET `users_support_talks` = ?, `datetime_accept_support_talks` = ? WHERE `id_talks` = ?", [getUserID(), date("y-m-d H:i:s"), $idTalks]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function supportUsers($id)
+{
+    if ($id == 1) setAnswer("FAIL");
+
+    $validatedData = getValidatedData(["id_users" => $id], "adminEditUser.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `roles_id_users` = CASE WHEN `roles_id_users` = 4 THEN 2 ELSE 4 END WHERE `id_users` = ? AND `roles_id_users` != ?", [$id, 1]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
+function getStartMessageHTML($messages, $isSupport = false) {
+    $talksID = null;
+    $result = "";
+
+    foreach ($messages as $index => $message) {
+        if ($talksID != $message["talks_id_supports"]) {
+            $result .= "<article class='talk'><h1>Обращение №$message[talks_id_supports] $message[title_talks]</h1><div class='messages'>";
+            $talksID = $message["talks_id_supports"];
+        }
+        $isMyMessage = getUserID() == $message["users_write_supports"] ? "me" : "other";
+        $name = $message["users_write_supports"] == $message["support_id"] ? $message["support_name"] : $message["user_name"];
+        $result .= getMessageHTML(["name" => $name, "text" => $message["text_supports"], "image" => $message["image_supports"], "date" => dateformat($message["datetime_supports"])], $isMyMessage);
+        if ($index == count($messages) - 1 || $messages[$index + 1]["talks_id_supports"] != $message["talks_id_supports"]) {
+            $startTalkFrom = "";
+            if ($message["is_end_talks"] != 1) {
+                    $buttonEndTalk = "";
+                    if (!$isSupport) {
+                        $buttonEndTalk .= "<div class='field'>
+                            <button class='button end-talk' data-id='$talksID'>Закрыть диалог</button>
+                        </div>";
+                    }
+                    $startTalkFrom .= "<form action='support.php' method='POST' class='form continue-talk'>
+                        <div class='field hidden'>
+                            <input type='hidden' class='input hidden' data-name='talks_id_supports' value='$talksID'>
+                        </div>
+                        <div class='field'>
+                            <label class='label'></label>
+                            <textarea class='input' data-name='text_supports'></textarea>
+                            <p class='error'></p>
+                        </div>
+                        <div class='field'>
+                            <label class='label'></label>
+                            <input class='input' type='file' data-name='image_supports'>
+                            <p class='error'></p>
+                        </div>
+                        <div class='field'>
+                            <input class='button' type='submit' name='submit_button' value='Отправить'>
+                        </div>
+                        $buttonEndTalk
+                    </form>";
+            }
+            $result .= "</div>$startTalkFrom</article>";
+        }
+    }
+
+    return $result;
+}
+
+function getMessageHTML($message = ["name" => "", "text" => "", "date" => "", "image" => ""], $who = "")
+{
+    $img = "";
+    if ($message["image"] != "") {
+        $img = "<img src='" . getValidImage("/" . FOLDER_IMG . "/" . FOLDER_UPLOAD . "/" . FOLDER_SUPPORT, $message["image"]) . "'>";
+    }
+    return "<div class='message $who'>
+        <p class='message-name'>$message[name]</p>
+        <p class='message-text'>$message[text]</p>
+        <p class='message-date'>$message[date]</p>
+        $img
+    </div>";
 }

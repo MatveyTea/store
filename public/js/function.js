@@ -1355,7 +1355,7 @@ function getValidationRules() {
             "files": ["basket.php"],
             "required": true,
             "timerId": null,
-            "length": 100,
+            "length": null,
             "placeMsg": null,
             "check": function (input) {
                 return input.selectedIndex > 0 ? false : "Выберите элемент";
@@ -1377,7 +1377,128 @@ function getValidationRules() {
             "files": ["basket.php"],
             "required": false,
             "timerId": null,
-            "length": 100,
+            "length": 255,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,255}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-255 символов.";
+            }
+        },
+        // Техподдержка
+        "text_supports": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "сообщение",
+            "inputs": null,
+            "nameRule": "text_supports",
+            "oldValue": null,
+            "files": ["support.php"],
+            "required": true,
+            "timerId": null,
+            "length": 255,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,255}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-255 символов.";
+            }
+        },
+        "talks_id_supports": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": null,
+            "inputs": null,
+            "nameRule": "talks_id_supports",
+            "oldValue": null,
+            "files": ["support.php"],
+            "required": true,
+            "timerId": null,
+            "length": 7,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[0-9]{1,7}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите число до 9 999 999";
+            }
+        },
+        "image_supports": {
+             "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "фото",
+            "inputs": null,
+            "nameRule": "image_supports",
+            "oldValue": null,
+            "files": ["support.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                if (input.files.length > 0) {
+                    let extension = input.files[0].name.split(".");
+                    extension = extension[extension.length - 1];
+                    if (input.files[0].size > 3_000_000) {
+                        return "Размер файла не должен превышать 3МБ";
+                    }
+
+                    if (!["jpg", "png", "webp"].includes(extension)) {
+                        return "Некорректный тип файла. Файл должен быть jpg, png или webp";
+                    }
+
+                    // let reader = new FileReader();
+                    // reader.readAsDataURL(input.files[0]);
+                    // reader.addEventListener("load", (event) => {
+                    //     if (event.target.result != null) {
+                    //         let img = input.parentElement.querySelector("img");
+                    //         img.classList.remove("hidden");
+                    //         img.src = event.target.result;
+                    //     } else {
+                    //         return "Не удалось загрузить картинку";
+                    //     }
+                    // });
+                }
+                return false;
+            }
+        },
+        "title_talks": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "заголовок",
+            "inputs": null,
+            "nameRule": "title_talks",
+            "oldValue": null,
+            "files": ["support.php"],
+            "required": true,
+            "timerId": null,
+            "length": 255,
             "placeMsg": null,
             "check": function (input) {
                 if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,255}$/.test(input.value)) {

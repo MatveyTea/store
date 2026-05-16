@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Май 08 2026 г., 23:08
+-- Время создания: Май 16 2026 г., 23:45
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -492,8 +492,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `image_items`, `co
 (384, '123', 24, 'default.png', 937, '2026-01-14', 1, NULL, 0),
 (385, '123', 22, 'default.png', 483, '2026-01-14', 2, NULL, 0),
 (386, '123', 11, 'default.png', 604, '2026-01-14', 1, NULL, 0),
-(387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 0),
-(388, '123', 13, 'default.png', 100, '2026-01-14', 1, NULL, 0);
+(387, '123', 19, 'default.png', 943, '2026-01-14', 2, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -585,7 +584,8 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id_roles`, `name_roles`) VALUES
 (1, 'Администратор'),
 (2, 'Пользователь'),
-(3, 'Доставщик');
+(3, 'Доставщик'),
+(4, 'Техподдержка');
 
 -- --------------------------------------------------------
 
@@ -613,6 +613,37 @@ INSERT INTO `status` (`id_status`, `name_status`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `supports`
+--
+
+CREATE TABLE `supports` (
+  `id_supports` int NOT NULL,
+  `talks_id_supports` int NOT NULL,
+  `text_supports` varchar(255) NOT NULL,
+  `datetime_supports` datetime NOT NULL,
+  `image_supports` varchar(255) DEFAULT NULL,
+  `users_write_supports` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `talks`
+--
+
+CREATE TABLE `talks` (
+  `id_talks` int NOT NULL,
+  `users_id_talks` int NOT NULL,
+  `users_support_talks` int DEFAULT NULL,
+  `is_end_talks` tinyint(1) NOT NULL DEFAULT '0',
+  `title_talks` varchar(255) NOT NULL,
+  `datetime_accept_support_talks` datetime DEFAULT NULL,
+  `datetime_end_user_talks` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `users`
 --
 
@@ -624,7 +655,7 @@ CREATE TABLE `users` (
   `date_create_users` date DEFAULT NULL,
   `avatar_users` varchar(100) DEFAULT NULL,
   `is_banned_users` tinyint(1) NOT NULL DEFAULT '0',
-  `roles_id_users` int NOT NULL
+  `roles_id_users` int NOT NULL DEFAULT '2'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
@@ -636,7 +667,8 @@ INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, 
 (2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 2),
 (3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 2),
 (4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 3),
-(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 3);
+(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 3),
+(6, 'support@support.com', '$2y$12$NwKRC2m9kxTbyixtilAlB.0U11evwtkcynPm1AmclIbGdhnp0zabG', 'ПоддрежкаОдин', '2026-05-16', NULL, 0, 4);
 
 --
 -- Индексы сохранённых таблиц
@@ -722,6 +754,22 @@ ALTER TABLE `status`
   ADD PRIMARY KEY (`id_status`);
 
 --
+-- Индексы таблицы `supports`
+--
+ALTER TABLE `supports`
+  ADD PRIMARY KEY (`id_supports`),
+  ADD KEY `supports_ibfk_1` (`talks_id_supports`),
+  ADD KEY `supports_ibfk_2` (`users_write_supports`);
+
+--
+-- Индексы таблицы `talks`
+--
+ALTER TABLE `talks`
+  ADD PRIMARY KEY (`id_talks`),
+  ADD KEY `users_id_talks` (`users_id_talks`),
+  ADD KEY `users_support_talks` (`users_support_talks`);
+
+--
 -- Индексы таблицы `users`
 --
 ALTER TABLE `users`
@@ -791,7 +839,7 @@ ALTER TABLE `properties`
 -- AUTO_INCREMENT для таблицы `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_roles` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_roles` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT для таблицы `status`
@@ -800,10 +848,22 @@ ALTER TABLE `status`
   MODIFY `id_status` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT для таблицы `supports`
+--
+ALTER TABLE `supports`
+  MODIFY `id_supports` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
+-- AUTO_INCREMENT для таблицы `talks`
+--
+ALTER TABLE `talks`
+  MODIFY `id_talks` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -856,6 +916,20 @@ ALTER TABLE `orders`
   ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`status_id_orders`) REFERENCES `status` (`id_status`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`users_id_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`users_deliver_orders`) REFERENCES `users` (`id_users`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
+-- Ограничения внешнего ключа таблицы `supports`
+--
+ALTER TABLE `supports`
+  ADD CONSTRAINT `supports_ibfk_1` FOREIGN KEY (`talks_id_supports`) REFERENCES `talks` (`id_talks`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  ADD CONSTRAINT `supports_ibfk_2` FOREIGN KEY (`users_write_supports`) REFERENCES `users` (`id_users`) ON DELETE CASCADE ON UPDATE RESTRICT;
+
+--
+-- Ограничения внешнего ключа таблицы `talks`
+--
+ALTER TABLE `talks`
+  ADD CONSTRAINT `talks_ibfk_1` FOREIGN KEY (`users_id_talks`) REFERENCES `users` (`id_users`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  ADD CONSTRAINT `talks_ibfk_2` FOREIGN KEY (`users_support_talks`) REFERENCES `users` (`id_users`) ON DELETE CASCADE ON UPDATE RESTRICT;
 
 --
 -- Ограничения внешнего ключа таблицы `users`

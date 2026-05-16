@@ -6,6 +6,7 @@ const insertPlace = document.querySelector(".users");
 insertPlace.querySelectorAll(".banned").forEach((button) => button.addEventListener("click", bannedAction));
 insertPlace.querySelectorAll(".delete").forEach((button) => button.addEventListener("click", deleteAction));
 insertPlace.querySelectorAll(".deliver").forEach((button) => button.addEventListener("click", deliverAction));
+insertPlace.querySelectorAll(".support").forEach((button) => button.addEventListener("click", supportAction));
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -16,12 +17,33 @@ form.addEventListener("submit", async (event) => {
         insertPlace.querySelectorAll(".banned").forEach((button) => button.addEventListener("click", bannedAction));
         insertPlace.querySelectorAll(".delete").forEach((button) => button.addEventListener("click", deleteAction));
         insertPlace.querySelectorAll(".status").forEach((button) => button.addEventListener("click", deliverAction));
+        insertPlace.querySelectorAll(".support").forEach((button) => button.addEventListener("click", supportAction))
     } else if (resultData["status"] == "NOTFOUND") {
         insertPlace.innerHTML = "<p class='notfound'>Ничего не найдено</p>";
     } else {
         showModal("Не удалось найти");
     }
 });
+
+async function supportAction() {
+    const resultData = await sendToServer({
+        "server_type": "support_users",
+        "id_users": this.dataset.id
+    });
+    if (resultData["status"] == "OK") {
+        if (this.dataset.idStatus == 2) {
+            this.parentElement.querySelector(".user-role span").textContent = "Техподдержка";
+            this.textContent = "Убрать из поддержки";
+            this.dataset.idStatus = 4;
+        } else {
+            this.parentElement.querySelector(".user-role span").textContent = "Пользователь";
+            this.textContent = "Сделать поддержкой";
+            this.dataset.idStatus = 2;
+        }
+    } else {
+        showModal("Не удалось");
+    }
+}
 
 async function bannedAction() {
     toggleUser(this.parentElement, this.dataset.isBanned);

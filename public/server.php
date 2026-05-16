@@ -4,9 +4,11 @@ include_once __DIR__ . "/function.php";
 if (!empty(file_get_contents("php://input"))) {
     $json = json_decode(file_get_contents("php://input"), true);
     $serverType = $json["server_type"] ?? "";
+    unset($json["server_type"]);
     $isAuth = isUserAuth();
     $isAdmin = isAdmin();
     $isDeliver = isDeliver();
+    $isSupport = isSupport();
 
     if ($isAuth && $serverType == "change_basket" && !empty($json["id_items"]) && isset($json["count_items"]) && !empty($json["action_items"])) { // index.js и aboutItem.js - Добавление и удаление товаров в корзине
         changeBasket($json["id_items"], $json["count_items"], $json["action_items"]);
@@ -43,7 +45,17 @@ if (!empty(file_get_contents("php://input"))) {
     } else if ($isDeliver && $serverType == "status_orders" && !empty($json["id_orders"])) { // myOrders.js - Изменение статусов доставки доставщиком
         statusOrders($json["id_orders"]);
     } else if ($serverType == "receipt_orders" && !empty($json["id_orders"])) { // deliveryItem.js - Изменение статусов доставки клиентом
-        receiptOrders($json["id_orders"]);
+        receiptOrders($json["id_orders"] && !empty($json["text_supports"]));
+    } else if ($isAuth && $serverType == "start_talk" && !empty($json["title_talks"])) { // support.js - Первое написание сообщение в поддержку пользователем
+        startTalk($json);
+    } else if ($isAuth && $serverType == "continue_talk" && !empty($json["talks_id_supports"]) && !empty($json["text_supports"])) { // support.js - Написание сообщение в поддержку пользователем
+        continueTalk($json);
+    } else if ($isAuth && $serverType == "end_talk" && !empty($json["talks_id_supports"])) { // support.js - Конец разговора
+        endTalk($json["talks_id_supports"]);
+    } else if ($isSupport && $serverType == "accept_support" && !empty($json["id_talks"])) { // allSupport.js - Принятие сообщение
+        acceptSupport($json["id_talks"]);
+    } else if ($isAdmin && $serverType == "support_users" && !empty($json["id_users"])) {
+        supportUsers($json["id_users"]);
     } else { // Иначе ошибка
         setAnswer("FAIL");
     }
