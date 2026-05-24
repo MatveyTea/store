@@ -162,7 +162,7 @@ function setBasicSettingInput(inputs, form) {
 
         const placeMsg = form.querySelector(`.field:not(.property):has(#${input.id}) .error`);
         if (placeMsg) {
-            placeMsg.classList.toggle("invisible", placeMsg.textContent == "");
+            placeMsg.classList.add("invisible");
             rule.placeMsg[input.id] = placeMsg;
         }
 

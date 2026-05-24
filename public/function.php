@@ -1298,7 +1298,7 @@ function buyItems($json)
         $json["datetime_plan_orders"]["end"],
         getUserID(), 1,]);
 
-    if (!$isSuccess) setAnswer("2FAIL");
+    if (!$isSuccess) setAnswer("FAIL");
 
     $basketInfo = makeSelectQuery("SELECT
         `id_orders`,
@@ -1650,11 +1650,11 @@ function continueTalk($json)
     $sql = getInsertSQL(array_merge($validatedData["data"], ["datetime_supports" => $datetime, "users_write_supports" => getUserID()]));
 
     $isSuccess = makeSafeQuery("INSERT INTO `supports` ($sql[sql]) VALUES ($sql[question])", $sql["params"]);
-    if (!$isSuccess) setAnswer("2FAIL");
+    if (!$isSuccess) setAnswer("FAIL");
         
     $userInfo = getUserInfo();
 
-    if (empty($userInfo["name_users"])) setAnswer("3FAIL");
+    if (empty($userInfo["name_users"])) setAnswer("FAIL");
     
     $message = [
         "name" => $userInfo["name_users"],
@@ -1663,7 +1663,7 @@ function continueTalk($json)
         "image" => $validatedData["data"]["image_supports"] ?? ""
     ];
 
-    setAnswer($userInfo ? "OK" : "4FAIL", ["message" => getMessageHTML($message, "me")]);
+    setAnswer($userInfo ? "OK" : "FAIL", ["message" => getMessageHTML($message, "me")]);
 }
 
 function endTalk($idTalks)

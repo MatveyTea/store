@@ -16,7 +16,7 @@ if (!empty($_POST["submit_button"])) {
         if ($isSuccess) {
             $_SESSION["server"] = "Данные обновлены";
         } else {
-            $_SESSION["server"] = "Не удалось обновить информацию";
+            $_SESSION["server"] = "Не удалось обновить данные";
         }
     } else {
         $_SESSION["server"] = "Не корректные данные";
@@ -25,6 +25,7 @@ if (!empty($_POST["submit_button"])) {
 }
 
 $userInfo = getUserInfo();
+$srcImg = getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, $userInfo["avatar_users"]);
 getModalHTML();
 
 include_once __DIR__ . "/header.php";
@@ -32,34 +33,44 @@ include_once __DIR__ . "/header.php";
 
 <main class="content">
     <form action="profile.php" method="POST" enctype="multipart/form-data" class="form">
-        <legend class="legend">Профиль</legend>
+        <legend class="legend">Изменение профиля</legend>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="text" value="<?= $userInfo["name_users"] ?>" data-name="name_users" data-is-insert-server="<?= !empty($userInfo["name_users"]) ? 1 : 0 ?>" autocomplete="username">
-            <p class="error"></p>
+            <input class="input" type="text" value="<?= $userInfo["name_users"] ?>" data-name="name_users" autocomplete="username">
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="file" data-name="avatar_users" data-is-insert-server="0">
-            <img class="avatar" src="<?= getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, $userInfo["avatar_users"]) ?>">
-            <?= $userInfo["avatar_users"] != null ? "<button class='delete-avatar button'>Удалить аватарку</button>" : "" ?>
-            <p class="error"></p>
+            <input class="input" type="file" data-name="avatar_users">
+            <img class="avatar" src="<?= $srcImg ?>" data-base-src="<?= $srcImg ?>">
+            <button class="remove-avatar button hidden">Отмена</button>
+            <?= $userInfo["avatar_users"] != null ? "<button class='delete-avatar button'>Удалить</button>" : "" ?>
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
         </div>
-        <div class="field">
+        <div class="field close">
             <label class="label"></label>
-            <input class="input" type="password" data-name="password_users" data-is-insert-server="0" autocomplete="new-password">
-            <p class="error"></p>
+            <input class="input" type="password" data-name="password_users" autocomplete="new-password">
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
         </div>
-        <div class="field">
+        <div class="field close">
             <label class="label"></label>
-            <input class="input" type="password" data-name="re_password_users" data-is-insert-server="0" autocomplete="new-password">
-            <p class="error"></p>
+            <input class="input" type="password" data-name="re_password_users" autocomplete="new-password">
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
         </div>
-        <div class="field">
-            <input type="submit" class="button" name="submit_button" value="Обновить">
+        <div class="field"> 
+            <button class="button password-appear close">Сменить пароль</button>
+            <input type="submit" class="button" name="submit_button" value="Обновить данные">
+            <a href='logout.php' class="button">Выйти из аккаунта</a>
         </div>
     </form>
-    <a href='logout.php' class="button">Выйти из аккаунта</a>
 </main>
 
 <?php include_once __DIR__ . "/footer.php"; ?>

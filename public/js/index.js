@@ -123,3 +123,11 @@ searchButton.addEventListener("click", (event) => {
     isResetSearch = true;
     getSearchItems();
 });
+
+const formWrapper = document.querySelector(".form-wrapper");
+const formSwitches = formWrapper.querySelector(".form-switches img");
+const formAppear = formWrapper.querySelector(".form-appear");
+formSwitches.addEventListener("click", () => {
+    formSwitches.classList.toggle("close");
+    formAppear.classList.toggle("close");
+});

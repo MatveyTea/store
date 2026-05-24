@@ -21,7 +21,7 @@
     text-decoration: none;
     outline: none;
     border: none;
-    color: var(--element-color);
+    color: white;
     letter-spacing: 1px;
     line-height: 150%;
 }
@@ -70,6 +70,9 @@ body main > .button  {
     background-color: var(--element-color);
     padding: 15px;
     border-radius: 10px;
+    text-wrap: auto;
+    text-align: center;
+    font-size: 1rem;
     transition: background-color 0.3s linear;
 }
 
@@ -151,7 +154,7 @@ footer {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    align-items: center;
+    align-items: start;
     gap: 20px;
 }
 
@@ -159,16 +162,26 @@ footer {
     width: 100%;
     text-align: center;
     font-size: 2.5rem;
-    margin-bottom: 20px;
 }
 
 .form .field {
-    width: calc(50% - 20px);
+    width: calc(50% - 10px);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 15px;
+    background: var(--child-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.form > .field:not(.field:has(.input[type=checkbox], input[type=submit])) {
+    min-height: 140px;
+}
+
+.field.close {
+    display: none;
 }
 
 .form .field.property .field {
@@ -194,7 +207,9 @@ footer {
 
 .form .field:has(input.button) {
     width: 100%;
-    justify-content: center;
+    justify-content: end;
+    background-color: transparent;
+    padding: 0;
 }
 
 .form .field .label {
@@ -210,7 +225,8 @@ footer {
     width: 100%;
     height: 30px;
     padding: 20px;
-    border-radius: 20px;
+    border-radius: 10px;
+    color: var(--element-color);
 }
 
 .form .field select.input {
@@ -241,7 +257,6 @@ footer {
 .form .field-properties .field,
 .form .field:has(input[type=checkbox]) {
     height: max-content;
-    background-color: white;
     padding: 20px;
     border-radius: 20px;
     display: flex;
@@ -278,14 +293,10 @@ footer {
     height: 20px;
 }
 
-.form .field:has(input[type=file]) {
-    gap: 2px;
-}
-
 .form .field input[type=file] {
     height: 40px;
     padding: 10px 20px;
-    width: 50%;
+    width: 70%;
     background-color: white;
 }
 
@@ -294,26 +305,22 @@ footer {
     border-radius: 30px;
 }
 
-.form .field input.button {
-    width: 30%;
-    height: 50px;
-    padding: 0;
-    align-self: center;
-    border-bottom: none;
-    border-radius: 15px;
-}
-
-.form .field .error {
+.form .field .error-wrapper {
     width: 100%;
-    height: max-content;
-    transition: all 0.3s linear;
-    color: white;
-    background-color: var(--element-color);
-    border-radius: 10px;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s linear;
 }
 
-.form .field .error:not(.invisible) {
-    padding: 10px;
+.form .field .error-wrapper:has(.error:not(.invisible)) {
+    grid-template-rows: 1fr;
+}
+
+.form .field .error-wrapper .error {
+    width: 100%;
+    min-height: 0;
+    transition: opacity 0.3s linear, padding 0.3s linear;
+    border-radius: 10px;
 }
 
 .form .field textarea.input {
@@ -590,8 +597,8 @@ header nav a:focus {
         width: 100%;
     }
 
-    .form .field input.button {
-        width: 60%;
+    .form .field:has(input.button) {
+        justify-content: space-between;
     }
 
     .form .field-properties .field label {
@@ -622,7 +629,7 @@ header nav a:focus {
     }
 
     /* ФОРМА */
-    .form .field, .form .field input.button {
+    .form .field {
         width: 100%;
     }
 
@@ -635,13 +642,21 @@ header nav a:focus {
         height: 30px;
     }
 
-    .form .field:has(input[type=file]) {
-       flex-direction: column;  
-        gap: 20px;
+    .form .field:has(input.button) {
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .form .field:has(input.button) .button {
+        width: 80%;
     }
 
     .form .field input[type=file] {
         width: 100%;
+    }
+
+    .form .field:has(input[type=file]) img {
+        margin: 0 auto;
     }
 
     .form .field:has(input[type=file]) img:not(.avatar) {

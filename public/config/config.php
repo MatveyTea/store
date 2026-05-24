@@ -7,7 +7,7 @@ $password = "";
 
 try {
     $link = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-} catch (Throwable $e) {
-    echo "Ошибка подключения к базе данных.";
+} catch (Throwable $error) {
+    echo "Ошибка подключения к базе данных. Код ошибки: " . $error->getCode();
     exit;
 }

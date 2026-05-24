@@ -1,32 +1,42 @@
 <?php
-$partHeader = "<a href='/'>Каталог</a>";
-$partHeaderMobile = "";
+$headerHTML = "<a href='/'>Каталог</a>";
+$headerMobileHTML = "";
 
 if (isUserAuth()) {
     if (isAdmin()) {
-        $partHeader .= "<a href='admin.php'>Админ панель</a>";
+        $headerHTML .= "<a href='admin.php'>Админ панель</a>";
     }
     if (isDeliver()) {
-        $partHeader .= "<a href='allOrders.php'>Все заказы</a><a href='myOrders.php'>Мои заказы</a>";
+        $headerHTML .= "
+            <a href='allOrders.php'>Все заказы</a>
+            <a href='myOrders.php'>Мои заказы</a>
+        ";
     }
     if (isSupport()) {
-        $partHeader .= "<a href='allSupport.php'>Все вопросы</a><a href='support.php'>Мои вопросы</a>";
+        $headerHTML .= "
+            <a href='allSupport.php'>Все вопросы</a>
+            <a href='support.php'>Мои вопросы</a>
+        ";
     } else {
-        $partHeader .= "<a href='support.php'>Техподдержка</a>";
+        $headerHTML .= "<a href='support.php'>Техподдержка</a>";
     }
     $userInfo = getUserInfo();
-    $img = empty($userInfo) ? "" : $userInfo["avatar_users"];
-    $partHeader .= "<a href='basket.php'>Корзина</a>
+    $img = empty($userInfo["avatar_users"]) ? "" : $userInfo["avatar_users"];
+    $headerHTML .= "
+        <a href='basket.php'>Корзина</a>
         <a href='favorites.php'>Избранные</a>
         <a href='profile.php'><img class='avatar' src='" . getValidImage(FOLDER_UPLOAD . "/" . FOLDER_AVATARS, $img) . "'></a>
     ";
-    $partHeaderMobile = $partHeader;
+    $headerMobileHTML = $headerHTML;
 } else {
-    $partHeader .= "<span>
+    $headerHTML .= "
+        <span>
+            <a href='auth.php'>Вход</a>
+            <a href='reg.php'>Регистрация</a>
+        </span>
+    ";
+    $headerMobileHTML .= "
         <a href='auth.php'>Вход</a>
-        <a href='reg.php'>Регистрация</a>
-    </span>";
-    $partHeaderMobile .= "<a href='auth.php'>Вход</a>
         <a href='reg.php'>Регистрация</a>
     ";
 }
@@ -57,7 +67,7 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
 <body>
     <header class="header">
         <nav class="content header-desktop">
-            <?= $partHeader ?>
+            <?= $headerHTML ?>
         </nav>
         <nav class="content header-mobile">
             <div class="header-mobile-burger">
@@ -66,7 +76,7 @@ if (file_exists(__DIR__ . "/css/$currentFileName.css")) {
                 <span></span>
             </div>
             <div class="header-mobile-content">
-                <?= $partHeaderMobile ?>
+                <?= $headerMobileHTML ?>
             </div>
         </nav>
     </header>
