@@ -1529,7 +1529,7 @@ if (validatedForm) {
     validatedForm.forEach((form) => setValidationForm(form));
 }
 
-const token = document.querySelector("meta[name='token']").getAttribute("content");
+const token = document.querySelector("meta[name='token']")?.getAttribute("content") ?? "notfound";
 async function sendToServer(data) {
     data["token"] = token;
     const result = await fetch("/api/server.php", {

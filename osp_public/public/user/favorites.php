@@ -13,7 +13,7 @@ include_once __DIR__ . "/../../app/server/header.php";
 
 <main class="content">
     <section class="items">
-        <?= $itemsHTML == "" ? "<h1 class='notfound'>У вас нет избранных товаров</h1>" : "<h2>Избранные товары</h2>$itemsHTML" ?>
+        <?= $itemsHTML == "" ? "<h2 class='notfound'>У Вас нет избранных товаров.</h2>" : "<h2 class='title'>Избранные товары</h2>$itemsHTML" ?>
     </section>
 </main>
 

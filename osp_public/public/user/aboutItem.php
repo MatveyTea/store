@@ -140,7 +140,7 @@ if (isUserAuth()) {
 
 $commentsHTML = getCommentsHTML($comments);
 if ($commentsHTML == "") {
-    $commentsHTML .= "<p class='notfound'>Здесь нет отзывов</p>";
+    $commentsHTML .= "<h2 class='notfound'>В данный момент нет отзывов.</h2>";
 }
 
 getModalHTML();
@@ -157,7 +157,7 @@ include_once __DIR__ . "/../../app/server/header.php";
         <?= $commentsHTML ?>
     </section>
     <section class="content items">
-        <h2>Похожие товары</h2>
+        <h2 class="title">Похожие товары</h2>
         <?= getItems(0, "WHERE (`items_type_id_items` = ? OR `properties_id_attributes` = ?) AND `id_items` != ?", [$item["items_type_id_items"], 1, $_GET["id_item"]], false, 20) ?>
     </section>
 </main>

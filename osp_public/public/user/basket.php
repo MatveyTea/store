@@ -139,13 +139,13 @@ if (!empty($currentHTML)) {
         </article>
     ";
 } else {
-    $currentHTML = "<h2>У вас нет ничего в корзине</h2>";
+    $currentHTML = "<h2 class='notfound'>В данный момент в корзине пусто.</h2>";
 }
 
 if (!empty($historyHTML)) {
-    $historyHTML = "<h2>История покупок</h2>$historyHTML";
+    $historyHTML = "<h2 class='title'>История покупок</h2>$historyHTML";
 } else {
-    $historyHTML = "<h2>У вас не было покупок</h2>";
+    $historyHTML = "<h2 class='notfound'>У Вас ещё не было ни одной покупки.</h2>";
 }
 
 getModalHTML();

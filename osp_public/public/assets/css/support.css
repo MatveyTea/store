@@ -1,16 +1,92 @@
-.messages {
-    min-height: 200px;
-    max-height: 800px;
+.start-talk .field {
+    width: calc(33% - 10px);
+}
+
+.supports {
+    height: calc(100vh - 200px);
+    display: flex;
+    gap: 20px;
+}
+
+.chats {
+    width: calc(25% - 20px);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    border-radius: 20px;
     gap: 20px;
-    background-color: var(--child-bg-color);
+}
+
+.chats:has(.notfound),
+.talks:has(.notfound) {
+    justify-content: center;
+    align-items: center;
+    background-color: var(--parent-bg-color);
+    height: 100px;
+}
+
+.chat {
+    display: flex;
+    height: 400px;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 20px;
+    background-color: var(--element-color);
+    cursor: pointer;
+    transition: 0.3s background-color linear;
+}
+
+.chat:hover,
+.chat:focus {
+    background-color: var(--element-color-hover);
+}
+
+.chat-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+
+.talks {
+    width: calc(75% - 20px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--parent-bg-color);
+    
     padding: 20px;
     border-radius: 20px;
 }
 
-.messages::-webkit-scrollbar {
+.talks:has(.title) {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.talk {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+
+.messages {
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.messages::-webkit-scrollbar,
+.chats::-webkit-scrollbar {
     display: none;
 }
 
@@ -18,22 +94,49 @@
     scrollbar-width: none;
 }
 
-.messages .message {
+.message {
     display: flex;
     flex-direction: column;
-    background-color: var(--element-color);
+    background-color: var(--child-bg-color);
     padding: 10px;
     border-radius: 10px;
 }
 
-.messages .message * {
-    color: white;
+.message.me {
+    align-self: flex-end;
 }
 
-.messages .message.me {
+.message.other {
     align-self: flex-start;
 }
 
-.messages .message.other {
-    align-self: flex-end;
+.talk .form {
+    flex-wrap: nowrap;
+    margin: unset;
+}
+
+.talk .form .field {
+    background-color: unset;
+    padding: unset;
+    align-items: end;
+    width: 100%;
+}
+
+.talk .form .field .input {
+    width: 100%;
+}
+
+.talk .form .field:has(.input[data-name='text_supports']) {
+    width: 275%;
+    height: 100%;
+}
+
+.talk .form .field:has(.input[data-name='image_supports']) {
+    width: 70%;
+    height: 100%;
+}
+
+.talk .form .field:has(input[type='submit']) {
+    width: 10%;
+    height: 100%;
 }

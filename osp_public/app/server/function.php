@@ -110,10 +110,7 @@ function redirectYourself($params = "")
 
 function getValidImage($path = "")
 {
-    if ($path == "" || !file_exists(__DIR__ . "/upload/$path")) {
-        return "/assets/img/default.png";
-    }
-    return "/upload/$path";
+    return "/api/loadImg.php?path=$path";
 }
 
 function isUserAuth()
@@ -1157,7 +1154,7 @@ function getInsertSQL($array)
         if (!empty($value)) {
             $result["params"][] = $value;
         } else {
-            $result["params"][] = 123;
+            $result["params"][] = null;
         }
         $result["question"][] = "?";
 
@@ -1548,6 +1545,17 @@ function deliverUsers($id)
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
+function supportUsers($id)
+{
+    if ($id == 1) setAnswer("FAIL");
+
+    $validatedData = getValidatedData(["id_users" => $id], "editUser.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `roles_id_users` = CASE WHEN `roles_id_users` = 4 THEN 2 ELSE 4 END WHERE `id_users` = ? AND `roles_id_users` != ?", [$id, 1]);
+    setAnswer($isSuccess ? "OK" : "FAIL");
+}
+
 function acceptOrders($id)
 {
     $validatedData = getValidatedData(["id_orders" => $id], "allOrders.php");
@@ -1599,22 +1607,26 @@ function startTalk($json)
 
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
-    $isSuccess = makeSafeQuery("INSERT INTO `talks` (`users_id_talks`, `title_talks`) VALUES (?, ?)", [getUserID(), $validatedData["data"]["title_talks"]]);
+    $datetime = date("y-m-d H:i:s");
+
+    $isSuccess = makeSafeQuery("INSERT INTO `talks` (`users_id_talks`, `title_talks`, `datetime_start_user_talks`) VALUES (?, ?, ?)", [getUserID(), $validatedData["data"]["title_talks"], $datetime]);
     if (!$isSuccess) setAnswer("FAIL");
 
     unset($validatedData["data"]["title_talks"]);
     $talksId = $GLOBALS["link"]->lastInsertId();
 
-    $sql = getInsertSQL(array_merge($validatedData["data"], ["datetime_supports" => date("y-m-d H:i:s"), "users_write_supports" => getUserID(), "talks_id_supports" => $talksId]));
+    $sql = getInsertSQL(array_merge($validatedData["data"], ["datetime_supports" => $datetime, "users_write_supports" => getUserID(), "talks_id_supports" => $talksId]));
     $isSuccess = makeSafeQuery("INSERT INTO `supports` ($sql[sql]) VALUES ($sql[question])", $sql["params"]);
 
     $messages = makeSelectQuery("SELECT
         `user`.`id_users` AS `user_id`,
         `user`.`name_users` AS `user_name`,
         `user`.`roles_id_users` AS `user_role`,
+        `user`.`avatar_users` AS `user_avatar`,
         `support`.`id_users` AS `support_id`,
         `support`.`name_users` AS `support_name`,
         `support`.`roles_id_users` AS `support_role`,
+        `support`.`avatar_users` AS `support_avatar`,
         `users_write_supports`,
         `title_talks`,
         `is_end_talks`,
@@ -1630,7 +1642,7 @@ function startTalk($json)
         WHERE `id_supports` = ? ", [$GLOBALS["link"]->lastInsertId()], false);
     if ($messages == "FAIL") setAnswer("FAIL");
 
-    setAnswer("OK", ["message" => getStartMessageHTML($messages, isSupport())]);
+    setAnswer("OK", ["message" => getStartMessageHTML($messages, isSupport()), "chat" => getChatHTML($messages)]);
 }
 
 function continueTalk($json)
@@ -1680,16 +1692,44 @@ function acceptSupport($idTalks)
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
-function supportUsers($id)
-{
-    if ($id == 1) setAnswer("FAIL");
 
-    $validatedData = getValidatedData(["id_users" => $id], "editUser.php");
+
+function getTalkHTML($idTalks)
+{
+    $validatedData = getValidatedData(["talks_id_supports" => $idTalks], "support.php");
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
+    $isSupport = isSupport();
+    $whereField = $isSupport ? "`users_support_talks`" : "`users_id_talks`";
+    $orderByField = $isSupport ? "`datetime_accept_support_talks`" : " `datetime_start_user_talks`";
 
-    $isSuccess = makeSafeQuery("UPDATE `users` SET `roles_id_users` = CASE WHEN `roles_id_users` = 4 THEN 2 ELSE 4 END WHERE `id_users` = ? AND `roles_id_users` != ?", [$id, 1]);
-    setAnswer($isSuccess ? "OK" : "FAIL");
+    $messages = makeSelectQuery("SELECT
+        `user`.`id_users` AS `user_id`,
+        `user`.`name_users` AS `user_name`,
+        `user`.`roles_id_users` AS `user_role`,
+        `user`.`avatar_users` AS `user_avatar`,
+        `support`.`id_users` AS `support_id`,
+        `support`.`name_users` AS `support_name`,
+        `support`.`roles_id_users` AS `support_role`,
+        `support`.`avatar_users` AS `support_avatar`,
+        `users_write_supports`,
+        `title_talks`,
+        `is_end_talks`,
+        `talks_id_supports`,
+        `text_supports`,
+        `image_supports`,
+        `datetime_supports`,
+        `users_id_talks`
+        FROM `supports`
+        JOIN `talks` ON `id_talks` = `talks_id_supports`
+        JOIN `users` AS `user` ON `user`.`id_users` = `users_id_talks`
+        LEFT JOIN `users` AS `support` ON `support`.`id_users` = `users_support_talks`
+        WHERE $whereField = ? AND `id_talks` = ?
+        ORDER BY `is_end_talks` ASC, $orderByField DESC
+    ", [getUserID(), $idTalks], false);
+    if ($messages == "FAIL" || $messages == "") setAnswer("FAIL");
+
+    setAnswer("OK", ["messages" => getStartMessageHTML($messages, $isSupport)]);
 }
 
 function getStartMessageHTML($messages, $isSupport = false) {
@@ -1698,7 +1738,7 @@ function getStartMessageHTML($messages, $isSupport = false) {
 
     foreach ($messages as $index => $message) {
         if ($talksID != $message["talks_id_supports"]) {
-            $result .= "<article class='talk'><h1>Обращение №$message[talks_id_supports] $message[title_talks]</h1><div class='messages'>";
+            $result .= "<article class='talk' id-talks='$message[talks_id_supports]'><h1>Обращение №$message[talks_id_supports] $message[title_talks]</h1><div class='messages'>";
             $talksID = $message["talks_id_supports"];
         }
         $isMyMessage = getUserID() == $message["users_write_supports"] ? "me" : "other";
@@ -1718,14 +1758,16 @@ function getStartMessageHTML($messages, $isSupport = false) {
                             <input type='hidden' class='input hidden' data-name='talks_id_supports' value='$talksID'>
                         </div>
                         <div class='field'>
-                            <label class='label'></label>
+                            <span class='error-wrapper'>
+                                <p class='error'></p>
+                            </span>
                             <textarea class='input' data-name='text_supports'></textarea>
-                            <p class='error'></p>
                         </div>
                         <div class='field'>
-                            <label class='label'></label>
+                            <span class='error-wrapper'>
+                                <p class='error'></p>
+                            </span>
                             <input class='input' type='file' data-name='image_supports'>
-                            <p class='error'></p>
                         </div>
                         <div class='field'>
                             <input class='button' type='submit' name='submit_button' value='Отправить'>
@@ -1752,4 +1794,20 @@ function getMessageHTML($message = ["name" => "", "text" => "", "date" => "", "i
         <p class='message-date'>$message[date]</p>
         $img
     </div>";
+}
+
+function getChatHTML($messages) {
+    $chatsHTML = "";
+    $includeChats = [];
+    foreach ($messages as $message) {
+        if (in_array($message["talks_id_supports"], $includeChats)) continue;
+        $includeChats[] = $message["talks_id_supports"];
+        $chatsHTML .= "<div class='chat' data-id-talks='$message[talks_id_supports]'>
+            <img class='avatar' src='" . getValidImage("avatars/$message[user_avatar]") ."'>
+            <p class='chat-username'>$message[user_name]</p>
+            <p class='chat-title'>$message[title_talks]</p>
+            <p>$message[is_end_talks]</p>
+        </div>";
+    }
+    return $chatsHTML;
 }

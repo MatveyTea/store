@@ -1,17 +1,19 @@
 .form-switches {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
 }
 
 .form-switches .legend {
     text-align: center;
     font-size: 2.5rem;
+    color: var(--element-color);
 }
 
 .form-switches img {
-    width: 20px;
-    height: 20px;
+    width: 25px;
+    margin-top: 9px;
+    height: auto;
     cursor: pointer;
     transition: transform 0.3s linear;
 }

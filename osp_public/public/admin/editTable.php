@@ -88,6 +88,7 @@ if ($columnNames === "FAIL") {
 }
 
 $formAddHTML = "";
+$tempFormAddButtonNew = "";
 foreach ($columnNames as $column) {
     $formAddHTML .= "<div class='field'>
         <label class='label'></label>
@@ -112,10 +113,8 @@ foreach ($columnNames as $column) {
                     <p class='error'></p>
                 </span>
             </div>
-            <div class='field'>
-                <button class='button add-one'>Добавить ещё</button>
-            </div>
         ";
+        $tempFormAddButtonNew .= "<button class='button add-one'>Добавить ещё</button>";
     }
 }
 
@@ -152,6 +151,7 @@ foreach ($table as $row) {
         </div>";
     };
 
+    $tempButtonHTML = "";
     if ($isAttribute) {
         $formEditHTML .= "<div class='field hidden'>
                 <label class='label'></label>
@@ -186,16 +186,13 @@ foreach ($table as $row) {
                 ";
             }
         }
-        $formEditHTML .= "<div class='field'>
-            <button class='button add-one'>Добавить ещё свойство</button>
-        </div>";
+        $tempButtonHTML .= "<button class='button add-one'>Добавить ещё свойство</button>";
     }
 
     $formEditHTML .= "<div class='field'>
-            <input class='button' type='submit' name='submit_button' value='Изменить'>
-        </div>
-        <div class='field'>
+            $tempButtonHTML
             <button class='button delete-all' data-id='$row[$id]' data-table='$tableName'>Удалить всё</button>
+            <input class='button' type='submit' name='submit_button' value='Изменить'>
         </div>
     </form>";
 }
@@ -209,6 +206,7 @@ include_once __DIR__ . "/../../app/server/header.php";
         <legend class="legend">Добавление</legend>
         <?= $formAddHTML  ?>
         <div class="field">
+            <?= $tempFormAddButtonNew ?>
             <input class="button" type="submit" name="submit_button" value="Создать">
         </div>
     </form>

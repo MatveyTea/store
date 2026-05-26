@@ -6,7 +6,7 @@ if (!empty(file_get_contents("php://input"))) {
 
     if ($json["token"] == $_SESSION["token"]) {
         $serverType = $json["server_type"] ?? "";
-        unset($json["server_type"]);
+        unset($json["server_type"], $json["token"]);
         $isAuth = isUserAuth();
         $isAdmin = isAdmin();
         $isDeliver = isDeliver();
@@ -48,7 +48,9 @@ if (!empty(file_get_contents("php://input"))) {
             statusOrders($json["id_orders"]);
         } else if ($serverType == "receipt_orders" && !empty($json["id_orders"])) { // deliveryItem.js - Изменение статусов доставки клиентом
             receiptOrders($json["id_orders"]);
-        } else if ($isAuth && $serverType == "start_talk" && !empty($json["title_talks"])) { // support.js - Первое написание сообщение в поддержку пользователем
+        } else if ($isAuth && $serverType == "get_talk_html" && !empty($json["id_talks"])) {
+            getTalkHTML($json["id_talks"]);
+        } else if ($isAuth && $serverType == "start_talk" && !empty($json["title_talks"]) && !empty($json["text_supports"])) { // support.js - Первое написание сообщение в поддержку пользователем
             startTalk($json);
         } else if ($isAuth && $serverType == "continue_talk" && !empty($json["talks_id_supports"]) && !empty($json["text_supports"])) { // support.js - Написание сообщение в поддержку пользователем
             continueTalk($json);

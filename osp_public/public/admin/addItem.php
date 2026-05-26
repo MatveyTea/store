@@ -153,7 +153,7 @@ getModalHTML();
         <div class="field">
             <label class="label"></label>
             <input class="input" type="file" data-name="image_items" data-is-insert-server="0">
-            <img src="<?= getValidImage() ?>">
+            <img src="<?= getValidImage("items/") ?>">
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
@@ -168,18 +168,17 @@ getModalHTML();
                 <p class="error"></p>
             </span>
         </div>
-        <div class="field">
-            <label class="label hidden"></label>
+        <div class="field hidden">
             <input type="hidden" class="hidden input" data-name="items_properties" data-is-insert-server="0">
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
-            <button class="add-properties button">Добавить свойство</button>
         </div>
         <div class="field-properties">
             <?= $attributesItemHTML ?>
         </div>
         <div class="field">
+            <button class="add-properties button">Добавить свойство</button>
             <input type="submit" class="button" name="submit_button" value="Добавить">
         </div>
     </form>

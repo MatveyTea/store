@@ -1,0 +1,52 @@
+.supports {
+    padding: 20px;
+    border-radius: 20px;
+    background-color: var(--parent-bg-color);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.support {
+    width: calc(50% - 20px);
+    padding: 20px;
+    border-radius: 20px;
+    background-color: var(--child-bg-color);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.support-username {
+    width: calc(60% - 20px);
+}
+
+.support-datetime {
+    width: calc(30% - 20px);
+    text-align: end;
+}
+
+.support-title {
+    width: 100%;
+    text-align: justify;
+}
+
+.support-accept {
+    width: 25%;
+    margin-left: auto;
+}
+
+@media (min-width: 401px) and (max-width: 768px) {
+    .support {
+        width: 100%;
+    }
+}
+
+@media  (min-width: 1px) and (max-width: 400px) {
+    .support {
+        width: 100%;
+    }
+}

@@ -14,8 +14,8 @@ if (isUserAuth()) {
     }
     if (isSupport()) {
         $headerHTML .= "
-            <a href='/support/allSupport.php'>Все вопросы</a>
-            <a href='/user/support.php'>Мои вопросы</a>
+            <a href='/support/allSupport.php'>Все обращения</a>
+            <a href='/user/support.php'>Мои обращения</a>
         ";
     } else {
         $headerHTML .= "<a href='/user/support.php'>Техподдержка</a>";

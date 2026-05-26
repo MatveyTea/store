@@ -81,10 +81,10 @@ include_once __DIR__ . "/../../app/server/header.php";
 
 <main class="content">
     <section class="current-orders">
-        <?= $basketsCurrentHTML == "" ? "<p class='notfound'>У вас нет заказов</p>" : "<h1>Ваши заказы</h1>$basketsCurrentHTML" ?>
+        <?= $basketsCurrentHTML == "" ? "<h2 class='notfound'>В данный момент у Вас нет заказов.</p>" : "<h2 class='title'>Ваши заказы</h2>$basketsCurrentHTML" ?>
     </section>
     <section class="history-orders">
-        <?= $basketsHistoryHTML == "" ? "<h1>Нет выполненных заказов</h1>" : "<h1>История выполненных заказов</h1>$basketsHistoryHTML" ?>
+        <?= $basketsHistoryHTML == "" ? "<h2 class='notfound'>В данный момент нет ни одного выполненного заказа.</h2>" : "<h2 class='title'>История выполненных заказов</h2>$basketsHistoryHTML" ?>
     </section>
 </main>
 
