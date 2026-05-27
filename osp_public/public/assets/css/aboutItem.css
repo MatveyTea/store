@@ -1,53 +1,112 @@
 .about {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: auto auto 1fr auto auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     gap: 20px;
+    background-color: var(--parent-bg-color);
+    padding: 20px;
+    border-radius: 20px;
     margin-bottom: 20px;
 }
 
-.about-name {
-    grid-column: 1 / -1;
-    grid-row: 1 / 2;
+.about-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
 }
 
-.about-rating {
-    grid-column: 1 / -1;
-    grid-row: 2 / 3;
+.about-name {
+    width: 100%;
 }
 
 .about-image {
-    width: 100%;
-    grid-column: 1 / 3;
-    grid-row: 3 /-1;
+    width: calc(60% - 10px);
+    max-height: 700px;
     border-radius: 30px;
     object-fit: cover;
-}
-
-.about-description {
-    grid-column: 3 / -1;
-    grid-row: 3 / 4;
+    position: sticky;
+    top: 120px;
 }
 
 .about-attributes {
-    grid-column: 3 / -1;
-    grid-row: 4 / 5;
+    width: calc(40% - 10px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.attribute {
+    background-color: var(--child-bg-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.attribute-name {
+    width: 30%;
+}
+
+.attribute-value {
+    width: 70%;
+    text-align: end;
+}
+
+.about-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.about-description {
+    width: calc(60% - 10px);
 }
 
 .basket {
-    grid-column: 3 / -1;
-    grid-row: 5 / -1;
-}
-
-.basket {
+    width: calc(40% - 10px);
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-main > a {
-    width: 50% !important;
-    margin: 30px auto !important;
+.basket .item-counter-container {
+    background-color: var(--child-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.form {
+    background: var(--parent-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.add-comment svg {
+    transition: filter 0.3s linear;
+    cursor: pointer;
+    filter: brightness(0);
+}
+
+.add-comment svg.active {
+    filter: brightness(1);
+}
+
+.add-comment .field:has(.input[data-name=rating_comments]) {
+    min-height: 100px !important;
+}
+
+.add-comment .field:has(.input[data-name=rating_comments]) .label {
+    width: unset !important;
+}
+
+.add-comment .input[data-name=rating_comments] {
+    width: unset;
+    padding: unset;
 }
 
 .comments {
@@ -60,47 +119,95 @@ main > a {
     border-radius: 20px;
 }
 
-.comments * {
-    color: white;
-}
-
-.comments:has(.notfound) {
+.comments:has(.notfound:not(.hidden)) {
     justify-content: center;
 }
 
 .comment {
     width: calc(50% - 10px);
+    min-height: 200px;
     padding: 20px;
     border-radius: 20px;
     background-color: var(--child-bg-color);
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
     align-items: center;
     gap: 10px;
 }
 
-.comment * {
-    color: white;
+.comment-username {
+    width: 30%;
+}
+
+.comment-date {
+    margin-left: auto;
 }
 
 .comment-text {
+    width: 100%;
     text-align: justify;
 }
 
-.comment-date, .comment-text, .comment-rating {
-    width: 100%;
+@media (min-width: 401px) and (max-width: 768px) {
+    .about-image {
+        width: 100%;
+        position: static;
+    }
+
+    .about-attributes {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .attribute {
+        width: calc(50% - 10px);
+    }
+
+    .about-description {
+        width: 100%;
+    }
+
+    .basket {
+        width: 100%;
+    }
+
+    .comment {
+        width: 100%;
+    }
+
 }
 
-.add-comment svg {
-    transition: filter 0.3s linear;
-    cursor: pointer;
-    filter: brightness(0.5);
-}
+@media (min-width: 1px) and (max-width: 400px) {
+    .about-image {
+        width: 100%;
+        position: static;
+    }
 
-.add-comment svg.active {
-    filter: brightness(1);
-}
+    .about-attributes {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
 
-.add-comment .input[data-name=rating_comments] {
-    padding: 0;
+    .attribute {
+        width: 100%;
+    }
+
+    .about-description {
+        width: 100%;
+    }
+
+    .basket {
+        width: 100%;
+    }
+
+    .comment {
+        width: 100%;
+    }
+
+    .comment-date {
+        width: 30%;
+    }
 }

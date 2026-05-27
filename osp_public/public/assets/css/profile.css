@@ -2,6 +2,9 @@
     width: calc(50% - 10px);
 }
 
+.form .field input[type=file] {
+    width: 70%;
+}
 
 @media (min-width: 401px) and (max-width: 768px) {
     .field:has(input[type=submit]) .button {

@@ -227,9 +227,8 @@ getModalHTML();
                 <p class="error"></p>
             </span>
         </div>
-        <div class="field">
-            <input type="hidden" class="hidden input" data-name="items_properties">
-            <button class="add-properties button">Добавить свойства</button>
+        <div class="field hidden">
+            <input type="hidden" class="input" data-name="items_properties">
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
@@ -238,13 +237,12 @@ getModalHTML();
             <?= $attributesHTML ?>
         </div>
         <div class="field">
+            <button class="add-properties button">Добавить свойства</button>
+            <a href="aboutItem.php?id_item=<?= $idItem ?>" class="button">Перейти к товару</a>
+            <button class='delete-item button'>Удалить товар</button>
             <input type="submit" class="button" name="submit_button" value="Обновить">
         </div>
     </form>
-    <article>
-        <a href="aboutItem.php?id_item=<?= $idItem ?>" class="button">Перейти к товару</a>
-        <button class='delete-item button'>Удалить товар</button>
-    </article>
 </main>
 
 <?php include_once __DIR__ . "/../../app/server/footer.php"; ?>

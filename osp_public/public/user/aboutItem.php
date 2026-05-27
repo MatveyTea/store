@@ -48,10 +48,9 @@ if ($comments === "FAIL") {
 
 
 $itemHTML = "
-    <h1 class='about-name'>$item[name_items], $item[name_items_type], $item[cost_items] p</h1>
-    <h2 class='about-raring'>Рейтинг: <b>" . getRatingItem($_GET["id_item"]) . "</b></h2>
-    <img class='about-image' src='" . getValidImage("items/$item[image_items]") ."'>
-    <p class='about-description'>" . ($item["description_items"] ?? "Товар без описания") . "</p>
+    <article class='about-top'>
+        <h1 class='about-name'>$item[name_items]</h1>
+        <img class='about-image' src='" . getValidImage("items/$item[image_items]") ."'>
 ";
 
 $attributes = makeSelectQuery("SELECT 
@@ -69,14 +68,35 @@ $attributes = makeSelectQuery("SELECT
 
 if ($attributes == "FAIL") redirect();
 
-$itemHTML .= "<div class='about-attributes'>";
+$itemHTML .= "<div class='about-attributes'>
+    <span class='attribute'>
+        <p class='attribute-name'>Стоимость</p>
+        <p class='attribute-value'>$item[cost_items] p</p>
+    </span>
+    <span  class='attribute'>
+        <p class='attribute-name'>Тип товара</p>
+        <p class='attribute-value'>$item[name_items_type]</p>
+    </span>
+    <span class='attribute'>
+        <p class='attribute-name'>Рейтинг</p>
+        <p class='attribute-value rating'>" . getRatingItem($_GET["id_item"]) . "</p>
+    </span>
+";
+
+$similarItemsSQL = [];
+$similarItemsParams = [];
 $currentAttributeID = null;
 foreach  ($attributes as $index => $attribute) {
     if ($currentAttributeID != $attribute["id_properties"]) {
+        $similarItemsSQL[] = "?";
+        $similarItemsParams[] = $attribute["id_properties"];
         if ($currentAttributeID != null) {
-            $itemHTML .= "</p>";
+            $itemHTML .= "</p></span>";
         } 
-        $itemHTML .= "<p class='about-attribute'>$attribute[name_properties] | ";
+        $itemHTML .= "<span class='attribute'>
+            <p class='attribute-name'>$attribute[name_properties]</p>
+            <p class='attribute-value'>
+        ";
         $currentAttributeID = $attribute["id_properties"];
     }
     $itemHTML .= $attribute["value_attributes"];
@@ -84,7 +104,12 @@ foreach  ($attributes as $index => $attribute) {
         $itemHTML .= ", ";
     }
 }
-$itemHTML .= "</p></div>";
+$itemHTML .= "
+    </p></span></div></article>
+    <article class='about-bottom'>
+        <p class='about-description'>" . ($item["description_items"] ?? "Товар без описания") . "</p>
+
+";
 
 if (isUserAuth()) {
     $itemBasket = makeSelectQuery("SELECT
@@ -103,6 +128,8 @@ if (isUserAuth()) {
     $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>" . getBuyBasketHTML($userItems, $item, $favoritesItems) . "</span>";
 }
 
+$itemHTML .= "</article>";
+
 $editItemHTML = "";
 if (isAdmin()) {
     $editItemHTML .="<a href='/admin/editItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
@@ -115,7 +142,8 @@ $starsHTML = str_repeat($star, 5);
 
 $commentForm = "";
 if (isUserAuth()) { 
-    $commentForm .= "<form action='/user/aboutItem' class='form add-comment' method='POST' data-id='$_GET[id_item]'>
+    $commentForm .= "<form action='/user/aboutItem.php' class='form add-comment' method='POST' data-id='$_GET[id_item]'>
+        <legend class='title'>Оставить отзыв</legend>
         <div class='field'>
             <label class='label'></label>
             <textarea class='input textarea' data-name='text_comments' data-is-server-insert='1'></textarea>
@@ -133,14 +161,31 @@ if (isUserAuth()) {
             </span>
         </div>
         <div class='field'>
-            <input type='submit' class='button'>
+            $editItemHTML
+            <input type='submit' name='submit_button' class='button'>
         </div>
     </form>";
 }
 
 $commentsHTML = getCommentsHTML($comments);
 if ($commentsHTML == "") {
-    $commentsHTML .= "<h2 class='notfound'>В данный момент нет отзывов.</h2>";
+    $commentsHTML = "<h2 class='notfound'>В данный момент нет отзывов.</h2> <h2 class='title hidden'>Отзывы</h2>";
+} else {
+    $commentsHTML = "<h2 class='notfound hidden'>В данный момент нет отзывов.</h2> <h2 class='title'>Отзывы</h2> $commentsHTML";
+}
+
+if ($similarItemsSQL != "" && !empty($similarItemsParams)) {
+    $similarItemsSQL = "OR `properties_id_attributes` IN (" . join(",", $similarItemsSQL) .")";
+} else {
+    $similarItemsSQL = "";
+}
+
+$similarItemsHTML = getItems(0, "WHERE (`items_type_id_items` = ? $similarItemsSQL) AND `id_items` != ?", [$item["items_type_id_items"], ...$similarItemsParams, $_GET["id_item"]], false, 20);
+
+if ($similarItemsHTML == "") {
+    $similarItemsHTML = "<h2 class='notfound'>В данный момент нет похожих товаров.</h2>";
+} else {
+    $similarItemsHTML = "<h2 class='title'>Похожие товары</h2> $similarItemsHTML";
 }
 
 getModalHTML();
@@ -151,14 +196,12 @@ include_once __DIR__ . "/../../app/server/header.php";
     <section class="about">
         <?= $itemHTML ?>
     </section>
-    <?= $editItemHTML ?>
     <?= $commentForm ?>
     <section class="comments">
         <?= $commentsHTML ?>
     </section>
     <section class="content items">
-        <h2 class="title">Похожие товары</h2>
-        <?= getItems(0, "WHERE (`items_type_id_items` = ? OR `properties_id_attributes` = ?) AND `id_items` != ?", [$item["items_type_id_items"], 1, $_GET["id_item"]], false, 20) ?>
+        <?= $similarItemsHTML ?>
     </section>
 </main>
 

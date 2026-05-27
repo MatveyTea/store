@@ -130,10 +130,8 @@ if (!empty($currentHTML)) {
                 </span>
                 </div>
                 <div class='field'>
-                    <input type='submit' name='submit_button' class='button' value='Оформить доставку'>
-                </div>
-                <div class='field'>
                     <button class='button cancel-basket'>Отмена</button>
+                    <input type='submit' name='submit_button' class='button' value='Оформить доставку'>
                 </div>
             </form>
         </article>

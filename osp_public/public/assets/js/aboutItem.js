@@ -2,12 +2,14 @@
 
 const addComment = document.querySelector(".add-comment");
 const commentsSection = document.querySelector(".comments");
+const commentNotFound = commentsSection.querySelector(".notfound");
+const commentTitle = commentsSection.querySelector(".title");
 
 if (addComment) {
-    const ratingItem = document.querySelector(".about h2 b");
+    const ratingItem = document.querySelector(".about .rating");
     const textComment = addComment.querySelector("textarea.textarea");
     const ratingComments = Array.from(addComment.querySelectorAll("svg"));
-    const commentButton = addComment.querySelector(".button");
+    const commentButton = addComment.querySelector(".button[name='submit_button']");
 
     ratingComments.forEach((svg) => {
         const currentIndexStar = ratingComments.indexOf(svg);
@@ -26,10 +28,11 @@ if (addComment) {
             document.querySelector(".form").reset();
             textComment.textContent = "";
             selectStar(ratingComments, -1);
-            commentsSection.insertAdjacentHTML("afterbegin", resultData["data"]["comments"]);
+            commentTitle.insertAdjacentHTML("afterend", resultData["data"]["comments"]);
             ratingItem.innerHTML = resultData["data"]["rating"];
-            document.querySelector(".comment:first-of-type .button").addEventListener("click", commentAction);
-            commentsSection.querySelector(".notfound")?.remove();
+            document.querySelector(".comment .button").addEventListener("click", deleteComment);
+            commentTitle.classList.remove("hidden");
+            commentNotFound.classList.add("hidden");
         } else {
             ratingComments[0].parentElement.click();
             showModal("Не удалось добавить комментарий");
@@ -42,8 +45,7 @@ if (items != null) {
     items.forEach((item) => clickableItem(item));
 }
 
-
-document.querySelectorAll("div .button[data-id]")?.forEach((button) => button.addEventListener("click", commentAction));
+document.querySelectorAll("div .button[data-id]")?.forEach((button) => button.addEventListener("click", deleteComment));
 
 const idItem = window.location.search.split("?id_item=")[1];
 addEventListener("DOMContentLoaded", async () => {
@@ -59,11 +61,11 @@ function selectStar(allStars, currentIndexStar) {
     allStars.forEach((star, index) => star.classList.toggle("active", index <= currentIndexStar));
 }
 
-async function commentAction() {
+async function deleteComment() {
     const parent = document.querySelector(`div:has(.button[data-id='${this.dataset.id}'])`);
-    parent.classList.add("hidden");
-    if (commentsSection.children.length < 2) {
-        commentsSection.innerHTML += "<p class='notfound hidden'>У товара нет отзывов</p>";
+    if (commentsSection.children.length < 4) {
+        commentTitle.classList.add("hidden");
+        commentNotFound.classList.remove("hidden");
     }
     const resultData = await sendToServer({
         "server_type": "delete_comment",
@@ -71,12 +73,7 @@ async function commentAction() {
     });
     if (resultData["status"] == "OK") {
         parent.remove();
-        commentsSection.lastElementChild.classList.remove("hidden");
     } else {
         showModal("Не удалось удалить комментарий");
-        parent.classList.remove("hidden");
-        if (commentsSection.children.length < 2) {
-            commentsSection.lastElementChild.remove();
-        }
     }
 }

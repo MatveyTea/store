@@ -1,4 +1,4 @@
-/* ПЕРЕМЕННЫЕ */
+/* ===== ПЕРЕМЕННЫЕ ===== */
 :root {
     --content-width: 95vw;
 
@@ -12,7 +12,7 @@
     --element-color-hover: #71212a;
 }
 
-/* ОБЩИЕ СВОЙСТВА */
+/* ===== ОБЩИЕ СВОЙСТВА ===== */
 * {
     margin: 0;
     padding: 0;
@@ -95,6 +95,8 @@ body main > .button  {
 .title {
     width: 100%;
     font-size: 2rem;
+    letter-spacing: 2px;
+    font-weight: bold;
 }
 
 .notfound {
@@ -105,7 +107,7 @@ body main > .button  {
     font-size: 1.5rem;
 }
 
-/* ФУТЕР */
+/* ===== ФУТЕР ===== */
 footer {
     min-height: 150px;
     background-color: var(--shell-color);
@@ -149,7 +151,7 @@ footer {
     display: none;
 }
 
-/* ФОРМА */
+/* ===== ФОРМА ===== */
 .form {
     width: 100%;
     margin: 20px auto;
@@ -299,7 +301,6 @@ footer {
 .form .field input[type=file] {
     height: 40px;
     padding: 10px 20px;
-    width: 70%;
     background-color: white;
 }
 
@@ -336,7 +337,7 @@ footer {
     resize: vertical;
 }
 
-/* ТОВАРЫ */
+/* ===== ТОВАРЫ ===== */
 .items {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -347,14 +348,9 @@ footer {
     border-radius: 20px;
 }
 
-.items * {
-    color: white;
-}
-
 .item {
     background-color: var(--child-bg-color);
     width: 100%;
-    height: max-content;
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -383,17 +379,14 @@ footer {
 
 .item-image {
     width: 100%;
-    height: auto;
-    user-select: none;
-    align-self: center;
-    border-radius: 15px;
+    height: 300px;
     object-fit: cover;
     border-radius: 30px
 }
 
 .item-basket {
     width: 100%;
-    height: 40px;
+    height: 50px;
     cursor: pointer;
     border-radius: 15px;
 }
@@ -407,7 +400,7 @@ footer {
 
 .item-counter-minus, .item-counter-plus {
     width: 15%;
-    height: 30px;
+    height: 40px;
     cursor: pointer;
     border-radius: 50px;
     background-color: var(--element-color);
@@ -424,7 +417,14 @@ footer {
     text-align: center;
 }
 
-/* ШАПКА */
+.item-favorites {
+    width: 100%;
+    height: 50px;
+    cursor: pointer;
+    border-radius: 15px;
+}
+
+/* ===== ШАПКА ===== */
 header {
     width: 100%;
     height: 100px;
@@ -437,7 +437,7 @@ header {
     position: fixed;
     top: 0;
     z-index: 10;
-    opacity: 0.1 !important; /* ===== Чтобы видеть ошибки ===== */
+    opacity: 0.1 !important; /* ===== ===== Чтобы видеть ошибки ===== ===== */
 }
 
 header nav a {
@@ -527,7 +527,7 @@ header nav a:focus {
     border-radius: 20px;
 }
 
-/* МОДАЛЬНОЕ ОКНО */
+/* ===== МОДАЛЬНОЕ ОКНО ===== */
 .modal {
     width: 33vw;
     position: fixed;
@@ -559,38 +559,34 @@ header nav a:focus {
     gap: 20px;
 }
 
-.modal span * {
-    color: white;
-}
-
-/* НОУТБУКИ 769px - 1440px */
+/* ===== НОУТБУКИ 769px - 1440px ===== */
 @media (min-width: 769px) and (max-width: 1440px) {
-    /* ОБЩИЕ СВОЙСТВА */
+    /* ===== ОБЩИЕ СВОЙСТВА ===== */
     html {
         --content-width: 96vw !important;
         font-size: 14px;
     }
 
-    /* ФОРМА */
+    /* ===== ФОРМА ===== */
     .form .field-properties .field label {
         width: calc(50% - 20px) !important;
     }
 
-    /* ТОВАРЫ */
+    /* ===== ТОВАРЫ ===== */
     .items {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
-/* ПЛАНШЕТЫ 401px - 768px */
+/* ===== ПЛАНШЕТЫ 401px - 768px ===== */
 @media (min-width: 401px) and (max-width: 768px) {
-    /* ОБЩИЕ СВОЙСТВА */
+    /* ===== ОБЩИЕ СВОЙСТВА ===== */
     html {
         --content-width: 97vw !important;
         font-size: 14px;
     }
 
-    /* ШАПКА */
+    /* ===== ШАПКА ===== */
     .header-desktop {
         display: none;
     }
@@ -599,7 +595,7 @@ header nav a:focus {
         display: flex;
     }
 
-    /* ФОРМА */
+    /* ===== ФОРМА ===== */
     .form .field {
         width: 100%;
     }
@@ -608,21 +604,21 @@ header nav a:focus {
         width: calc(50% - 20px) !important;
     }
 
-    /* ТОВАРЫ */
+    /* ===== ТОВАРЫ ===== */
     .items {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* ТЕЛЕФОНЫ 1px - 400px */
+/* ===== ТЕЛЕФОНЫ 1px - 400px ===== */
 @media  (min-width: 1px) and (max-width: 400px) {
-    /* ОБЩИЕ СВОЙСТВА */
+    /* ===== ОБЩИЕ СВОЙСТВА ===== */
     html {
         --content-width: 97vw !important;
         font-size: 12px;
     }
 
-    /* ШАПКА */
+    /* ===== ШАПКА ===== */
     .header-desktop {
         display: none;
     }
@@ -631,7 +627,7 @@ header nav a:focus {
         display: flex;
     }
 
-    /* ФОРМА */
+    /* ===== ФОРМА ===== */
     .form .field {
         width: 100%;
     }
@@ -652,6 +648,7 @@ header nav a:focus {
 
     .form .field:has(input.button) .button {
         width: 80%;
+        margin-left: unset;
     }
 
     .form .field input[type=file] {
@@ -666,12 +663,12 @@ header nav a:focus {
         width: 100%;
     }
 
-    /* ТОВАРЫ */
+    /* ===== ТОВАРЫ ===== */
     .items {
         grid-template-columns: 1fr;
     }
 
-    /* ФУТЕР */
+    /* ===== ФУТЕР ===== */
     .footer-items {
         flex-direction: column;
     }

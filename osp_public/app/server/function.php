@@ -233,7 +233,6 @@ function getItemsHTML($items, $userItems, $favoritesItems = [])
         $basket = getBuyBasketHTML($userItems, $item, $favoritesItems);
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
                 <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link' >
-                    <p>№ $item[id_items]</p>
                     <img src='" . getValidImage("items/$item[image_items]") . "' class='item-image'>
                     <p class='item-name'>$item[name_items]</p>
                     <p class='item-cost'>Стоимость: $item[cost_items]р</p>
@@ -574,7 +573,7 @@ function getValidationRules($file = "")
             "files" => ["editItem.php", "addItem.php"],
             "required" => false,
             "canUpdate" => $file == "editItem.php",
-            "returned_value" => false,
+            "returned_value" => true,
             "pattern" => function ($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
                 if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
@@ -1089,6 +1088,12 @@ function getValidatedData($array, $file = ""): array
             continue;
         }
 
+        try {
+            $value = trim($value);
+        } catch (TypeError $e) {
+            print_r($value);
+        }
+
         $value = trim($value);
         $result["data"][$key] = $value;
 
@@ -1202,7 +1207,7 @@ function getRatingItem($idItem)
         FROM `comments`
         WHERE `items_id_comments` = ?
     ", [$idItem], true);
-    return $rating == "FAIL" || $rating["rating"] == null ? 0.0 : $rating["rating"];
+    return $rating == "FAIL" || $rating["rating"] == null ? "Нет" : $rating["rating"];
 }
 
 function setAnswer($status, $data = [])
