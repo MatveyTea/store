@@ -1743,7 +1743,10 @@ function getStartMessageHTML($messages, $isSupport = false) {
 
     foreach ($messages as $index => $message) {
         if ($talksID != $message["talks_id_supports"]) {
-            $result .= "<article class='talk' id-talks='$message[talks_id_supports]'><h1>Обращение №$message[talks_id_supports] $message[title_talks]</h1><div class='messages'>";
+            $result .= "<article class='talk' id-talks='$message[talks_id_supports]'>
+                <h1 class='talk-title'>Обращение №$message[talks_id_supports] | $message[title_talks]</h1>
+                <div class='messages'>
+            ";
             $talksID = $message["talks_id_supports"];
         }
         $isMyMessage = getUserID() == $message["users_write_supports"] ? "me" : "other";
@@ -1754,9 +1757,7 @@ function getStartMessageHTML($messages, $isSupport = false) {
             if ($message["is_end_talks"] != 1) {
                     $buttonEndTalk = "";
                     if (!$isSupport) {
-                        $buttonEndTalk .= "<div class='field'>
-                            <button class='button end-talk' data-id='$talksID'>Закрыть диалог</button>
-                        </div>";
+                        $buttonEndTalk .= "<button class='button end-talk' data-id='$talksID'>Закончить диалог</button>";
                     }
                     $startTalkFrom .= "<form action='/user/support.php' method='POST' class='form continue-talk'>
                         <div class='field hidden'>
@@ -1775,9 +1776,9 @@ function getStartMessageHTML($messages, $isSupport = false) {
                             <input class='input' type='file' data-name='image_supports'>
                         </div>
                         <div class='field'>
+                            $buttonEndTalk
                             <input class='button' type='submit' name='submit_button' value='Отправить'>
                         </div>
-                        $buttonEndTalk
                     </form>";
             }
             $result .= "</div>$startTalkFrom</article>";
@@ -1807,11 +1808,12 @@ function getChatHTML($messages) {
     foreach ($messages as $message) {
         if (in_array($message["talks_id_supports"], $includeChats)) continue;
         $includeChats[] = $message["talks_id_supports"];
+        $status = $message["is_end_talks"] == 0 ? "В процессе" : "Закрыто";
         $chatsHTML .= "<div class='chat' data-id-talks='$message[talks_id_supports]'>
             <img class='avatar' src='" . getValidImage("avatars/$message[user_avatar]") ."'>
             <p class='chat-username'>$message[user_name]</p>
             <p class='chat-title'>$message[title_talks]</p>
-            <p>$message[is_end_talks]</p>
+            <p class='chat-status'>$status</p>
         </div>";
     }
     return $chatsHTML;

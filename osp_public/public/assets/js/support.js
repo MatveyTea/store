@@ -33,10 +33,11 @@ startTalk?.addEventListener("submit", async (event) => {
         talks.innerHTML = "";
         cache[tempContainer.querySelector(".input[data-name='talks_id_supports']").value] = tempContainer.children[0];
         talks.appendChild(tempContainer.children[0]);
-
+        chats.querySelector(".notfound")?.remove();
         tempContainer = document.createElement("div");
         tempContainer.insertAdjacentHTML("afterbegin", dataResult["data"]["chat"]);
-        tempContainer.querySelector(".chat").addEventListener("click", () => chatAction(chat))
+        const chat = tempContainer.querySelector(".chat");
+        chat.addEventListener("click", () => chatAction(chat));
         chats.prepend(tempContainer.children[0]);
     } else {
         showModal("Не удалось отправить сообщение.");

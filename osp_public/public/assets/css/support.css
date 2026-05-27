@@ -1,10 +1,7 @@
-.start-talk .field {
-    width: calc(33% - 10px);
-}
-
 .supports {
     height: calc(100vh - 200px);
     display: flex;
+    justify-content: space-between;
     gap: 20px;
 }
 
@@ -27,7 +24,7 @@
 
 .chat {
     display: flex;
-    height: 400px;
+    min-height: 150px;
     flex-wrap: wrap;
     gap: 20px;
     padding: 20px;
@@ -43,6 +40,7 @@
 }
 
 .chat-title {
+    width: 100%;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -57,7 +55,6 @@
     display: flex;
     flex-direction: column;
     background-color: var(--parent-bg-color);
-    
     padding: 20px;
     border-radius: 20px;
 }
@@ -73,7 +70,14 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
 
+.talk-title {
+    background: var(--child-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+    height: 200px;
+    overflow-y: auto;
 }
 
 .messages {
@@ -82,10 +86,9 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 20px;
-    border-radius: 20px;
 }
 
+.talk-title::-webkit-scrollbar,
 .messages::-webkit-scrollbar,
 .chats::-webkit-scrollbar {
     display: none;
@@ -112,8 +115,10 @@
 }
 
 .talk .form {
-    flex-wrap: nowrap;
     margin: unset;
+    background: var(--child-bg-color);
+    padding: 20px;
+    border-radius: 20px;
 }
 
 .talk .form .field {
@@ -123,21 +128,70 @@
     width: 100%;
 }
 
-.talk .form .field .input {
+ .talk .form .field .input {
     width: 100%;
 }
 
 .talk .form .field:has(.input[data-name='text_supports']) {
-    width: 275%;
+    width: calc(70% - 20px);
     height: 100%;
+}
+
+.input[data-name='text_supports'] {
+    height: 90% !important;
 }
 
 .talk .form .field:has(.input[data-name='image_supports']) {
-    width: 70%;
-    height: 100%;
+    width: calc(15% - 10px);
 }
 
 .talk .form .field:has(input[type='submit']) {
-    width: 10%;
+    width: calc(15% - 10px);
+    justify-content: space-between;
+    flex-direction: column;
     height: 100%;
+} 
+
+.talk .form .field:has(input[type='submit']) .button {
+    width: 100%;
+}
+
+@media (min-width: 401px) and (max-width: 768px) {
+    .supports {
+        height: unset;
+        flex-wrap: wrap;
+    }
+
+    .chats {
+        width: 100%;
+    }
+
+    .talks {
+        width: 100%;
+    }
+
+    .talk .form .field {
+        width: 100% !important; 
+        min-height: unset !important;
+    }
+}
+
+@media (min-width: 1px) and (max-width: 400px) {
+    .supports {
+        height: unset;
+        flex-wrap: wrap;
+    }
+
+    .chats {
+        width: 100%;
+    }
+
+    .talks {
+        width: 100%;
+    }
+
+    .talk .form .field {
+        width: 100% !important; 
+        min-height: unset !important;
+    }
 }
