@@ -11,25 +11,41 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     $_SESSION["data"] = $validatedData["data"];
 
     if ($validatedData["isCorrect"]) {
-        $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true]), ["date_add_items" => date("y-m-d")]));
+        $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true, "image_items" => true]), ["date_add_items" => date("y-m-d")]));
         $isSucceedItem = makeSafeQuery("INSERT INTO `items` ($tempSQL[sql]) VALUES ($tempSQL[question])", $tempSQL["params"]);
         $id = $link->lastInsertId();
 
         $sql = "";
         $params = [];
+        $images = $validatedData["data"]["image_items"] ?? [];
+        foreach ($images as $image) {
+            $sql .= "INSERT INTO `items_images` (`items_id_items_images`, `image_items_images`) VALUES (?, ?);";
+            array_push($params, $id, $image);
+        }
 
+        $isSucceedImages = true;
+        if ($sql != "" && $params != []) {
+            $isSucceedImages = makeSafeQuery($sql, $params);
+        }
+
+        $sql = "";
+        $params = [];
         $itemProperties = $validatedData["data"]["items_properties"] ?? [];
         foreach ($itemProperties as $property) {
             $sql .= "INSERT INTO `items_properties` (`items_id_items_properties`, `attributes_id_items_properties`) VALUES (?, ?);";
             array_push($params, $id, $property["id_attributes"]);
         }
 
-        if ($sql != "" && $params != [] && makeSafeQuery($sql, $params) || $isSucceedItem) {
+        $isSucceedProperties = true;
+        if ($sql != "" && $params != []) {
+            $isSucceedProperties = makeSafeQuery($sql, $params);
+        }
+
+        if ($isSucceedItem && $isSucceedImages && $isSucceedProperties) {
             clearValidatedSession();
             $_SESSION["server"] = "Товар добавлен";
         } else {
             $_SESSION["server"] = "Не удалось добавить товар";
-            $_SESSION["data"]["item_properties"] = $itemProperties;
         }
     } else {
         $_SESSION["server"] = "Не удалось добавить товар";
@@ -152,8 +168,8 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="file" data-name="image_items" data-is-insert-server="0">
-            <img src="<?= getValidImage("items/") ?>">
+            <input class="input" type="file" data-name="image_items" multiple="true">
+            <?= getSliderImagesItemHTML() ?>
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
@@ -169,7 +185,7 @@ getModalHTML();
             </span>
         </div>
         <div class="field hidden">
-            <input type="hidden" class="hidden input" data-name="items_properties" data-is-insert-server="0">
+            <input type="hidden" class="hidden input" data-name="items_properties">
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>

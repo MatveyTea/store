@@ -77,3 +77,5 @@ async function deleteComment() {
         showModal("Не удалось удалить комментарий");
     }
 }
+
+setSliderImageItem();

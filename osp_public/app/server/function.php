@@ -189,19 +189,21 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
     $favoritesItems = [];
 
     $orderBy = $isPopularItems ? "`views_items` DESC," : "";
+    makeSelectQuery("SET SESSION sql_mode = ''");
     $items = makeSelectQuery(
         "SELECT
         `id_items`,
         `name_items`,
         `count_items`,
-        `image_items`,
+        `image_items_images`,
         `cost_items`
         FROM `items`
         LEFT JOIN `items_properties` ON `items_id_items_properties` = `id_items`
         LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
+        LEFT JOIN `items_images` ON `items_id_items_images` = `id_items`
         $whereSQL
         GROUP BY `id_items`
-        ORDER BY $orderBy `id_items` DESC
+        ORDER BY $orderBy `id_items` DESC, `id_items_images` ASC 
         LIMIT $limit OFFSET $offset
         ", $whereParams, false
     );
@@ -233,7 +235,7 @@ function getItemsHTML($items, $userItems, $favoritesItems = [])
         $basket = getBuyBasketHTML($userItems, $item, $favoritesItems);
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
                 <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link' >
-                    <img src='" . getValidImage("items/$item[image_items]") . "' class='item-image'>
+                    <img src='" . getValidImage("items/$item[image_items_images]") . "' class='item-image'>
                     <p class='item-name'>$item[name_items]</p>
                     <p class='item-cost'>Стоимость: $item[cost_items]р</p>
                 </a>
@@ -574,15 +576,36 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => $file == "editItem.php",
             "returned_value" => true,
-            "pattern" => function ($value) {
-                $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
-                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
-                    $datetime = date("Y-m-d-H-i-s") . ".$extension";
-                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/../upload/items/$datetime")) {
-                        return $datetime;
+            "pattern" => function ($value) use ($result) {
+                $imagesFileName = [];
+                if (empty($value)) return false;
+                for($i = 0; $i < count($value["name"]); $i++) {
+                    $extension = pathinfo($value["name"][$i], PATHINFO_EXTENSION);
+                    if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"][$i] < 3_000_000) {
+                        $datetime = date("Y-m-d-H-i-s") . "$i.$extension";
+                        if (move_uploaded_file($value["tmp_name"][$i], __DIR__ . "/../upload/items/$datetime")) {
+                            $imagesFileName[] = $datetime;
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
                     }
                 }
-                return false;
+                return $imagesFileName;
+            }
+        ],
+        "image_items_update" => [
+            "files" => ["editItem.php"],
+            "required" => false,
+            "canUpdate" => true,
+            "returned_value" => true,
+            "pattern" => function ($value) use ($result) {
+                $imgs = json_decode($value, true);
+                foreach ($imgs as $img) {
+                    // unlink(unlink__DIR__ . "/../upload/items/$img[path]);
+                }
+                return $imgs;
             }
         ],
         "items_type_id_items" => [
@@ -1817,4 +1840,18 @@ function getChatHTML($messages) {
         </div>";
     }
     return $chatsHTML;
+}
+
+function getSliderImagesItemHTML($imageItemHTML = "")
+{
+    if ($imageItemHTML == "") {
+        $imageItemHTML = "<img class='image' src='" . getValidImage("items/") ."'>";
+    }
+    return "<div class='images-view'>
+            <button class='images-switch-left button hidden'><img src='/assets/img/selectArrow.png'></button>
+            <div class='images-container'>
+                $imageItemHTML
+            </div>
+            <button class='images-switch-right button hidden'><img src='/assets/img/selectArrow.png'></button>
+        </div>";
 }

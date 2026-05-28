@@ -15,23 +15,31 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     if ($validatedData["isCorrect"]) {
         $sql = "";
         $params = [];
+        $images = $validatedData["data"]["image_items"] ?? [];
+        foreach ($images as $image) {
+            $sql .= "INSERT INTO `items_images` (`items_id_items_images`, `image_items_images`) VALUES (?, ?);";
+            array_push($params, $idItem, $image);
+        }
 
-        $itemProperties = $validatedData["data"]["items_properties"] ?? [];
-        $itemPropertiesDB = makeSelectQuery(
-            "SELECT
+        $imageItemsUpdate = $validatedData["data"]["image_items_update"] ?? [];
+        foreach ($imageItemsUpdate as $image) {
+            $sql .= "DELETE FROM `items_images` WHERE `id_items_images` = ? AND `items_id_items_images` = ?;";
+            array_push($params, $image["id"], $idItem);
+        }
+
+        $itemPropertiesDB = makeSelectQuery("SELECT
             `attributes_id_items_properties`
             FROM `items_properties`
             JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
             WHERE `items_id_items_properties` = ?
-            ",
-            [$idItem],
-            false
+            ", [$idItem], false
         );
         if ($itemPropertiesDB == "FAIL") {
             $_SESSION["server"] = "Не удалось выполнить запрос";
             redirectYourself("id_item=$idItem");
         }
 
+        $itemProperties = $validatedData["data"]["items_properties"] ?? [];
         foreach ($itemProperties as $property) {
             if ($property["type"] == "remove") {
                 $sql .= "DELETE FROM `items_properties` WHERE `attributes_id_items_properties` = ? AND `items_id_items_properties` = ?;";
@@ -50,7 +58,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
             }
         }
 
-        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["items_properties" => true]));
+        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["items_properties" => true, "image_items" => true, "image_items_update" => true]));
         if ($result["sql"] != "") {
             $sql .= "UPDATE `items` SET $result[sql] WHERE `id_items` = ?;";
             $result["params"][] = $idItem;
@@ -71,7 +79,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $_SESSION["server"] = "Не корректные данные";
     }
 
-    redirectYourself("id_item=$idItem");
+    //redirectYourself("id_item=$idItem");
 }
 
 $itemInfo = makeSelectQuery("SELECT
@@ -173,6 +181,24 @@ foreach ($types as $type) {
     $typesHTML .= "<option value='$type[id_items_type]' $selected>$type[name_items_type]</option>";
 }
 
+$imagesItem = makeSelectQuery("SELECT
+    `id_items_images`,
+    `image_items_images`
+    FROM `items_images`
+    WHERE `items_id_items_images` = ?
+", [$_GET["id_item"]], false);
+if ($imagesItem === "FAIL") {
+    redirect();
+}
+
+$imagesItemHTML = "";
+foreach ($imagesItem as $img) {
+    $imagesItemHTML .= "<span class='image' data-id-items-images='$img[id_items_images]' data-path='$img[image_items_images]'>
+        <img src='" . getValidImage("items/$img[image_items_images]") ."'>
+        <button class='button'>Убрать</button>
+    </span>";
+}
+
 include_once __DIR__ . "/../../app/server/header.php";
 getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $attributes, $idItem);
 getModalHTML();
@@ -211,8 +237,9 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="file" data-name="image_items">
-            <img src="<?= getValidImage("items/$itemInfo[image_items]") ?>">
+            <input class="input" type="file" data-name="image_items" multiple="true">
+            <input class="input" type="hidden" data-name="image_items_update">
+            <?= getSliderImagesItemHTML($imagesItemHTML) ?>
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>

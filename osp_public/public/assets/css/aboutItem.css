@@ -20,13 +20,8 @@
     width: 100%;
 }
 
-.about-image {
+.images-view {
     width: calc(60% - 10px);
-    max-height: 700px;
-    border-radius: 30px;
-    object-fit: cover;
-    position: sticky;
-    top: 120px;
 }
 
 .about-attributes {
@@ -150,9 +145,10 @@
 }
 
 @media (min-width: 401px) and (max-width: 768px) {
-    .about-image {
+    .images-view {
         width: 100%;
-        position: static;
+        position: relative;
+        top: 0;
     }
 
     .about-attributes {
@@ -180,9 +176,10 @@
 }
 
 @media (min-width: 1px) and (max-width: 400px) {
-    .about-image {
+    .images-view {
         width: 100%;
-        position: static;
+        position: relative;
+        top: 0;
     }
 
     .about-attributes {

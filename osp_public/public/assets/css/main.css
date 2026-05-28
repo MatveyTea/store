@@ -424,6 +424,66 @@ footer {
     border-radius: 15px;
 }
 
+/* ===== Слайдер =====  */
+.images-view {
+    width: 100%;
+    max-height: 700px;
+    position: sticky;
+    top: 120px;
+    overflow-x: hidden;
+    border-radius: 20px;
+}
+
+.images-container {
+    width: max-content;
+    display: flex;
+    position: relative;
+    transition: transform 0.3s linear;
+}
+
+.images-switch-left, .images-switch-right {
+    width: 50px;
+    position: absolute;
+    top: 50%;
+    z-index: 10;
+    padding: 20px;
+    opacity: 0.3;
+    transition: 0.3s opacity linear;
+}
+
+.images-switch-left:hover, .images-switch-right:hover,
+.images-switch-left:focus, .images-switch-right:focus { 
+    background-color: var(--element-color);
+    opacity: 1;
+}
+
+.images-switch-left {
+    left: 10px;
+}
+
+.images-switch-left img {
+    width: 30px !important;
+    transform: rotate(90deg);
+}
+
+.images-switch-right {
+    right: 10px;
+}
+
+.images-switch-right img {
+    width: 30px !important;
+    transform: rotate(-90deg);
+}
+
+.images-container .image {
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.images-container .image img {
+    width: 100% !important;
+}
+
 /* ===== ШАПКА ===== */
 header {
     width: 100%;
@@ -436,7 +496,7 @@ header {
     flex-shrink: 0;
     position: fixed;
     top: 0;
-    z-index: 10;
+    z-index: 20;
     opacity: 0.1 !important; /* ===== ===== Чтобы видеть ошибки ===== ===== */
 }
 

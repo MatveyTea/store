@@ -93,7 +93,7 @@ function checkInput(input, rule) {
     let textMessage = "";
     let isCorrect = true;
 
-    if (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0))) {
+    if (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0 || rule.nameRule == "image_items_update"))) {
         const result = rule.check(input);
         if (result !== false) {
             textMessage = result;
@@ -215,6 +215,7 @@ function setValidationForm(form) {
 
     if (["/admin/editItem.php", "/admin/addItem.php"].includes(window.location.pathname)) {
         setProperties(form);
+        setSliderImageItem(true);
     }
 
     form.addEventListener("submit", (event) => {
@@ -228,7 +229,6 @@ function setValidationForm(form) {
                 hasUpdate = true;
             }
         });
-        // token
         // if (hasError || !hasUpdate) {
         //     event.preventDefault();
         // }
@@ -593,7 +593,7 @@ function getValidationRules() {
             "isInsertServer": null,
             "nameInput": "изображение товара",
             "inputs": null,
-            "nameRule": "image_items",
+            "nameRule": "image_items[]",
             "oldValue": null,
             "files": ["editItem.php", "addItem.php"],
             "required": false,
@@ -601,10 +601,11 @@ function getValidationRules() {
             "length": null,
             "placeMsg": null,
             "check": function (input) {
-                if (input.files.length > 0) {
-                    let extension = input.files[0].name.split(".");
+                const imagesContainer = document.querySelector(".images-container");
+                Array.from(input.files).forEach((file) => {
+                    let extension = file.name.split(".");
                     extension = extension[extension.length - 1];
-                    if (input.files[0].size > 3_000_000) {
+                    if (file.size > 3_000_000) {
                         return "Размер файла не должен превышать 3МБ";
                     }
 
@@ -613,17 +614,52 @@ function getValidationRules() {
                     }
 
                     let reader = new FileReader();
-                    reader.readAsDataURL(input.files[0]);
+                    reader.readAsDataURL(file);
                     reader.addEventListener("load", (event) => {
                         if (event.target.result != null) {
-                            let img = input.parentElement.querySelector("img");
-                            img.classList.remove("hidden");
+                            let img = document.createElement("img");
                             img.src = event.target.result;
+                            imagesContainer.appendChild(img);
                         } else {
                             return "Не удалось загрузить картинку";
                         }
                     });
+                });
+                return false;
+            }
+        },
+        "image_items_update": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": null,
+            "inputs": null,
+            "nameRule": "image_items_update",
+            "oldValue": null,
+            "files": ["editItem.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                const result = [];
+                const deleteImages = document.querySelectorAll(".images-container .hidden");
+                deleteImages.forEach((image) => {
+                    result.push({
+                        "id": image.dataset.idItemsImages,
+                        "path": image.dataset.path
+                    });
+                });
+                if (input.value != JSON.stringify(result)) {
+                    input.value = JSON.stringify(result);
+                    input.dispatchEvent(new Event("change"));
                 }
+
                 return false;
             }
         },
@@ -1687,3 +1723,77 @@ function setBurgerMenu() {
 window.addEventListener("resize", () => {
     setBurgerMenu();
 });
+
+function setSliderImageItem(isAdminFile = false) {
+    const imagesView = document.querySelector(".images-view");
+    const imagesContainer = imagesView.querySelector(".images-container");
+
+    imagesContainer.addEventListener("click", (event) => {
+        if (event.target.tagName == "BUTTON") {
+            event.preventDefault();
+            event.target.parentElement.classList.add("hidden");
+        }
+    });
+
+    let currentIndex = 0;
+    let currentTranslate = 0;
+    let step = imagesView.clientWidth;
+    const leftSwitch = imagesView.querySelector(".images-switch-left");
+    const rightSwitch = imagesView.querySelector(".images-switch-right");
+    leftSwitch.addEventListener("click", (event) => {
+        event.preventDefault();
+        leftSwitch.classList.toggle("hidden", currentIndex - 2 < 0);
+        rightSwitch.classList.toggle("hidden", currentIndex - 1 >= imagesContainer.children.length);
+        if (currentIndex - 1 < 0) return;
+        currentIndex--;
+        currentTranslate += step;
+        imagesContainer.style.transform = `translateX(${currentTranslate}px)`;
+    });
+    rightSwitch.addEventListener("click", (event) => {
+        event.preventDefault();
+        leftSwitch.classList.toggle("hidden", currentIndex + 1 < 0);
+        rightSwitch.classList.toggle("hidden", currentIndex + 2 >= imagesContainer.children.length);
+        if (currentIndex + 1 >= imagesContainer.children.length) return;
+        currentIndex++;
+        currentTranslate -= step;
+        imagesContainer.style.transform = `translateX(${currentTranslate}px)`;
+    });
+
+    if (imagesContainer.children.length > 1) {
+        leftSwitch.click();
+    }
+
+    let timerResize = null;
+    window.addEventListener("resize", () => {
+        clearTimeout(timerResize);
+        timerResize = setTimeout(() => {
+            Array.from(imagesContainer.children).forEach((image) => {
+                image.style.width = `${imagesView.clientWidth}px`;
+            });
+            step = imagesView.clientWidth;
+            currentTranslate = (currentTranslate <= 0 ? -1 : 1) * currentIndex * step;
+            imagesContainer.style.transform = `translateX(${currentTranslate}px)`;
+        }, 100);
+    });
+
+    setTimeout(() => {
+        Array.from(imagesContainer.children).forEach((image) => {
+            image.style.width = `${imagesView.clientWidth}px`;
+        });
+    }, 100);
+
+    const observer = new MutationObserver((mutationsList) => {
+        if (mutationsList[0].addedNodes.length > 0) {
+            mutationsList[0].addedNodes[0].style.width = `${imagesView.clientWidth}px`;
+            currentIndex = 0;
+            currentTranslate = 0;
+            leftSwitch.click();
+            imagesContainer.style.transform = `translateX(${currentTranslate}px)`;
+        }
+    });
+    observer.observe(imagesContainer, { childList: true });
+
+    if (isAdminFile) {
+        
+    }
+}

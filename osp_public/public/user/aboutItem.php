@@ -46,11 +46,24 @@ if ($comments === "FAIL") {
     redirect();
 }
 
+$imagesItem = makeSelectQuery("SELECT
+    `image_items_images`
+    FROM `items_images`
+    WHERE `items_id_items_images` = ?
+", [$_GET["id_item"]], false);
+if ($imagesItem === "FAIL") {
+    redirect();
+}
+
+$imageItemHTML = "";
+foreach ($imagesItem as $img) {
+    $imageItemHTML .= "<img class='image' src='" . getValidImage("items/$img[image_items_images]") ."'>";
+}
 
 $itemHTML = "
     <article class='about-top'>
         <h1 class='about-name'>$item[name_items]</h1>
-        <img class='about-image' src='" . getValidImage("items/$item[image_items]") ."'>
+    " . getSliderImagesItemHTML($imageItemHTML) . "
 ";
 
 $attributes = makeSelectQuery("SELECT 
