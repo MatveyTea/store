@@ -47,8 +47,12 @@ async function getSearchItems() {
             itemsSection.appendChild(item);
             offset++;
         });
+        notFound.classList.add("hidden");
+        title.classList.remove("hidden");
     } else if (dataResult["status"] == "NOTFOUND" && isResetSearch) {
-        itemsSection.innerHTML = "<p class='notfound'>Ничего не найдено</p>";
+        itemsSection.innerHTML = "";
+        notFound.classList.remove("hidden");
+        title.classList.add("hidden");
     } else if (dataResult["status"] == "FAIL") {
         showModal("Не удалось выполнить запрос");
     }
@@ -74,6 +78,8 @@ function uploadItems() {
 }
 
 const itemsSection = document.querySelector(".items");
+const notFound = itemsSection.querySelector(".notfound");
+const title = itemsSection.querySelector(".title");
 const items = itemsSection.querySelectorAll(".item");
 const isAuth = items[0]?.querySelector(".item-basket");
 

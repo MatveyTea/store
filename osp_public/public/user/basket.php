@@ -56,21 +56,27 @@ foreach ($timesOrders as $time) {
     $timesOrdersHTML .= "<option>$time</option>";
 }
 
+makeSelectQuery("SET SESSION SQL_MODE = ''");
 $basket = makeSelectQuery("SELECT
     `id_orders`,
     `id_baskets`,
     `count_baskets`,
+    `discount_baskets`,
+    `cost_baskets`,
     `datetime_buy_orders`,
     `id_items`,
     `name_items`,
-    `image_items`,
     `cost_items`,
+    `image_items_images`,
+    `discount_items`,
     `name_status`
     FROM `baskets`
     JOIN `items` ON `id_items` = `items_id_baskets`
+    LEFT JOIN `items_images` ON `id_items` = `items_id_items_images`
     JOIN `orders` ON `id_orders` = `orders_id_baskets`
     JOIN `status` ON `id_status` = `status_id_orders`
     WHERE `users_id_orders` = ?
+    GROUP BY `id_baskets`
     ORDER BY CASE WHEN `datetime_buy_orders` IS NULL THEN 0 ELSE 1 END, `datetime_buy_orders` DESC
 ", [getUserID()], false);
 

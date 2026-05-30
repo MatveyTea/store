@@ -6,9 +6,11 @@ if (!isUserAuth() || empty($_GET["id_order"])) {
 }
 
 $itemsInBasketHTML = "";
+makeSelectQuery("SET SESSION SQL_MODE = ''");
 $itemsInBasket = makeSelectQuery("SELECT
     `id_orders`,
     `id_baskets`,
+    `cost_baskets`,
     `count_baskets`,
     `users_id_orders`,
     `datetime_buy_orders`,
@@ -16,13 +18,17 @@ $itemsInBasket = makeSelectQuery("SELECT
     `name_status`,
     `id_items`,
     `name_items`,
-    `image_items`,
-    `cost_items`
+    `image_items_images`,
+    `cost_items`,
+    `discount_baskets`,
+    `discount_items`
     FROM `baskets`
     JOIN `orders` ON `id_orders` = `orders_id_baskets`
     JOIN `items` ON `id_items` = `items_id_baskets`
+    LEFT JOIN `items_images` ON `id_items` = `items_id_items_images`
     JOIN `status` ON `id_status` = `status_id_orders`
     WHERE `users_id_orders` = ? AND `orders_id_baskets` = ?
+    GROUP BY `id_baskets`
 ", [getUserID(), $_GET["id_order"]], false);
 
 if ($itemsInBasket == "FAIL" || empty($itemsInBasket)) {
@@ -30,7 +36,7 @@ if ($itemsInBasket == "FAIL" || empty($itemsInBasket)) {
 }
 
 foreach ($itemsInBasket as $item) {
-    $itemsInBasketHTML .= getItemHTML($item);
+    $itemsInBasketHTML .= getItemHTML($item, true);
 }
 
 $allStatusHTML = "";

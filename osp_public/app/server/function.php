@@ -157,6 +157,7 @@ function makeSelectQuery($query, $params = [], $getOne = false)
     try {
         $stmt->execute($params);
     } catch (Throwable $e) {
+        print_r($e);
         return "FAIL";
     }
 
@@ -189,21 +190,22 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
     $favoritesItems = [];
 
     $orderBy = $isPopularItems ? "`views_items` DESC," : "";
-    makeSelectQuery("SET SESSION sql_mode = ''");
+    makeSelectQuery("SET SESSION SQL_MODE = ''");
     $items = makeSelectQuery(
         "SELECT
         `id_items`,
         `name_items`,
         `count_items`,
+        `discount_items`,
         `image_items_images`,
         `cost_items`
         FROM `items`
         LEFT JOIN `items_properties` ON `items_id_items_properties` = `id_items`
+        LEFT JOIN `items_images` ON `id_items` = `items_id_items_images`
         LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
-        LEFT JOIN `items_images` ON `items_id_items_images` = `id_items`
         $whereSQL
         GROUP BY `id_items`
-        ORDER BY $orderBy `id_items` DESC, `id_items_images` ASC 
+        ORDER BY $orderBy `id_items` DESC 
         LIMIT $limit OFFSET $offset
         ", $whereParams, false
     );
@@ -223,41 +225,41 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
         if ($userItems == "FAIL") return $result;
     }
 
-    $result = getItemsHTML($items, $userItems, $favoritesItems);
-
-    return $result;
-}
-
-function getItemsHTML($items, $userItems, $favoritesItems = [])
-{
-    $result = "";
     foreach ($items as $item) {
         $basket = getBuyBasketHTML($userItems, $item, $favoritesItems);
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
                 <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link' >
                     <img src='" . getValidImage("items/$item[image_items_images]") . "' class='item-image'>
                     <p class='item-name'>$item[name_items]</p>
-                    <p class='item-cost'>Стоимость: $item[cost_items]р</p>
+                    <p class='item-cost'>Стоимость: " . calculateDiscount($item, false) ."р</p>
                 </a>
                 $basket
             </span>
         ";
     }
+
     return $result;
 }
 
-function getItemHTML($item)
+function getItemHTML($item, $isBasket = true)
 {
     $result = "";
     if ($item == null) return $result;
-    $img = getValidImage("items/$item[image_items]");
+    $img = getValidImage("items/$item[image_items_images]");
     $result .= "<a href='/user/aboutItem.php?id_item=$item[id_items]' class='item' data-id='$item[id_items]' data-count='$item[count_baskets]'>
         <img src='$img' class='item-image'>
         <p class='item-name'>$item[name_items]</p>
         <p class='item-count'>Количество: $item[count_baskets]</p>
-        <p class='item-cost'>Стоимость: $item[cost_items]р</p>
+        <p class='item-cost'>Стоимость: " . calculateDiscount($item, $isBasket) . "р</p>
     </a>";
     return $result;
+}
+
+function calculateDiscount($item, $isBasket = true)
+{
+    $cost = $isBasket ? $item["cost_baskets"] ?? $item["cost_items"] : $item["cost_items"];
+    $discount = ($isBasket ? $item["discount_baskets"] ?? $item["discount_items"]: $item["discount_items"]) ?? 0;
+    return $cost * (1 - $discount / 100);
 }
 
 function getBuyBasketHTML($userItems = [], $item = [], $favoritesItems = [])
@@ -316,8 +318,8 @@ function getBasketHTML($basket)
     $lastUserItem = end($basket);
     foreach ($basket as $item) {
         if (empty($item["datetime_buy_orders"])) {
-            $currentHTML .= getItemHTML($item);
-            $currentCost += $item["cost_items"] * $item["count_baskets"];
+            $currentHTML .= getItemHTML($item, true);//
+            $currentCost += calculateDiscount($item, false) * $item["count_baskets"];
         } else {
             if ($idOrder != $item["id_orders"]) {
                 if ($idOrder != null) {
@@ -336,8 +338,8 @@ function getBasketHTML($basket)
                 $idOrder = $item["id_orders"];
                 $nameStatus = $item["name_status"];
             }
-            $historyHTML .= getItemHTML($item);
-            $historyCost += $item["cost_items"] * $item["count_baskets"];
+            $historyHTML .= getItemHTML($item, true);
+            $historyCost += calculateDiscount($item, true) * $item["count_baskets"];
             if ($item["id_baskets"] == $lastUserItem["id_baskets"]) {
                 $historyHTML .= "</div>
                     <p>Всего: {$historyCost}р</p>
@@ -571,7 +573,16 @@ function getValidationRules($file = "")
                 return preg_match("/^[0-9]{1,7}$/u", $value);
             }
         ],
-        "image_items" => [
+        "discount_items" => [
+            "files" => ["editItem.php", "addItem.php"],
+            "required" => false,
+            "canUpdate" => $file == "editItem.php",
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return preg_match("/^[0-9]{1,7}$/u", $value);
+            }
+        ],
+        "image_items_images" => [
             "files" => ["editItem.php", "addItem.php"],
             "required" => false,
             "canUpdate" => $file == "editItem.php",
@@ -762,6 +773,18 @@ function getValidationRules($file = "")
             "pattern" => function ($value) {
                 if ($value == "on") {
                     return ["sql" => "`views_items` > ?", "param" => 0];
+                }
+                return false;
+            }
+        ],
+        "discount_search_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if ($value == "on") {
+                    return ["sql" => "`discount_items` > ?", "param" => 0];
                 }
                 return false;
             }
@@ -1269,6 +1292,7 @@ function changeBasket($idItem, $countItem, $actionItem)
 
         setAnswer($isSuccess ? "OK" : "FAIL");
     } else if ($actionItem == "remove") {
+        //
         $isSuccess = makeSafeQuery("DELETE FROM `baskets` WHERE `items_id_baskets` = ? AND `orders_id_baskets` = ?", [$idItem, $orders["id_orders"]]);
         setAnswer($isSuccess ? "OK" : "FAIL");
     } else {
@@ -1299,6 +1323,18 @@ function buyItems($json)
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
     $json = $validatedData["data"];
 
+    $test = makeSelectQuery("SELECT * FROM `baskets` JOIN `orders` ON `orders`.`id_orders` = `baskets`.`orders_id_baskets` JOIN `items` ON `items`.`id_items` = `baskets`.`items_id_baskets` WHERE `orders`.`users_id_orders` = ? AND `orders`.`status_id_orders` = ?", [getUserID(), 1], false);
+    if ($test == "FAIL") setAnswer("FAIL");
+    $sql = "";
+    $params = [];
+    foreach ($test as $t) {
+        $sql .= "UPDATE `baskets` SET `cost_baskets` = ?, `discount_baskets` = ? WHERE `id_baskets` = ?;";
+        array_push($params, $t["cost_items"], $t["discount_items"], $t["id_baskets"]);
+    }
+    if ($sql == "" || $params == []) setAnswer("FAIL");
+    $isSuccess = makeSafeQuery($sql, $params);
+    if (!$isSuccess) setAnswer("FAIL");
+
     $datetime = date("y-m-d H:i:s");
     $isSuccess = makeSafeQuery("UPDATE `orders` SET
         `status_id_orders` = ?,
@@ -1314,7 +1350,7 @@ function buyItems($json)
         $json["note_orders"],
         $json["datetime_plan_orders"]["start"],
         $json["datetime_plan_orders"]["end"],
-        getUserID(), 1,]);
+        getUserID(), 1]);
 
     if (!$isSuccess) setAnswer("FAIL");
 
@@ -1322,11 +1358,12 @@ function buyItems($json)
         `id_orders`,
         `id_baskets`,
         `count_baskets`,
+        `cost_baskets`,
+        `discount_baskets`,
         `users_id_orders`,
         `datetime_buy_orders`,
         `id_items`,
         `name_items`,
-        `image_items`,
         `cost_items`,
         `name_status`
         FROM `baskets`
@@ -1371,7 +1408,6 @@ function deleteItem($idItem)
 
 function searchItems($json)
 {
-    unset($json["server_type"]);
     $data = getValidatedData($json, "index.php");
     if (!$data["isCorrect"]) setAnswer("FAIL");
 
@@ -1842,16 +1878,38 @@ function getChatHTML($messages) {
     return $chatsHTML;
 }
 
-function getSliderImagesItemHTML($imageItemHTML = "")
+function getImagesItemHTML($img = [], $isAdminFile = false)
 {
-    if ($imageItemHTML == "") {
-        $imageItemHTML = "<img class='image' src='" . getValidImage("items/") ."'>";
+    $id = empty($img["id_items_images"]) ? "" : "data-id-items-images='$img[id_items_images]'";
+    $path = empty($img["image_items_images"]) ? "" : "data-path='$img[image_items_images]'";
+    $imageName = empty($img["image_items_images"]) ? "" : $img["image_items_images"];
+    $buttonRemoveHTML = "";
+    if ($isAdminFile) {
+        $buttonRemoveHTML .= "<button class='button'>Убрать это фото</button>";
     }
+    return "<span class='image' $id $path>
+        <img src='" . getValidImage("items/$imageName") ."'>
+        $buttonRemoveHTML
+    </span>";
+}
+
+function getSliderImagesItemHTML($imagesItem = [], $addBaseImage = false)
+{   
+    $isAdminFile = basename(dirname($_SERVER["SCRIPT_FILENAME"])) == "admin";
+    $imagesItemHTML = "";
+    if (!empty($imagesItem)) {
+        foreach ($imagesItem as $img) {
+            $imagesItemHTML .= getImagesItemHTML($img, $isAdminFile);
+        }
+    } else if ($addBaseImage) {
+        $imagesItemHTML = getImagesItemHTML();
+    }
+
     return "<div class='images-view'>
-            <button class='images-switch-left button hidden'><img src='/assets/img/selectArrow.png'></button>
-            <div class='images-container'>
-                $imageItemHTML
-            </div>
-            <button class='images-switch-right button hidden'><img src='/assets/img/selectArrow.png'></button>
-        </div>";
+        <button class='images-switch-left button hidden'><img src='/assets/img/selectArrow.png'></button>
+        <div class='images-container'>
+            $imagesItemHTML
+        </div>
+        <button class='images-switch-right button hidden'><img src='/assets/img/selectArrow.png'></button>
+    </div>";
 }

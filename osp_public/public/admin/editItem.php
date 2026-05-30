@@ -15,7 +15,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     if ($validatedData["isCorrect"]) {
         $sql = "";
         $params = [];
-        $images = $validatedData["data"]["image_items"] ?? [];
+        $images = $validatedData["data"]["image_items_images"] ?? [];
         foreach ($images as $image) {
             $sql .= "INSERT INTO `items_images` (`items_id_items_images`, `image_items_images`) VALUES (?, ?);";
             array_push($params, $idItem, $image);
@@ -58,7 +58,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
             }
         }
 
-        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["items_properties" => true, "image_items" => true, "image_items_update" => true]));
+        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["items_properties" => true, "image_items_images" => true, "image_items_update" => true]));
         if ($result["sql"] != "") {
             $sql .= "UPDATE `items` SET $result[sql] WHERE `id_items` = ?;";
             $result["params"][] = $idItem;
@@ -79,13 +79,12 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $_SESSION["server"] = "Не корректные данные";
     }
 
-    //redirectYourself("id_item=$idItem");
+    redirectYourself("id_item=$idItem");
 }
 
 $itemInfo = makeSelectQuery("SELECT
     `name_items`,
     `count_items`,
-    `image_items`,
     `cost_items`,
     `date_add_items`,
     `description_items`,
@@ -113,7 +112,10 @@ if ($allAttributes == "FAIL") {
 }
 $allAttributesHTML = "";
 foreach ($allAttributes as $attribute) {
-    $allAttributesHTML .= "<label class='hidden'>$attribute[value_attributes]<input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_select_value' data-is-insert-server='1'></label>";
+    $allAttributesHTML .= "<label class='hidden'>
+        $attribute[value_attributes]
+        <input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_select_value'>
+    </label>";
 }
 
 $dataValue = [];
@@ -191,14 +193,6 @@ if ($imagesItem === "FAIL") {
     redirect();
 }
 
-$imagesItemHTML = "";
-foreach ($imagesItem as $img) {
-    $imagesItemHTML .= "<span class='image' data-id-items-images='$img[id_items_images]' data-path='$img[image_items_images]'>
-        <img src='" . getValidImage("items/$img[image_items_images]") ."'>
-        <button class='button'>Убрать</button>
-    </span>";
-}
-
 include_once __DIR__ . "/../../app/server/header.php";
 getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $attributes, $idItem);
 getModalHTML();
@@ -210,6 +204,13 @@ getModalHTML();
         <div class="field">
             <label class="label"></label>
             <input class="input" type="text" value="<?= $itemInfo["name_items"] ?? "" ?>" data-name="name_items">
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
+        </div>
+        <div class="field">
+            <label class="label"></label>
+            <textarea class="input" type="text" value="<?= $data["description_items"] ?? "" ?>" data-name="description_items" data-is-insert-server="<?= empty($data["description_items"]) ? 1 : 0 ?>"></textarea>
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
@@ -230,16 +231,7 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="text" value="<?= $data["description_items"] ?? "" ?>" data-name="description_items" data-is-insert-server="<?= empty($data["description_items"]) ? 1 : 0 ?>">
-            <span class="error-wrapper">
-                <p class="error"></p>
-            </span>
-        </div>
-        <div class="field">
-            <label class="label"></label>
-            <input class="input" type="file" data-name="image_items" multiple="true">
-            <input class="input" type="hidden" data-name="image_items_update">
-            <?= getSliderImagesItemHTML($imagesItemHTML) ?>
+            <input class="input" type="number" value="<?= $itemInfo["discount_items"] ?? "" ?>" data-name="discount_items">
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
@@ -250,6 +242,15 @@ getModalHTML();
                 <option value="" disabled selected>Выбрать</option>
                 <?= $typesHTML ?>
             </select>
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
+        </div>
+        <div class="field">
+            <label class="label"></label>
+            <input class="input" type="file" data-name="image_items_images" multiple="true">
+            <input class="input" type="hidden" data-name="image_items_update">
+            <?= getSliderImagesItemHTML($imagesItem, false) ?>
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
@@ -265,11 +266,15 @@ getModalHTML();
         </div>
         <div class="field">
             <button class="add-properties button">Добавить свойства</button>
-            <a href="aboutItem.php?id_item=<?= $idItem ?>" class="button">Перейти к товару</a>
+            <a href="/user/aboutItem.php?id_item=<?= $idItem ?>" class="button">Перейти к товару</a>
             <button class='delete-item button'>Удалить товар</button>
             <input type="submit" class="button" name="submit_button" value="Обновить">
         </div>
     </form>
 </main>
+
+<template class="template-image">
+    <?= getImagesItemHTML(isAdminFile: true); ?>
+</template>
 
 <?php include_once __DIR__ . "/../../app/server/footer.php"; ?>

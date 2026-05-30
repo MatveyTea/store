@@ -6,23 +6,29 @@ if (!isUserAuth() || !isDeliver()) {
 }
 
 $basketsHTML = "";
+makeSelectQuery("SET SESSION SQL_MODE = ''");
 $baskets = makeSelectQuery("SELECT
     `id_orders`,
     `id_baskets`,
     `count_baskets`,
+    `cost_baskets`,
+    `discount_baskets`,
+    `image_items_images`,
     `users_id_orders`,
     `datetime_buy_orders`,
     `id_status`,
     `name_status`,
     `id_items`,
     `name_items`,
-    `image_items`,
-    `cost_items`
+    `cost_items`,
+    `discount_items`
     FROM `baskets`
     JOIN `items` ON `id_items` = `items_id_baskets`
+    LEFT JOIN `items_images` ON `items_id_items_images` = `id_items`
     JOIN `orders` ON `id_orders` = `orders_id_baskets`
     JOIN `status` ON `id_status` = `status_id_orders`
     WHERE `status_id_orders` = ?
+    GROUP BY `id_baskets`
     ORDER BY `datetime_buy_orders` DESC
 ", [2], false);
 if ($baskets == "FAIL") {
@@ -41,7 +47,7 @@ foreach ($baskets as $index => $basket) {
         ";
         $datetimeBuy = $basket["datetime_buy_orders"];
     }
-    $basketsHTML .= getItemHTML($basket);
+    $basketsHTML .= getItemHTML($basket, true);
     if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_orders"] != $datetimeBuy) {
         $basketsHTML .= "
                 </div>

@@ -9,7 +9,7 @@ $item = makeSelectQuery("SELECT
     `id_items`,
     `name_items`,
     `count_items`,
-    `image_items`,
+    `image_items_images`,
     `cost_items`,
     `date_add_items`,
     `description_items`,
@@ -18,6 +18,7 @@ $item = makeSelectQuery("SELECT
     `attributes`.`properties_id_attributes`
     FROM `items`
     LEFT JOIN `items_type` ON `items_type`.`id_items_type` = `items_type_id_items`
+    LEFT JOIN `items_images` ON `items_id_items_images` = `id_items`
     LEFT JOIN `items_properties` ON `id_items_properties` = `id_items`
     LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
     LEFT JOIN `properties` ON `properties_id_attributes` = `id_properties`
@@ -55,15 +56,9 @@ if ($imagesItem === "FAIL") {
     redirect();
 }
 
-$imageItemHTML = "";
-foreach ($imagesItem as $img) {
-    $imageItemHTML .= "<img class='image' src='" . getValidImage("items/$img[image_items_images]") ."'>";
-}
-
 $itemHTML = "
-    <article class='about-top'>
         <h1 class='about-name'>$item[name_items]</h1>
-    " . getSliderImagesItemHTML($imageItemHTML) . "
+    " . getSliderImagesItemHTML($imagesItem, true) . "
 ";
 
 $attributes = makeSelectQuery("SELECT 
@@ -81,19 +76,20 @@ $attributes = makeSelectQuery("SELECT
 
 if ($attributes == "FAIL") redirect();
 
-$itemHTML .= "<div class='about-attributes'>
-    <span class='attribute'>
-        <p class='attribute-name'>Стоимость</p>
-        <p class='attribute-value'>$item[cost_items] p</p>
-    </span>
-    <span  class='attribute'>
-        <p class='attribute-name'>Тип товара</p>
-        <p class='attribute-value'>$item[name_items_type]</p>
-    </span>
-    <span class='attribute'>
-        <p class='attribute-name'>Рейтинг</p>
-        <p class='attribute-value rating'>" . getRatingItem($_GET["id_item"]) . "</p>
-    </span>
+$itemHTML .= "<article class='about-right'>
+    <div class='about-attributes'>
+        <span class='attribute'>
+            <p class='attribute-name'>Стоимость</p>
+            <p class='attribute-value'>" . calculateDiscount($item, true) . "p</p>
+        </span>
+        <span  class='attribute'>
+            <p class='attribute-name'>Тип товара</p>
+            <p class='attribute-value'>$item[name_items_type]</p>
+        </span>
+        <span class='attribute'>
+            <p class='attribute-name'>Рейтинг</p>
+            <p class='attribute-value rating'>" . getRatingItem($_GET["id_item"]) . "</p>
+        </span>
 ";
 
 $similarItemsSQL = [];
@@ -116,12 +112,11 @@ foreach  ($attributes as $index => $attribute) {
     if ($index + 1 < count($attributes) && $attribute["id_properties"] == $attributes[$index + 1]["id_properties"]) {
         $itemHTML .= ", ";
     }
+    if ($index + 1 >= count($attributes)) {
+        $itemHTML .= "</p></span>";
+    }
 }
-$itemHTML .= "
-    </p></span></div></article>
-    <article class='about-bottom'>
-        <p class='about-description'>" . ($item["description_items"] ?? "Товар без описания") . "</p>
-
+$itemHTML .= "</div>
 ";
 
 if (isUserAuth()) {
@@ -141,12 +136,12 @@ if (isUserAuth()) {
     $itemHTML .= "<span class='basket' data-id='$_GET[id_item]' data-count='$item[count_items]'>" . getBuyBasketHTML($userItems, $item, $favoritesItems) . "</span>";
 }
 
-$itemHTML .= "</article>";
-
 $editItemHTML = "";
 if (isAdmin()) {
-    $editItemHTML .="<a href='/admin/editItem.php?id_item=$_GET[id_item]' class='button'>Изменить товар</a>";
+    $editItemHTML .="<a href='/admin/editItem.php?id_item=$_GET[id_item]' class='edit button'>Изменить товар</a>";
 }
+
+$itemHTML .= "$editItemHTML</article>";
 
 $star = "<svg width='30' height='30' fill='#FFD700' class='inactive'>
     <use xlink:href='/assets/img/star.svg#star'></use>
@@ -208,6 +203,10 @@ include_once __DIR__ . "/../../app/server/header.php";
 <main class="content">
     <section class="about">
         <?= $itemHTML ?>
+    </section>
+    <section class="description">
+        <h2 class="title">Описание товара</h2>
+        <p><?= $item["description_items"] ?? "Товар без описания" ?></p>
     </section>
     <?= $commentForm ?>
     <section class="comments">

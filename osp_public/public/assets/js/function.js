@@ -102,7 +102,7 @@ function checkInput(input, rule) {
     }
 
     if (rule.placeMsg[input.id]) {
-        if (textMessage == "") {//
+        if (isCorrect) {
             rule.timerId = setTimeout(() => {
                 clearTimeout(rule.timerId);
                 rule.placeMsg[input.id].textContent = textMessage;
@@ -582,7 +582,32 @@ function getValidationRules() {
                 return "Введите число до 9 999 999";
             }
         },
-        "image_items": {
+        "discount_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "процент скидки",
+            "inputs": null,
+            "nameRule": "discount_items",
+            "oldValue": null,
+            "files": ["editItem.php", "addItem.php"],
+            "required": false,
+            "timerId": null,
+            "length": 7,
+            "placeMsg": null,
+            "check": function (input) {
+                if (/^[0-9]{1,7}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите число до 9 999 999";
+            }
+        },
+        "image_items_images": {
             "wayDefineValue": function(input) {
                 return input.value;
             },
@@ -593,7 +618,7 @@ function getValidationRules() {
             "isInsertServer": null,
             "nameInput": "изображение товара",
             "inputs": null,
-            "nameRule": "image_items[]",
+            "nameRule": "image_items_images[]",
             "oldValue": null,
             "files": ["editItem.php", "addItem.php"],
             "required": false,
@@ -602,6 +627,7 @@ function getValidationRules() {
             "placeMsg": null,
             "check": function (input) {
                 const imagesContainer = document.querySelector(".images-container");
+                const templateImage = document.querySelector(".template-image").content.firstElementChild;
                 Array.from(input.files).forEach((file) => {
                     let extension = file.name.split(".");
                     extension = extension[extension.length - 1];
@@ -617,9 +643,9 @@ function getValidationRules() {
                     reader.readAsDataURL(file);
                     reader.addEventListener("load", (event) => {
                         if (event.target.result != null) {
-                            let img = document.createElement("img");
-                            img.src = event.target.result;
-                            imagesContainer.appendChild(img);
+                            let image = templateImage.cloneNode(true);
+                            image.querySelector("img").src = event.target.result;
+                            imagesContainer.appendChild(image);
                         } else {
                             return "Не удалось загрузить картинку";
                         }
@@ -648,7 +674,7 @@ function getValidationRules() {
             "placeMsg": null,
             "check": function (input) {
                 const result = [];
-                const deleteImages = document.querySelectorAll(".images-container .hidden");
+                const deleteImages = document.querySelectorAll(".images-container .hidden[data-id-items-images][data-path]");
                 deleteImages.forEach((image) => {
                     result.push({
                         "id": image.dataset.idItemsImages,
@@ -914,9 +940,31 @@ function getValidationRules() {
             "connectedRules": null,
             "connectedInputs": null,
             "isInsertServer": null,
-            "nameInput": "искать только среди популярных товаров",
+            "nameInput": "искать среди популярных товаров",
             "inputs": null,
             "nameRule": "popular_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                return false;
+            }
+        },
+        "discount_search_items": {
+            "wayDefineValue": function(input) {
+                return input.checked;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "искать товары со скидкой",
+            "inputs": null,
+            "nameRule": "discount_search_items",
             "oldValue": null,
             "files": ["index.php"],
             "required": false,
@@ -1728,22 +1776,17 @@ function setSliderImageItem(isAdminFile = false) {
     const imagesView = document.querySelector(".images-view");
     const imagesContainer = imagesView.querySelector(".images-container");
 
-    imagesContainer.addEventListener("click", (event) => {
-        if (event.target.tagName == "BUTTON") {
-            event.preventDefault();
-            event.target.parentElement.classList.add("hidden");
-        }
-    });
-
+    let isTwoImage = document.body.offsetWidth > 768 && isAdminFile ? 2 : 1;
+    let countImage = imagesContainer.children.length;
     let currentIndex = 0;
     let currentTranslate = 0;
-    let step = imagesView.clientWidth;
+    let step = imagesView.clientWidth / isTwoImage + imagesContainer.computedStyleMap().get("column-gap").value / isTwoImage;
     const leftSwitch = imagesView.querySelector(".images-switch-left");
     const rightSwitch = imagesView.querySelector(".images-switch-right");
     leftSwitch.addEventListener("click", (event) => {
         event.preventDefault();
-        leftSwitch.classList.toggle("hidden", currentIndex - 2 < 0);
-        rightSwitch.classList.toggle("hidden", currentIndex - 1 >= imagesContainer.children.length);
+        leftSwitch.classList.toggle("hidden", currentIndex - 2 < 0 || countImage < 2);
+        rightSwitch.classList.toggle("hidden", currentIndex - 1 >= countImage || countImage < 2);
         if (currentIndex - 1 < 0) return;
         currentIndex--;
         currentTranslate += step;
@@ -1751,15 +1794,15 @@ function setSliderImageItem(isAdminFile = false) {
     });
     rightSwitch.addEventListener("click", (event) => {
         event.preventDefault();
-        leftSwitch.classList.toggle("hidden", currentIndex + 1 < 0);
-        rightSwitch.classList.toggle("hidden", currentIndex + 2 >= imagesContainer.children.length);
-        if (currentIndex + 1 >= imagesContainer.children.length) return;
+        leftSwitch.classList.toggle("hidden", currentIndex + 1 < 0 || countImage < 2);
+        rightSwitch.classList.toggle("hidden", currentIndex + isTwoImage + 1 >= countImage || countImage < 2);
+        if (currentIndex + 1 >= countImage) return;
         currentIndex++;
         currentTranslate -= step;
         imagesContainer.style.transform = `translateX(${currentTranslate}px)`;
     });
 
-    if (imagesContainer.children.length > 1) {
+    if (isTwoImage == 2 && countImage > 2 || isTwoImage == 1 && countImage > 1) {
         leftSwitch.click();
     }
 
@@ -1767,33 +1810,44 @@ function setSliderImageItem(isAdminFile = false) {
     window.addEventListener("resize", () => {
         clearTimeout(timerResize);
         timerResize = setTimeout(() => {
+            isTwoImage = document.body.offsetWidth > 768 && isAdminFile ? 2 : 1;
+            step = imagesView.clientWidth / isTwoImage + imagesContainer.computedStyleMap().get("column-gap").value / isTwoImage;
             Array.from(imagesContainer.children).forEach((image) => {
-                image.style.width = `${imagesView.clientWidth}px`;
+                image.style.width = `${imagesView.clientWidth / isTwoImage - (isTwoImage == 2 ? imagesContainer.computedStyleMap().get("column-gap").value / 2 : 0)}px`;
             });
-            step = imagesView.clientWidth;
-            currentTranslate = (currentTranslate <= 0 ? -1 : 1) * currentIndex * step;
+            currentTranslate = 0;
             imagesContainer.style.transform = `translateX(${currentTranslate}px)`;
+            const tempIndex = isTwoImage == 2 && currentIndex + 1 >= countImage ? currentIndex - 1 : currentIndex;
+            currentIndex = 0;
+            for (let i = 0; i < tempIndex; i++) {
+                rightSwitch.click();
+            }
         }, 100);
     });
 
     setTimeout(() => {
         Array.from(imagesContainer.children).forEach((image) => {
-            image.style.width = `${imagesView.clientWidth}px`;
+            image.style.width = `${imagesView.clientWidth / isTwoImage - (isTwoImage == 2 ? imagesContainer.computedStyleMap().get("column-gap").value / 2 : 0)}px`;
         });
     }, 100);
 
-    const observer = new MutationObserver((mutationsList) => {
-        if (mutationsList[0].addedNodes.length > 0) {
-            mutationsList[0].addedNodes[0].style.width = `${imagesView.clientWidth}px`;
-            currentIndex = 0;
-            currentTranslate = 0;
-            leftSwitch.click();
-            imagesContainer.style.transform = `translateX(${currentTranslate}px)`;
-        }
-    });
-    observer.observe(imagesContainer, { childList: true });
-
     if (isAdminFile) {
-        
+        imagesContainer.addEventListener("click", (event) => {
+            if (event.target.tagName == "BUTTON") {
+                event.preventDefault();
+                event.target.parentElement.classList.add("hidden");
+                countImage = imagesContainer.querySelectorAll(".image:not(.hidden)").length;
+                if (currentIndex >= countImage) {
+                    leftSwitch.click();
+                }
+            }
+        });
+        const observer = new MutationObserver((mutationsList) => {
+            if (mutationsList[0].addedNodes.length > 0) {
+                mutationsList[0].addedNodes[0].style.width = `${step}px`;
+                rightSwitch.click();
+            }
+        });
+        observer.observe(imagesContainer, { childList: true });
     }
 }

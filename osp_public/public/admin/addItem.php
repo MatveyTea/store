@@ -11,13 +11,13 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
     $_SESSION["data"] = $validatedData["data"];
 
     if ($validatedData["isCorrect"]) {
-        $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true, "image_items" => true]), ["date_add_items" => date("y-m-d")]));
+        $tempSQL = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["items_properties" => true, "image_items_images" => true]), ["date_add_items" => date("y-m-d")]));
         $isSucceedItem = makeSafeQuery("INSERT INTO `items` ($tempSQL[sql]) VALUES ($tempSQL[question])", $tempSQL["params"]);
         $id = $link->lastInsertId();
 
         $sql = "";
         $params = [];
-        $images = $validatedData["data"]["image_items"] ?? [];
+        $images = $validatedData["data"]["image_items_images"] ?? [];
         foreach ($images as $image) {
             $sql .= "INSERT INTO `items_images` (`items_id_items_images`, `image_items_images`) VALUES (?, ?);";
             array_push($params, $id, $image);
@@ -70,7 +70,10 @@ if ($allAttributes == "FAIL") {
 }
 $allAttributesHTML = "";
 foreach ($allAttributes as $attribute) {
-    $allAttributesHTML .= "<label class='hidden'>$attribute[value_attributes]<input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_select_value' data-is-insert-server='1'></label>";
+    $allAttributesHTML .= "<label class='hidden'>
+        $attribute[value_attributes]
+        <input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_select_value'>
+    </label>";
 }
 
 $dataValue = [];
@@ -147,6 +150,13 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
+            <textarea class="input" type="text" value="<?= $data["description_items"] ?? "" ?>" data-name="description_items" data-is-insert-server="<?= empty($data["description_items"]) ? 1 : 0 ?>"></textarea>
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
+        </div>
+        <div class="field">
+            <label class="label"></label>
             <input class="input" type="number" value="<?= $data["count_items"] ?? "" ?>" data-name="count_items" data-is-insert-server="<?= empty($data["count_items"]) ? 1 : 0 ?>">
             <span class="error-wrapper">
                 <p class="error"></p>
@@ -161,25 +171,25 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="text" value="<?= $data["description_items"] ?? "" ?>" data-name="description_items" data-is-insert-server="<?= empty($data["description_items"]) ? 1 : 0 ?>">
-            <span class="error-wrapper">
-                <p class="error"></p>
-            </span>
-        </div>
-        <div class="field">
-            <label class="label"></label>
-            <input class="input" type="file" data-name="image_items" multiple="true">
-            <?= getSliderImagesItemHTML() ?>
-            <span class="error-wrapper">
-                <p class="error"></p>
-            </span>
-        </div>
-        <div class="field">
-            <label class="label"></label>
             <select class="input" data-name="items_type_id_items" data-is-insert-server="<?= empty($data["name_items"]) ? 1 : 0 ?>">
                 <option value="" disabled selected>Выбрать</option>
                 <?= $typesHTML ?>
             </select>
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
+        </div>
+            <div class="field">
+            <label class="label"></label>
+            <input class="input" type="number" data-name="discount_items">
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
+        </div>
+        <div class="field">
+            <label class="label"></label>
+            <input class="input" type="file" data-name="image_items_images" multiple="true">
+            <?= getSliderImagesItemHTML([], false) ?>
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
@@ -199,5 +209,9 @@ getModalHTML();
         </div>
     </form>
 </main>
+
+<template class="template-image">
+    <?= getImagesItemHTML(isAdminFile: true); ?>
+</template>
 
 <?php include_once __DIR__ . "/../../app/server/footer.php"; ?>

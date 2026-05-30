@@ -78,4 +78,4 @@ async function deleteComment() {
     }
 }
 
-setSliderImageItem();
+setSliderImageItem(false);

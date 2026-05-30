@@ -1,19 +1,12 @@
 .about {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 20px;
     background-color: var(--parent-bg-color);
     padding: 20px;
     border-radius: 20px;
     margin-bottom: 20px;
-}
-
-.about-top {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20px;
 }
 
 .about-name {
@@ -24,8 +17,18 @@
     width: calc(60% - 10px);
 }
 
-.about-attributes {
+
+.about-right {
     width: calc(40% - 10px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+
+.about-attributes {
+    width: 100%;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -51,28 +54,37 @@
     text-align: end;
 }
 
-.about-bottom {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.about-description {
-    width: calc(60% - 10px);
+.about .edit {
+    width: 100%;
+    height: 50px;
 }
 
 .basket {
-    width: calc(40% - 10px);
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: auto;
 }
 
 .basket .item-counter-container {
     background-color: var(--child-bg-color);
     padding: 20px;
     border-radius: 20px;
+}
+
+.description {
+    background: var(--parent-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.description p {
+    text-align: justify;
 }
 
 .form {
@@ -151,6 +163,10 @@
         top: 0;
     }
 
+    .about-right {
+        width: 100%;
+    }
+
     .about-attributes {
         width: 100%;
         flex-direction: row;
@@ -159,14 +175,6 @@
 
     .attribute {
         width: calc(50% - 10px);
-    }
-
-    .about-description {
-        width: 100%;
-    }
-
-    .basket {
-        width: 100%;
     }
 
     .comment {
@@ -182,21 +190,16 @@
         top: 0;
     }
 
-    .about-attributes {
+    .about-right {
         width: 100%;
+    }
+
+    .about-attributes {
         flex-direction: row;
         flex-wrap: wrap;
     }
 
     .attribute {
-        width: 100%;
-    }
-
-    .about-description {
-        width: 100%;
-    }
-
-    .basket {
         width: 100%;
     }
 
