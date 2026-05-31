@@ -5,7 +5,7 @@ if (!isAdmin() || empty($_GET["table"])) {
     redirect();
 }
 
-$tableName = in_array($_GET["table"], ["properties", "status", "items_type"]) ? $_GET["table"] : false;
+$tableName = in_array($_GET["table"], ["properties", "items_type"]) ? $_GET["table"] : false;
 $isAttribute = $tableName == "properties";
 
 if (!$tableName) {

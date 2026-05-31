@@ -198,11 +198,14 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
         `count_items`,
         `discount_items`,
         `image_items_images`,
-        `cost_items`
+        `cost_items`,
+        ROUND(AVG(`rating_comments`), 1) AS `rating`,
+        COUNT(*) AS `comment_count`
         FROM `items`
         LEFT JOIN `items_properties` ON `items_id_items_properties` = `id_items`
         LEFT JOIN `items_images` ON `id_items` = `items_id_items_images`
         LEFT JOIN `attributes` ON `id_attributes` = `attributes_id_items_properties`
+        LEFT JOIN `comments` ON `id_items` = `items_id_comments` 
         $whereSQL
         GROUP BY `id_items`
         ORDER BY $orderBy `id_items` DESC 
@@ -227,11 +230,41 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
 
     foreach ($items as $item) {
         $basket = getBuyBasketHTML($userItems, $item, $favoritesItems);
+        $cost = "";
+        $rating = "";
+        if ($item["discount_items"] > 0) {
+            $cost .= "
+                <p class='current'>" . calculateDiscount($item, false) ."р</p>
+                <p class='original'>$item[cost_items]р</p>
+                <p class='discount'>$item[discount_items]%</p>
+            ";
+        } else {
+            $cost .= "<p class='current'>$item[cost_items]р</p>";
+        }
+        if ($item["rating"] > 0) {
+            $rating = "
+                <p class='item-rating'>
+                    <svg width='30' height='30' fill='#FFD700' class='inactive'>
+                        <use xlink:href='/assets/img/star.svg#star'></use>
+                    </svg>
+                    $item[rating]
+                </p>
+                <p class='item-comment'>
+                    <img src='/assets/img/comment.png'>
+                    $item[comment_count]
+                </p>
+            ";
+        } else {
+            $rating = "<p class='item-notfound'>Нет подробной информации</p>";
+        }
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
                 <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link' >
                     <img src='" . getValidImage("items/$item[image_items_images]") . "' class='item-image'>
+                    <span class='item-cost'>
+                        $cost
+                    </span>
                     <p class='item-name'>$item[name_items]</p>
-                    <p class='item-cost'>Стоимость: " . calculateDiscount($item, false) ."р</p>
+                    $rating
                 </a>
                 $basket
             </span>
@@ -241,7 +274,7 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
     return $result;
 }
 
-function getItemHTML($item, $isBasket = true)
+function getItemHTML($item)
 {
     $result = "";
     if ($item == null) return $result;
@@ -250,7 +283,7 @@ function getItemHTML($item, $isBasket = true)
         <img src='$img' class='item-image'>
         <p class='item-name'>$item[name_items]</p>
         <p class='item-count'>Количество: $item[count_baskets]</p>
-        <p class='item-cost'>Стоимость: " . calculateDiscount($item, $isBasket) . "р</p>
+        <p class='item-cost'>Стоимость: " . calculateDiscount($item, true) * $item["count_baskets"] . "р</p>
     </a>";
     return $result;
 }
@@ -258,7 +291,7 @@ function getItemHTML($item, $isBasket = true)
 function calculateDiscount($item, $isBasket = true)
 {
     $cost = $isBasket ? $item["cost_baskets"] ?? $item["cost_items"] : $item["cost_items"];
-    $discount = ($isBasket ? $item["discount_baskets"] ?? $item["discount_items"]: $item["discount_items"]) ?? 0;
+    $discount = ($isBasket ? $item["discount_baskets"] ?? $item["discount_items"] : $item["discount_items"]) ?? 0;
     return $cost * (1 - $discount / 100);
 }
 
@@ -296,13 +329,15 @@ function getBuyBasketHTML($userItems = [], $item = [], $favoritesItems = [])
     }
 
     return "
-        <span class='$classBasket item-counter-container'>
-            <button class='item-counter-minus button'>-</button>
-            <p>В корзине: <b class='item-counter-text'>$countBasket</b></p>
-            <button class='item-counter-plus button'>+</button>
-        </span>
-        <button class='item-basket button' data-type='$type'>$textBasket</button>
-        <button class='item-favorites button $classFavorites'>$textFavorites</button>
+        <div class='basket'>
+            <span class='$classBasket basket-container'>
+                <button class='basket-minus button'>-</button>
+                <p class='basket-count'>В корзине: <b class='basket-text'>$countBasket</b></p>
+                <button class='basket-plus button'>+</button>
+            </span>
+            <button class='basket-action button' data-type='$type'>$textBasket</button>
+            <button class='item-favorites button $classFavorites'>$textFavorites</button>
+        </div>
     ";
 }
 
@@ -318,32 +353,32 @@ function getBasketHTML($basket)
     $lastUserItem = end($basket);
     foreach ($basket as $item) {
         if (empty($item["datetime_buy_orders"])) {
-            $currentHTML .= getItemHTML($item, true);//
+            $currentHTML .= getItemHTML($item);//
             $currentCost += calculateDiscount($item, false) * $item["count_baskets"];
         } else {
             if ($idOrder != $item["id_orders"]) {
                 if ($idOrder != null) {
                     $historyHTML .= "</div>
-                        <p>Всего: {$historyCost}р</p>
-                        <p>Статус: $nameStatus</p>
+                        <p class='text'>Всего: {$historyCost}р</p>
+                        <p class='text'>Статус: $nameStatus</p>
                         <a href='/user/deliveryItem.php?id_order=$idOrder' class='button'>Информация о доставке</a>
                         </article>
                     ";
                     $historyCost = 0;
                 }
-                $historyHTML .= "<article class='basket'>
-                    <h2>Время покупки: " . dateformat($item["datetime_buy_orders"]) . "</h2>
+                $historyHTML .= "<article class='order'>
+                    <h2 class='subtitle'>Время покупки: " . dateformat($item["datetime_buy_orders"]) . "</h2>
                     <div class='items'>
                 ";
                 $idOrder = $item["id_orders"];
                 $nameStatus = $item["name_status"];
             }
-            $historyHTML .= getItemHTML($item, true);
+            $historyHTML .= getItemHTML($item);
             $historyCost += calculateDiscount($item, true) * $item["count_baskets"];
             if ($item["id_baskets"] == $lastUserItem["id_baskets"]) {
                 $historyHTML .= "</div>
-                    <p>Всего: {$historyCost}р</p>
-                    <p>Статус: $item[name_status]</p>
+                    <p class='text'>Всего: {$historyCost}р</p>
+                    <p class='text'>Статус: $item[name_status]</p>
                     <a href='/user/deliveryItem.php?id_order=$item[id_orders]' class='button'>Информация о доставке</a>
                     </article>
                 ";
@@ -453,6 +488,15 @@ function getValidationRules($file = "")
             "returned_value" => false,
             "pattern" => function ($value) {
                 return preg_match("/^[а-яёА-Я Ё-]{1,30}$/u", $value);
+            }
+        ],
+        "tel_users" => [
+            "files" => ["profile.php"],
+            "required" => false,
+            "canUpdate" => true,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return $value == "" || preg_match("/^\+[0-9]{9,12}$/u", $value);
             }
         ],
         "email_users" => [
@@ -579,7 +623,7 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "editItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/u", $value);
+                return $value <= 100;
             }
         ],
         "image_items_images" => [
@@ -1354,6 +1398,7 @@ function buyItems($json)
 
     if (!$isSuccess) setAnswer("FAIL");
 
+    makeSafeQuery("SET SESSION SQL_MODE = ''", []);
     $basketInfo = makeSelectQuery("SELECT
         `id_orders`,
         `id_baskets`,
@@ -1364,13 +1409,16 @@ function buyItems($json)
         `datetime_buy_orders`,
         `id_items`,
         `name_items`,
+        `image_items_images`,
         `cost_items`,
         `name_status`
         FROM `baskets`
         JOIN `items` ON `id_items` = `items_id_baskets`
         JOIN `orders` ON `id_orders` = `orders_id_baskets`
         JOIN `status` ON `id_status` = `status_id_orders`
+        LEFT JOIN `items_images` ON `items_id_items_images` = `id_items`
         WHERE `users_id_orders` = ? AND `status_id_orders` = ? AND `datetime_buy_orders` = ?
+        GROUP BY `id_items`
     ", [getUserID(), 2, $datetime], false);
 
     if ($basketInfo == "FAIL" || empty($basketInfo)) setAnswer("FAIL");
@@ -1536,7 +1584,7 @@ function deleteFromTable($table, $id)
 
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
-    if (!in_array($table, ["properties", "status", "items_type"])) setAnswer("FAIL");
+    if (!in_array($table, ["properties", "items_type"])) setAnswer("FAIL");
     $isSuccess = makeSafeQuery("DELETE FROM `$table` WHERE `id_$table` = ?", [$id]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }

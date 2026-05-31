@@ -86,6 +86,7 @@ $itemInfo = makeSelectQuery("SELECT
     `name_items`,
     `count_items`,
     `cost_items`,
+    `discount_items`,
     `date_add_items`,
     `description_items`,
     `items_type_id_items`

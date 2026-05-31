@@ -33,7 +33,7 @@ actionButtons.forEach((button) => {
             });
             if (resultData["status"] == "OK") {
                 button.dataset.idStatus++;
-                nameStatus.textContent = `Статус ${resultData["data"]["name_status"]}${allStatus[button.dataset.idStatus]["text"]}`;
+                nameStatus.textContent = `Статус: ${resultData["data"]["name_status"]}${allStatus[button.dataset.idStatus]["text"]}`;
                 if (button.dataset.idStatus > 4) {
                     button.remove();
                 } else {

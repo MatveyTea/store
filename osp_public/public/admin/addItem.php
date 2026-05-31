@@ -181,7 +181,7 @@ getModalHTML();
         </div>
             <div class="field">
             <label class="label"></label>
-            <input class="input" type="number" data-name="discount_items">
+            <input class="input" type="number" value="<?= $data["discount_items"] ?? "" ?>" data-name="discount_items" data-is-insert-server="<?= empty($data["discount_items"]) ? 1 : 0 ?>">
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>

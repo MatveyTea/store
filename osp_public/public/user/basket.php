@@ -88,39 +88,39 @@ $basketsHTML = getBasketHTML($basket);
 extract($basketsHTML);
 
 if (!empty($currentHTML)) {
-    $currentHTML = "<h2>Товары в корзине</h2>
-        <article class='basket'>
+    $currentHTML = "<h2 class='title'>Товары в корзине</h2>
+        <article class='order'>
             <div class='items'>$currentHTML</div>
+            <button class='button buy'>Оформить заказ на&nbsp;<b>{$currentCost}р</b></button>
         </article>
-        <button class='button buy'>Оформить заказ на <b>{$currentCost}р</b></button>
 
         <article class='make-order hidden'>
             <form action='/user/basket.php' class='content form' method='POST'>
                 <legend class='legend'>Доставка</legend>
                 <div class='field'>
                     <label class='label'></label>
-                    <input class='input' type='text' data-name='street_address_orders' data-is-insert-server='1'>
+                    <input class='input' type='text' data-name='street_address_orders'>
                 <span class='error-wrapper'>
                     <p class='error'></p>
                 </span>
                 </div>
                 <div class='field'>
                     <label class='label'></label>
-                    <input class='input' type='text' data-name='home_address_orders' data-is-insert-server='1'>
+                    <input class='input' type='text' data-name='home_address_orders'>
                 <span class='error-wrapper'>
                     <p class='error'></p>
                 </span>
                 </div>
                 <div class='field'>
                     <label class='label'></label>
-                    <input class='input' type='text' data-name='number_address_orders' data-is-insert-server='1'>
+                    <input class='input' type='text' data-name='number_address_orders'>
                 <span class='error-wrapper'>
                     <p class='error'></p>
                 </span>
                 </div>
                 <div class='field'>
                     <label class='label'></label>
-                    <select class='input' data-name='datetime_plan_orders' data-is-insert-server='1'>
+                    <select class='input' data-name='datetime_plan_orders'>
                         <option selected disabled value=''>Выбрать</option>
                         $timesOrdersHTML
                     </select>
@@ -130,7 +130,7 @@ if (!empty($currentHTML)) {
                 </div>
                 <div class='field'>
                     <label class='label'></label>
-                    <textarea class='input' data-name='note_orders' data-is-insert-server='1'></textarea>
+                    <textarea class='input' data-name='note_orders'></textarea>
                 <span class='error-wrapper'>
                     <p class='error'></p>
                 </span>
@@ -157,10 +157,10 @@ include_once __DIR__ . "/../../app/server/header.php";
 ?>
 
 <main class="content">
-    <section class="current-basket">
+    <section class="orders current">
         <?= $currentHTML ?>
     </section>
-    <section class="history-basket">
+    <section class="orders">
         <?= $historyHTML ?>
     </section>
 </main>

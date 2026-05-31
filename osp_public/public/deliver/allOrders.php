@@ -41,13 +41,13 @@ $lastIndexBasket = count($baskets) - 1;
 foreach ($baskets as $index => $basket) {
     if ($datetimeBuy != $basket["datetime_buy_orders"]) {
         $basketsHTML .= "
-            <article class='basket'>
+            <article class='order'>
                 <h2>Время покупки: " . dateformat($basket["datetime_buy_orders"]) . "</h2>
                 <div class='items'>
         ";
         $datetimeBuy = $basket["datetime_buy_orders"];
     }
-    $basketsHTML .= getItemHTML($basket, true);
+    $basketsHTML .= getItemHTML($basket);
     if ($index == $lastIndexBasket || $datetimeBuy != null && $baskets[$index + 1]["datetime_buy_orders"] != $datetimeBuy) {
         $basketsHTML .= "
                 </div>

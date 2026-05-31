@@ -36,7 +36,7 @@ if ($itemsInBasket == "FAIL" || empty($itemsInBasket)) {
 }
 
 foreach ($itemsInBasket as $item) {
-    $itemsInBasketHTML .= getItemHTML($item, true);
+    $itemsInBasketHTML .= getItemHTML($item);
 }
 
 $allStatusHTML = "";
@@ -61,10 +61,11 @@ include_once __DIR__ . "/../../app/server/header.php";
 
 <main class="content">
     <section class="status">
-        <h2>Статус получения товаров</h2>
+        <h2 class="title">Статус получения товаров</h2>
         <?= $allStatusHTML ?>
     </section>
     <section class="items">
+        <h2 class="title">Товары</h2>
         <?= $itemsInBasketHTML ?>
     </section>
 </main>

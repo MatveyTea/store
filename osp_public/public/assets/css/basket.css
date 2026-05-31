@@ -1,57 +1,5 @@
-.current-basket {
-    border-radius: 20px;
-    padding: 20px;
-    background-color: var(--parent-bg-color);
-}
-
-.current-basket .buy {
-    width: 300px;
-    margin: 0 auto;
-}
-
-.current-basket .buy b {
-    color: white;
-    margin-left: 5px;
-}
-
-.history-basket {
-    border-radius: 20px;
-    padding: 20px;
-    background-color: var(--parent-bg-color);
-    margin-top: 50px;
-
-}
-
-.current-basket *:not(.form *:not(.label, .label *, .legend)),
-.history-basket * {
-    color: white;
-}
-
-.items {
-    background-color: transparent;
-    justify-content: start;
-    padding: 0;
-}
-
-.items .item {
-    background-color: var(--element-color);
-    padding: 20px;
-}
-
-.basket {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin: 20px 0;
-    color: white;
-    border-radius: 20px;
-    background-color: var(--child-bg-color);
-    padding: 20px;
-}
-
-.current-basket .basket {
-    background-color: unset;
-    padding: 0;
+html:has(.make-order:not(.hidden)) {
+    overflow: hidden;
 }
 
 .make-order {
@@ -85,15 +33,6 @@
     border-radius: 20px;
 }
 
-.form .field:has(.cancel-basket) {
-    width: 100%;
-    justify-content: end;
-}
-
 .cancel-basket {
     width: 15%;
-}
-
-html:has(.make-order:not(.hidden)) {
-    overflow: hidden;
 }

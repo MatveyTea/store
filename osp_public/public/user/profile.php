@@ -43,6 +43,13 @@ include_once __DIR__ . "/../../app/server/header.php";
         </div>
         <div class="field">
             <label class="label"></label>
+            <input class="input" type="text" value="<?= $userInfo["tel_users"] ?? "" ?>" data-name="tel_users" autocomplete="tel">
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
+        </div>
+        <div class="field">
+            <label class="label"></label>
             <input class="input" type="file" data-name="avatar_users">
             <img class="avatar" src="<?= $srcImg ?>" data-base-src="<?= $srcImg ?>">
             <button class="remove-avatar button hidden">Отмена</button>

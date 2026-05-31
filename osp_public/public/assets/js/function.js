@@ -286,6 +286,31 @@ function getValidationRules() {
                 return "Введите только кириллические символы, 1-30 символов.";
             }
         },
+        "tel_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "телефон",
+            "inputs": null,
+            "nameRule": "tel_users",
+            "oldValue": null,
+            "files": ["profile.php"],
+            "required": false,
+            "timerId": null,
+            "placeMsg": null,
+            "length": 13,
+            "check": function (input) {
+                if (input.value == "" || /^\+[0-9]{9,12}$/u.test(input.value)) {
+                    return false;
+                }
+                return "Введите корректный номер телефона.";
+            }
+        },
         "email_users": {
             "wayDefineValue": function(input) {
                 return input.value;
@@ -1627,11 +1652,11 @@ async function sendToServer(data) {
 }
 
 function clickableItem(item) {
-    const basketButton = item.querySelector(".item-basket");
-    const counterContainer = item.querySelector(".item-counter-container");
-    const minusButton = counterContainer.querySelector(".item-counter-minus");
-    const counterText = counterContainer.querySelector(".item-counter-text");
-    const plusButton = counterContainer.querySelector(".item-counter-plus");
+    const basketButton = item.querySelector(".basket-action");
+    const counterContainer = item.querySelector(".basket-container");
+    const minusButton = counterContainer.querySelector(".basket-minus");
+    const counterText = counterContainer.querySelector(".basket-text");
+    const plusButton = counterContainer.querySelector(".basket-plus");
     const favoritesButton = item.querySelector(".item-favorites");
 
     basketButton.addEventListener("click", async () => {

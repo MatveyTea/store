@@ -12,6 +12,7 @@ $item = makeSelectQuery("SELECT
     `image_items_images`,
     `cost_items`,
     `date_add_items`,
+    `discount_items`,
     `description_items`,
     `items_type_id_items`,
     `items_type`.`name_items_type`,
@@ -80,7 +81,7 @@ $itemHTML .= "<article class='about-right'>
     <div class='about-attributes'>
         <span class='attribute'>
             <p class='attribute-name'>Стоимость</p>
-            <p class='attribute-value'>" . calculateDiscount($item, true) . "p</p>
+            <p class='attribute-value'>" . calculateDiscount($item, false) . "p</p>
         </span>
         <span  class='attribute'>
             <p class='attribute-name'>Тип товара</p>

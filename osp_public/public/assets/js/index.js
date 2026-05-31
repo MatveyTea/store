@@ -78,10 +78,10 @@ function uploadItems() {
 }
 
 const itemsSection = document.querySelector(".items");
-const notFound = itemsSection.querySelector(".notfound");
-const title = itemsSection.querySelector(".title");
+const notFound = document.querySelector(".search-items .notfound");
+const title = document.querySelector(".search-items .title");
 const items = itemsSection.querySelectorAll(".item");
-const isAuth = items[0]?.querySelector(".item-basket");
+const isAuth = items[0]?.querySelector(".basket");
 
 const countGetMaxItems = 50;
 let isCanGet = true;

@@ -304,14 +304,10 @@ footer {
     background-color: white;
 }
 
-/* .form .field:has(input[type=file]) img:not(.avatar) {
-    width: 40%;
-    height: 80%;
-    border-radius: 30px;
-} */
-
 .form .field input[type=submit].button {
     margin-left: auto;
+    width: 15%;
+    max-width: 300px;
 }
 
 .form .field .error-wrapper {
@@ -349,13 +345,17 @@ footer {
     border-radius: 20px;
 }
 
+.items:not(.items:has(.item)) {
+    display: none;
+}
+
 .item {
     background-color: var(--child-bg-color);
     width: 100%;
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
     border-radius: 20px;
     justify-content: space-between;
 }
@@ -367,15 +367,10 @@ footer {
 
 .item-link {
     width: 100%;
-    min-height: 275px;
+    min-height: 300px;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    flex-wrap: wrap;
     gap: 20px;
-}
-
-.item:has(.basket) {
-    height: max-content !important;
 }
 
 .item-image {
@@ -385,6 +380,55 @@ footer {
     border-radius: 30px
 }
 
+.item-cost {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.item-cost .current {
+    font-size: 1.5rem;
+}
+
+.item-cost .original {
+    color: rgb(200, 196, 196);
+    text-decoration: line-through;
+    font-size: 1.25rem;
+}
+
+.item-cost .discount {
+    font-size: 1.5rem;
+}
+
+.item-name {
+    width: 100%;
+}
+
+.item-notfound {
+    background: var(--parent-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+    width: 100%;
+    text-align: center;
+    margin: auto 0;
+}
+
+.item-rating {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.item-comment {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.item-comment img {
+    width: 25px;
+}
+
 .item-basket {
     width: 100%;
     height: 50px;
@@ -392,14 +436,22 @@ footer {
     border-radius: 15px;
 }
 
-.item-counter-container {
+.basket {
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.basket-container {
+    width: 100%;
+    margin-top: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.item-counter-minus, .item-counter-plus {
+.basket-minus, .basket-plus {
     width: 15%;
     height: 40px;
     cursor: pointer;
@@ -408,21 +460,63 @@ footer {
     transition: 0.4s background-color;
 }
 
-.item-counter-minus:hover, .item-counter-plus:hover,
-.item-counter-minus:focus, .item-counter-plus:focus {
+.basket-minus:hover, .basket-plus:hover,
+.basket-minus:focus, .basket-plus:focus {
     background-color: var(--element-color-hover);
 }
 
-.item-counter-container p {
+.basket-count {
     width: 60%;
     text-align: center;
 }
 
+.basket-action {
+    width: 100%;
+}
+
 .item-favorites {
     width: 100%;
-    height: 50px;
-    cursor: pointer;
-    border-radius: 15px;
+}
+
+/* ===== Заказы ===== */
+.orders {
+    border-radius: 20px;
+    padding: 20px;
+    background-color: var(--parent-bg-color);
+    margin-top: 50px;
+}
+
+.order {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 20px 0;
+    border-radius: 20px;
+    background-color: var(--child-bg-color);
+    padding: 20px;
+}
+
+.order .subtitle {
+    width: 100%;
+}
+
+.order .text {
+    width: 100%;
+}
+
+.order .items {
+    background-color: transparent;
+    justify-content: start;
+    padding: 0;
+}
+
+.order .items .item {
+    background-color: var(--element-color);
+}
+
+.order .button {
+    width: 55%;
+    margin: 0 auto;
 }
 
 /* ===== Слайдер =====  */
@@ -657,6 +751,12 @@ header nav a:focus {
     /* ===== ТОВАРЫ ===== */
     .items {
         grid-template-columns: repeat(3, 1fr);
+        padding: 10px;
+    }
+
+    /* ===== Заказы ===== */
+    .orders, .order {
+        padding: 10px;
     }
 }
 
@@ -689,6 +789,12 @@ header nav a:focus {
     /* ===== ТОВАРЫ ===== */
     .items {
         grid-template-columns: repeat(2, 1fr);
+        padding: 10px;
+    }
+
+    /* ===== Заказы ===== */
+    .orders, .order {
+        padding: 10px;
     }
 }
 
@@ -748,6 +854,12 @@ header nav a:focus {
     /* ===== ТОВАРЫ ===== */
     .items {
         grid-template-columns: 1fr;
+        padding: 10px;
+    }
+
+    /* ===== Заказы ===== */
+    .orders, .order {
+        padding: 10px;
     }
 
     /* ===== ФУТЕР ===== */
