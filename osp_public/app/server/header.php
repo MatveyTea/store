@@ -12,19 +12,21 @@ if (isUserAuth()) {
             <a href='/deliver/myOrders.php'>Мои заказы</a>
         ";
     }
+    $supportHeader = "";
     if (isSupport()) {
-        $headerHTML .= "
+        $supportHeader .= "
             <a href='/support/allSupport.php'>Все обращения</a>
             <a href='/user/support.php'>Мои обращения</a>
         ";
     } else {
-        $headerHTML .= "<a href='/user/support.php'>Техподдержка</a>";
+        $supportHeader .= "<a href='/user/support.php'>Техподдержка</a>";
     }
     $userInfo = getUserInfo();
     $img = empty($userInfo["avatar_users"]) ? "" : $userInfo["avatar_users"];
     $headerHTML .= "
         <a href='/user/basket.php'>Корзина</a>
         <a href='/user/favorites.php'>Избранные</a>
+        $supportHeader
         <a href='/user/profile.php'><img class='avatar' src='" . getValidImage("avatars/$img") . "'></a>
     ";
     $headerMobileHTML = $headerHTML;

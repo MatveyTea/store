@@ -50,6 +50,10 @@ body main > .button  {
     margin: 0 auto;
 }
 
+body main > * {
+    margin-top: 50px;
+}
+
 .content {
     width: var(--content-width);
     max-width: 1780px;
@@ -92,19 +96,17 @@ body main > .button  {
     border-radius: 40px;
 }
 
-.title {
-    width: 100%;
-    font-size: 2rem;
-    letter-spacing: 2px;
-    font-weight: bold;
-}
-
-.notfound {
+.title, .notfound {
     width: 100%;
     grid-column: 1 / -1;
     text-align: center;
     font-weight: bold;
     font-size: 1.5rem;
+}
+
+.title {
+    font-size: 2rem;
+    text-align: start;
 }
 
 /* ===== ФУТЕР ===== */
@@ -179,6 +181,10 @@ footer {
     background: var(--child-bg-color);
     padding: 20px;
     border-radius: 20px;
+}
+
+.form .field.full{
+    width: 100%;
 }
 
 .form > .field:not(.field:has(.input[type=checkbox], input[type=submit])) {
@@ -334,13 +340,93 @@ footer {
     resize: vertical;
 }
 
+.form .field .input.checkbox {
+    appearance: none;
+    position: relative;
+}
+
+.form .field .input.checkbox::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+    color: white;
+    border: 3px solid var(--parent-bg-color);
+    background-color: var(--element-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.25rem;
+    transition: 0.3s background-color linear;
+}
+
+.form .field .input:hover::after,
+.form .field .input:focus:after {
+    background-color: var(--element-color-hover);
+}
+
+.form .field .input:checked.checkbox::after {
+    content: "✔";
+    background-color: var(--element-color-hover);
+}
+
+.form .field .input.file {
+    position: relative;
+    background-color: transparent;
+}
+
+.form .field .input.file[data-is-insert-server='0']::after {
+    content: "Изменить фото";
+}
+
+.form .field .input.file::after {
+    content: "Выбрать фото";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    color: var(--element-color);
+    border: 3px solid  var(--element-color);
+    background-color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.25rem;
+    transition: 0.3s background-color linear;
+}
+.form .field .input.file:hover::after {
+    color: white;
+    background-color: var(--element-color-hover);
+}
+
 /* ===== ТОВАРЫ ===== */
+.items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 15px;
+    background-color: var(--parent-bg-color);
+    border-radius: 20px;   
+}
+
+.items-container .items:not(.hidden) {
+    padding: 0;
+}
+
 .items {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     padding: 15px;
-    color: white;
     background-color: var(--parent-bg-color);
     border-radius: 20px;
 }
@@ -358,11 +444,6 @@ footer {
     gap: 20px;
     border-radius: 20px;
     justify-content: space-between;
-}
-
-.items h2 {
-    width: 100%;
-    grid-column: 1 / -1;
 }
 
 .item-link {

@@ -1,7 +1,7 @@
 "use strict";
 async function getSearchItems() {
     const data = formInputs.reduce((result, input) => {
-        if (input.dataset.name != "attributes_search" && (input.type == "checkbox" && input.checked || input.type !== "checkbox" && input.value != "")) {
+        if (input.dataset.name != "id_search_attributes" && (input.type == "checkbox" && input.checked || input.type !== "checkbox" && input.value != "")) {
             result[input.dataset.name] = input.value;
         }
         return result;
@@ -10,22 +10,12 @@ async function getSearchItems() {
         "offset_search_items": isResetSearch ? 0 : offset
     });
 
-    const attributes = [];
-    document.querySelectorAll(".input[data-name='attributes_search']").forEach((input) => {
-        if (input.checked) {
-            attributes.push(input.value);
-        }
-    });
+    const attributes = Array.from(document.querySelectorAll(".input[data-name='id_search_attributes']:checked")).map((checkbox) => checkbox.value);
     if (attributes.length > 0) {
-        data["attributes_search"] = JSON.stringify(attributes);
+        data["id_search_attributes"] = JSON.stringify(attributes);
     }
 
-    const types = [];
-    document.querySelectorAll(".input[data-name='items_type_id_search_items']").forEach((input) => {
-        if (input.checked) {
-            types.push(input.value);
-        }
-    });
+    const types = Array.from(document.querySelectorAll(".input[data-name='items_type_id_search_items']:checked")).map((checkbox) => checkbox.value);
     if (types.length > 0) {
         data["items_type_id_search_items"] = JSON.stringify(types);
     }
@@ -78,8 +68,8 @@ function uploadItems() {
 }
 
 const itemsSection = document.querySelector(".items");
-const notFound = document.querySelector(".search-items .notfound");
-const title = document.querySelector(".search-items .title");
+const notFound = document.querySelector(".items-container .notfound");
+const title = document.querySelector(".items-container .title");
 const items = itemsSection.querySelectorAll(".item");
 const isAuth = items[0]?.querySelector(".basket");
 

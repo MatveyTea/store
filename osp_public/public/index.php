@@ -7,18 +7,21 @@ if ($types == "FAIL") {
     redirect();
 }
 foreach ($types as $type) {
-    $typesHTML .= "<label>$type[name_items_type]<input class='input' type='checkbox' data-name='items_type_id_search_items' value='$type[id_items_type]'></label>";
+    $typesHTML .= "<label>
+        $type[name_items_type]
+        <input class='input checkbox' type='checkbox' data-name='items_type_id_search_items' value='$type[id_items_type]'>
+    </label>";
 }
 
 $attributesHTML = "";
 $attributes = makeSelectQuery("SELECT 
-    `attributes`.`id_attributes`,
-    `attributes`.`value_attributes`,
-    `properties`.`id_properties`,
-    `properties`.`name_properties`
+    `id_attributes`,
+    `value_attributes`,
+    `id_properties`,
+    `name_properties`
     FROM `attributes`
-    JOIN `properties` ON `properties`.`id_properties` = `attributes`.`properties_id_attributes`
-    ORDER BY `properties`.`id_properties`
+    JOIN `properties` ON `id_properties` = `properties_id_attributes`
+    ORDER BY `id_properties`
     ", [], false
 );
 if ($attributes == "FAIL") {
@@ -31,10 +34,16 @@ foreach  ($attributes as $attribute) {
         if ($currentAttributeID != null) {
             $attributesHTML .= "</div>";
         }
-        $attributesHTML .= "<div class='field'><p>$attribute[name_properties]</p>";
+        $attributesHTML .= "
+            <div class='field'>
+            <p>$attribute[name_properties]</p>
+        ";
         $currentAttributeID = $attribute["id_properties"];
     }
-    $attributesHTML .= "<label>$attribute[value_attributes]<input class='input' type='checkbox' value='$attribute[id_attributes]' data-name='attributes_search'></label>";
+    $attributesHTML .= "<label>
+        $attribute[value_attributes]
+        <input class='input checkbox' type='checkbox' value='$attribute[id_attributes]' data-name='id_search_attributes'>
+    </label>";
 }
 $attributesHTML .= "</div>";
 
@@ -46,9 +55,19 @@ if (!empty($_GET["items_type_id_items"])) {
 }
 
 if ($itemsHTML == "") {
-    $itemsHTML = "<h2 class='notfound'>Ничего не найдено</h2> <h2 class='title hidden'>Каталог</h2> <article class='items'></article>";
+    $itemsHTML = "
+        <h2 class='notfound'>Ничего не найдено</h2>
+        <h2 class='title hidden'>Каталог</h2>
+        <article class='items'></article>
+    ";
 } else {
-    $itemsHTML = "<h2 class='notfound hidden'>Ничего не найдено</h2> <h2 class='title'>Каталог</h2> <article class='items'>$itemsHTML</article>";
+    $itemsHTML = "
+        <h2 class='notfound hidden'>Ничего не найдено</h2>
+        <h2 class='title'>Каталог</h2>
+        <article class='items'>
+            $itemsHTML
+        </article>
+    ";
 }
 
 include_once __DIR__ . "/../app/server/header.php";
@@ -100,13 +119,13 @@ include_once __DIR__ . "/../app/server/header.php";
                     <?= $attributesHTML ?>
                 </div>
                 <div class="field">
-                    <label class="label"><input class="input popular" type="checkbox" data-name="popular_items"></label>
+                    <label class="label"><input class="input popular checkbox" type="checkbox" data-name="popular_items"></label>
                 </div>
                 <div class="field">
-                    <label class="label"><input class="input discount" type="checkbox" data-name="discount_search_items"></label>
+                    <label class="label"><input class="input discount checkbox" type="checkbox" data-name="discount_search_items"></label>
                 </div>
                 <div class="field">
-                    <label class="label"><input class="input strict" type="checkbox" data-name="strict_search"></label>
+                    <label class="label"><input class="input strict checkbox" type="checkbox" data-name="strict_search"></label>
                 </div>
                 <div class="field">
                     <input class="button" type="submit" value="Найти" id="search_button" name="submit_button">
@@ -114,7 +133,7 @@ include_once __DIR__ . "/../app/server/header.php";
             </form>
         </article>
     </section>
-    <section class="content search-items">
+    <section class="items-container">
         <?= $itemsHTML ?>
     </section>
 </main>

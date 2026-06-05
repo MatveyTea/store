@@ -58,7 +58,8 @@ if (!$isSupport) {
         </div>
         <div class='field'>
             <label class='label'></label>
-            <input class='input' type='file' data-name='image_supports'>
+            <input class='input file' type='file' data-name='image_supports'>
+            <img src='' class='hidden'>
             <span class='error-wrapper'>
                 <p class='error'></p>
             </span>

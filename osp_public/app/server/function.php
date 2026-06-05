@@ -157,7 +157,6 @@ function makeSelectQuery($query, $params = [], $getOne = false)
     try {
         $stmt->execute($params);
     } catch (Throwable $e) {
-        print_r($e);
         return "FAIL";
     }
 
@@ -565,6 +564,7 @@ function getValidationRules($file = "")
                 if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
                     $datetime = date("y-m-d-H-i-s") . ".$extension";
                     if (move_uploaded_file($value["tmp_name"], __DIR__ . "/../upload/avatars/$datetime")) {
+                        deleteAvatar(true);
                         return $datetime;
                     }
                 }
@@ -722,23 +722,16 @@ function getValidationRules($file = "")
             "returned_value" => true,
             "pattern" => function ($value) {
                 $isCorrect = true;
-                $properties = json_decode($value, true) ?? [];
-                // foreach ($properties as $property) {
-                //     $isCorrectId = preg_match("/^[0-9]{1,}$/u", $property["id_items_properties"] ?? "0");
-                //     $isCorrectName = preg_match("/^[0-9]{1,}$/u", $property["properties_id_items_properties"] ?? "!");
-                //     $isCorrectDescription = preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/u", $property["description_items_properties"] ?? "!");
-                //     $count = count($property);
-                //     if (
-                //         $count < 1 ||
-                //         $count == 2 && !$isCorrectId && ($isCorrectName || $isCorrectDescription) ||
-                //         $count == 3 && !$isCorrectId && !$isCorrectName && !$isCorrectDescription
-                //     ) {
-                //         $isCorrect = false;
-                //         break;
-                //     }
-                // }
+                $itemsType = json_decode($value, true);
+                if (count($itemsType) < 1) return false;
+                foreach ($itemsType as $type) {
+                    if (!preg_match("/^[0-9]{1,}$/u",  $type)) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
                 if ($isCorrect) {
-                    return $properties;
+                    return $itemsType;
                 }
                 return false;
             }
@@ -833,6 +826,26 @@ function getValidationRules($file = "")
                 return false;
             }
         ],
+        "id_search_attributes" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                $isCorrect = true;
+                $attributesIds = json_decode($value, true);
+                foreach ($attributesIds as $id) {
+                    if (!preg_match("/[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,255}$/u", $id)) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $attributesIds;
+                }
+                return false;
+            } 
+        ],
         // Комментарии
         "id_comments" => [
             "files" => ["aboutItem.php"],
@@ -878,21 +891,16 @@ function getValidationRules($file = "")
             "returned_value" => true,
             "pattern" => function ($value) {
                 $isCorrect = true;
-                $properties = json_decode($value, true) ?? [];
-                // foreach ($properties as $property) {
-                //     $isCorrectId = preg_match("/^[0-9]{1,}$/u", $property["id_items_properties"] ?? "0");
-                //     $isCorrectName = preg_match("/^[0-9]{1,}$/u", $property["properties_id_items_properties"] ?? "!");
-                //     $isCorrectDescription = preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,40}$/u", $property["description_items_properties"] ?? "!");
-                //     $count = count($property);
-                //     if (
-                //         $count < 1 ||
-                //         $count == 2 && !$isCorrectId && ($isCorrectName || $isCorrectDescription) ||
-                //         $count == 3 && !$isCorrectId && !$isCorrectName && !$isCorrectDescription
-                //     ) {
-                //         $isCorrect = false;
-                //         break;
-                //     }
-                // }
+                $properties = json_decode($value, true);
+                foreach ($properties as $property) {
+                    $isType = in_array($property["type"], ["add", "remove"]);
+                    $isIdAttributes = preg_match("/^[0-9]{1,}$/u", $property["id_attributes"]);
+                    $isIdProperties = preg_match("/^[0-9]{1,}$/u", $property["id_properties"]);
+                    if (!$isType || !$isIdAttributes || !$isIdProperties) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
                 if ($isCorrect) {
                     return $properties;
                 }
@@ -918,7 +926,7 @@ function getValidationRules($file = "")
                 return preg_match("/^[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,80}$/u", $value);
             }
         ],
-        //
+        // Атрибуты
         "attributes" => [
             "files" => ["editTable.php"],
             "required" => false,
@@ -926,9 +934,11 @@ function getValidationRules($file = "")
             "returned_value" => true,
             "pattern" => function ($value) {
                 $isCorrect = true;
-                $attributes = json_decode($value, true) ?? [];
+                $attributes = json_decode($value, true);
                 foreach ($attributes as $attribute) {
-                    if (false) {
+                    $idProperty = preg_match("/[0-9]{1,7}$/u", $attribute["properties_id_attributes"] ?? 1);
+                    $valueAttribute = preg_match("/[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,255}$/u", $attribute["value_attributes"]);
+                    if (!$idProperty || !$valueAttribute) {
                         $isCorrect = false;
                         break;
                     }
@@ -948,46 +958,6 @@ function getValidationRules($file = "")
                 return preg_match("/[0-9]{1,7}$/u", $value);
             }
         ],
-        "attributes_search" => [
-            "files" => ["index.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => true,
-            "pattern" => function ($value) {
-                $isCorrect = true;
-                $attributes = json_decode($value, true) ?? [];
-                foreach ($attributes as $id => $values) {
-                    if (false) {
-                        $isCorrect = false;
-                        break;
-                    }
-                }
-                if ($isCorrect) {
-                    return $attributes;
-                }
-                return false;
-            } 
-        ],
-        "attributes_select_property" => [
-            "files" => ["editItem.php"],
-            "required" => false,
-            "canUpdate" => $file == "editItem.php",
-            "returned_value" => true,
-            "pattern" => function ($value) {
-                $isCorrect = true;
-                $attributes = json_decode($value, true) ?? [];
-                foreach ($attributes as $id => $values) {
-                    if (false) {
-                        $isCorrect = false;
-                        break;
-                    }
-                }
-                if ($isCorrect) {
-                    return $attributes;
-                }
-                return false;
-            } 
-        ],
         // Типы товаров
         "id_items_type" => [
             "files" => ["editTable.php"],
@@ -999,25 +969,6 @@ function getValidationRules($file = "")
             }
         ],
         "name_items_type" => [
-            "files" => ["editTable.php"],
-            "required" => false,
-            "canUpdate" => true,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
-            }
-        ],
-        // Статус покупки
-        "id_status" => [
-            "files" => ["editTable.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/", $value);
-            }
-        ],
-        "name_status" => [
             "files" => ["editTable.php"],
             "required" => false,
             "canUpdate" => true,
@@ -1044,9 +995,8 @@ function getValidationRules($file = "")
             "pattern" => function ($value) {
                 if (!empty($value["street"]) && !empty($value["home"])) {
                     return "Ул. $value[street], д. $value[home]" . (!empty($value["number"]) ? ", кв. $value[number]" : "");
-                } else {
-                    return false;
                 }
+                return false;
             }
         ],
         "note_orders" => [
@@ -1176,12 +1126,6 @@ function getValidatedData($array, $file = ""): array
                 }
             }
             continue;
-        }
-
-        try {
-            $value = trim($value);
-        } catch (TypeError $e) {
-            print_r($value);
         }
 
         $value = trim($value);
@@ -1344,19 +1288,19 @@ function changeBasket($idItem, $countItem, $actionItem)
     }
 }
 
-function deleteAvatar()
+function deleteAvatar($justTry = false)
 {
     $user = getUserInfo();
-    if (count($user) < 1 || $user["avatar_users"] == null) setAnswer("FAIL");
+    if (!$justTry && (count($user) < 1 || $user["avatar_users"] == null)) setAnswer("FAIL");
 
     $file = __DIR__ . "/../upload/avatars/$user[avatar_users]";
-    if (!file_exists($file)) setAnswer("FAIL");
+    if (!$justTry && !file_exists($file)) setAnswer("FAIL");
     // unlink($file);
 
     $isSuccess = makeSafeQuery("UPDATE `users` SET `avatar_users` = NULL WHERE `id_users` = ?", [$user["id_users"]]);
-    if (!$isSuccess) setAnswer("FAIL");
+    if (!$justTry && !$isSuccess) setAnswer("FAIL");
 
-    setAnswer("OK", ["src" => getValidImage()]);
+    if (!$justTry) setAnswer("OK", ["src" => getValidImage()]);
 }
 
 function buyItems($json)
@@ -1462,7 +1406,7 @@ function searchItems($json)
     $data = $data["data"];
     $isPopularItems = !empty($data["popular_items"]);
     $offset = $data["offset_search_items"];
-    $attributes = $data["attributes_search"] ?? [];
+    $attributes = $data["id_search_attributes"] ?? [];
     $types = $data["items_type_id_search_items"] ?? [];
     $strictType = empty($data["strict_search"]) ? "OR" : "AND";
    
@@ -1470,7 +1414,7 @@ function searchItems($json)
     $whereParams = [];
 
     if (!empty($data) && count($data) > 1) {
-        unset($data["items_type_id_search_items"], $data["attributes_search"], $data["offset_search_items"], $data["strict_search"]);
+        unset($data["items_type_id_search_items"], $data["id_search_attributes"], $data["offset_search_items"], $data["strict_search"]);
         
         $whereSQL = "WHERE ";
         $isSpecificSearch = count($data) > 1 && $isPopularItems;
@@ -1899,7 +1843,7 @@ function getMessageHTML($message = ["name" => "", "text" => "", "date" => "", "i
 {
     $img = "";
     if ($message["image"] != "") {
-        $img = "<img src='" . getValidImage("supports/$message[image]") . "'>";
+        $img = "<img class='message-image' src='" . getValidImage("supports/$message[image]") . "'>";
     }
     return "<div class='message $who'>
         <p class='message-name'>$message[name]</p>

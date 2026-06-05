@@ -58,11 +58,11 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
                 $params = [];
                 foreach ($attributes as $attribute) {
                     if (empty($attribute["id_attributes"])) {
-                        $result = getInsertSQL(array_diff_key($attribute));
+                        $result = getInsertSQL($attribute);
                         $sql .= "INSERT INTO `attributes` ($result[sql]) VALUES ($result[question]);";
                         array_push($params, ...$result["params"]);
                     } else {
-                        $result = getUpdateSQL(array_diff_key($attribute, ["id_attributes" => true, "id_properties" => true]));
+                        $result = getUpdateSQL(array_diff_key($attribute, ["id_attributes" => true, "properties_id_attributes" => true]));
                         $result["params"][] = $attribute["id_attributes"];
                         $sql .= "UPDATE `attributes` SET $result[sql] WHERE `id_attributes` = ?;";
                         array_push($params, ...$result["params"]);
@@ -78,7 +78,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
     } else {
         $_SESSION["server"] = "Не корректные данные";
     }
-    redirectYourself("table=$tableName");
+    //redirectYourself("table=$tableName");
 }
 
 $columnNames = makeSelectQuery("SELECT `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_NAME` = ? AND `COLUMN_NAME` NOT LIKE 'id_%'", [$tableName], false);
@@ -90,7 +90,7 @@ if ($columnNames === "FAIL") {
 $formAddHTML = "";
 $tempFormAddButtonNew = "";
 foreach ($columnNames as $column) {
-    $formAddHTML .= "<div class='field'>
+    $formAddHTML .= "<div class='field full'>
         <label class='label'></label>
         <input class='input' type='text' data-name='$column[COLUMN_NAME]' data-is-insert-server='1'>
         <span class='error-wrapper'>
@@ -106,15 +106,8 @@ foreach ($columnNames as $column) {
                     <p class='error'></p>
                 </span>
             </div>
-            <div class='field'>
-                <label class='label'></label>
-                <input class='input' data-name='value_attributes' data-is-insert-server='1'>
-                <span class='error-wrapper'>
-                    <p class='error'></p>
-                </span>
-            </div>
         ";
-        $tempFormAddButtonNew .= "<button class='button add-one'>Добавить ещё</button>";
+        $tempFormAddButtonNew .= "<button class='button add-one'>Добавить значение</button>";
     }
 }
 
@@ -142,9 +135,9 @@ foreach ($table as $row) {
     foreach ($row as $key => $column) {
         $typeInput = preg_match("/^id_/", $key) ? "hidden" : "text";
         $classField = $typeInput == "hidden" ? "hidden" : "";
-        $formEditHTML .= "<div class='field $classField'>
+        $formEditHTML .= "<div class='field full $classField'>
             <label class='label'></label>
-            <input class='input' type='$typeInput' value='$column' data-name='$key' data-is-insert-server='1'>
+            <input class='input' type='$typeInput' value='$column' data-name='$key'>
             <span class='error-wrapper'>
                 <p class='error'></p>
             </span>
@@ -155,7 +148,7 @@ foreach ($table as $row) {
     if ($isAttribute) {
         $formEditHTML .= "<div class='field hidden'>
                 <label class='label'></label>
-                <input class='input' data-name='attributes' data-is-insert-server='1'>
+                <input class='input' data-name='attributes'>
                 <span class='error-wrapper'>
                     <p class='error'></p>
                 </span>
@@ -165,28 +158,21 @@ foreach ($table as $row) {
             if ($attribute["properties_id_attributes"] == $row["id_properties"]) {
                 $formEditHTML .= "
                     <div class='field property'>
-                        <div class='field hidden'>
+                        <div class='field'>
                             <label class='label'></label>
-                            <input class='input' data-name='id_attributes' data-is-insert-server='1' value='$attribute[id_attributes]'>
+                            <input class='input' data-name='value_attributes' data-id-attributes='$attribute[id_attributes]' value='$attribute[value_attributes]'>
                             <span class='error-wrapper'>
                                 <p class='error'></p>
                             </span>
                         </div>
                         <div class='field'>
-                            <label class='label'></label>
-                            <input class='input' data-name='value_attributes' data-is-insert-server='1' value='$attribute[value_attributes]'>
-                            <span class='error-wrapper'>
-                                <p class='error'></p>
-                            </span>
-                        </div>
-                        <div class='field'>
-                            <button class='button delete-one' data-id-attributes='$attribute[id_attributes]'>Удалить это свойство</button>
+                            <button class='button delete-one' data-id-attributes='$attribute[id_attributes]'>Удалить это значение</button>
                         </div>
                     </div>
                 ";
             }
         }
-        $tempButtonHTML .= "<button class='button add-one'>Добавить ещё свойство</button>";
+        $tempButtonHTML .= "<button class='button add-one'>Добавить ещё значение</button>";
     }
 
     $formEditHTML .= "<div class='field'>

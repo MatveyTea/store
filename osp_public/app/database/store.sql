@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Май 31 2026 г., 01:54
+-- Время создания: Июн 05 2026 г., 20:58
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -39,10 +39,14 @@ CREATE TABLE `attributes` (
 
 INSERT INTO `attributes` (`id_attributes`, `properties_id_attributes`, `value_attributes`) VALUES
 (1, 1, 'Красный'),
-(2, 2, 'Другой'),
-(3, 1, 'Белый'),
-(4, 1, 'Розовый'),
-(5, 3, 'Тест');
+(2, 1, 'Белый'),
+(3, 1, 'Розовый'),
+(4, 2, 'Большой'),
+(5, 2, 'Маленький'),
+(6, 2, 'Средний'),
+(7, 3, 'Крутое'),
+(8, 3, 'Низкое'),
+(9, 3, 'Среднее');
 
 -- --------------------------------------------------------
 
@@ -408,94 +412,7 @@ INSERT INTO `items` (`id_items`, `name_items`, `count_items`, `cost_items`, `dat
 (297, 'Товар 297', 9, 343, '2026-01-14', 2, NULL, 0, NULL),
 (298, 'Товар 298', 24, 883, '2026-01-14', 1, NULL, 0, NULL),
 (299, 'Товар 299', 26, 585, '2026-01-14', 2, NULL, 0, NULL),
-(300, 'Товар 300', 21, 357, '2026-01-14', 1, NULL, 0, NULL),
-(301, '123', 20, 101, '2026-01-14', 2, NULL, 0, NULL),
-(302, '123', 27, 43, '2026-01-14', 1, NULL, 0, NULL),
-(303, '123', 16, 102, '2026-01-14', 2, NULL, 0, NULL),
-(304, '123', 10, 175, '2026-01-14', 1, NULL, 0, NULL),
-(305, '123', 24, 756, '2026-01-14', 2, NULL, 0, NULL),
-(306, '123', 9, 826, '2026-01-14', 1, NULL, 0, NULL),
-(307, '123', 21, 368, '2026-01-14', 2, NULL, 0, NULL),
-(308, '123', 12, 130, '2026-01-14', 1, NULL, 0, NULL),
-(309, '123', 24, 994, '2026-01-14', 2, NULL, 0, NULL),
-(310, '123', 17, 766, '2026-01-14', 1, NULL, 0, NULL),
-(311, '123', 19, 945, '2026-01-14', 2, NULL, 0, NULL),
-(312, '123', 9, 64, '2026-01-14', 1, NULL, 0, NULL),
-(313, '123', 28, 485, '2026-01-14', 2, NULL, 0, NULL),
-(314, '123', 15, 284, '2026-01-14', 1, NULL, 0, NULL),
-(315, '123', 27, 767, '2026-01-14', 2, NULL, 0, NULL),
-(316, '123', 27, 452, '2026-01-14', 1, NULL, 0, NULL),
-(317, '123', 28, 163, '2026-01-14', 2, NULL, 0, NULL),
-(318, '123', 5, 687, '2026-01-14', 1, NULL, 0, NULL),
-(319, '123', 9, 337, '2026-01-14', 2, NULL, 0, NULL),
-(320, '123', 30, 258, '2026-01-14', 1, NULL, 0, NULL),
-(321, '123', 7, 301, '2026-01-14', 2, NULL, 0, NULL),
-(322, '123', 23, 570, '2026-01-14', 1, NULL, 0, NULL),
-(323, '123', 10, 594, '2026-01-14', 2, NULL, 0, NULL),
-(324, '123', 5, 824, '2026-01-14', 1, NULL, 0, NULL),
-(325, '123', 19, 86, '2026-01-14', 2, NULL, 0, NULL),
-(326, '123', 20, 146, '2026-01-14', 1, NULL, 0, NULL),
-(327, '123', 7, 97, '2026-01-14', 2, NULL, 0, NULL),
-(328, '123', 6, 229, '2026-01-14', 1, NULL, 0, NULL),
-(329, '123', 21, 431, '2026-01-14', 2, NULL, 0, NULL),
-(330, '123', 11, 706, '2026-01-14', 1, NULL, 0, NULL),
-(331, '123', 22, 229, '2026-01-14', 2, NULL, 0, NULL),
-(332, '123', 26, 541, '2026-01-14', 1, NULL, 0, NULL),
-(333, '123', 13, 960, '2026-01-14', 2, NULL, 0, NULL),
-(334, '123', 12, 931, '2026-01-14', 1, NULL, 0, NULL),
-(335, '123', 12, 811, '2026-01-14', 2, NULL, 0, NULL),
-(336, '123', 10, 797, '2026-01-14', 1, NULL, 0, NULL),
-(337, '123', 11, 337, '2026-01-14', 2, NULL, 0, NULL),
-(338, '123', 9, 505, '2026-01-14', 1, NULL, 0, NULL),
-(339, '123', 20, 358, '2026-01-14', 2, NULL, 0, NULL),
-(340, '123', 8, 445, '2026-01-14', 1, NULL, 0, NULL),
-(341, '123', 10, 224, '2026-01-14', 2, NULL, 0, NULL),
-(342, '123', 28, 154, '2026-01-14', 1, NULL, 0, NULL),
-(343, '123', 17, 286, '2026-01-14', 2, NULL, 0, NULL),
-(344, '123', 9, 120, '2026-01-14', 1, NULL, 0, NULL),
-(345, '123', 25, 892, '2026-01-14', 2, NULL, 0, NULL),
-(346, '123', 12, 890, '2026-01-14', 1, NULL, 0, NULL),
-(347, '123', 22, 74, '2026-01-14', 2, NULL, 0, NULL),
-(348, '123', 9, 843, '2026-01-14', 1, NULL, 0, NULL),
-(349, '123', 26, 981, '2026-01-14', 2, NULL, 0, NULL),
-(350, '123', 21, 483, '2026-01-14', 1, NULL, 0, NULL),
-(351, '123', 17, 69, '2026-01-14', 2, NULL, 0, NULL),
-(352, '123', 19, 153, '2026-01-14', 1, NULL, 0, NULL),
-(353, '123', 13, 825, '2026-01-14', 2, NULL, 0, NULL),
-(354, '123', 8, 993, '2026-01-14', 1, NULL, 0, NULL),
-(355, '123', 23, 620, '2026-01-14', 2, NULL, 0, NULL),
-(356, '123', 14, 672, '2026-01-14', 1, NULL, 0, NULL),
-(357, '123', 18, 963, '2026-01-14', 2, NULL, 0, NULL),
-(358, '123', 28, 240, '2026-01-14', 1, NULL, 0, NULL),
-(359, '123', 20, 540, '2026-01-14', 2, NULL, 0, NULL),
-(360, '123', 21, 202, '2026-01-14', 1, NULL, 0, NULL),
-(361, '123', 12, 18, '2026-01-14', 2, NULL, 0, NULL),
-(362, '123', 11, 621, '2026-01-14', 1, NULL, 0, NULL),
-(363, '123', 5, 489, '2026-01-14', 2, NULL, 0, NULL),
-(364, '123', 6, 730, '2026-01-14', 1, NULL, 0, NULL),
-(365, '123', 6, 683, '2026-01-14', 2, NULL, 0, NULL),
-(366, '123', 5, 907, '2026-01-14', 1, NULL, 0, NULL),
-(367, '123', 23, 806, '2026-01-14', 2, NULL, 0, NULL),
-(368, '123', 28, 42, '2026-01-14', 1, NULL, 0, NULL),
-(369, '123', 12, 353, '2026-01-14', 2, NULL, 0, NULL),
-(370, '123', 6, 998, '2026-01-14', 1, NULL, 0, NULL),
-(371, '123', 29, 859, '2026-01-14', 2, NULL, 0, NULL),
-(372, '123', 29, 46, '2026-01-14', 1, NULL, 0, NULL),
-(373, '123', 11, 778, '2026-01-14', 2, NULL, 0, NULL),
-(374, '123', 18, 901, '2026-01-14', 1, NULL, 0, NULL),
-(375, '123', 29, 293, '2026-01-14', 2, NULL, 0, NULL),
-(376, '123', 21, 916, '2026-01-14', 1, NULL, 0, NULL),
-(377, '123', 11, 228, '2026-01-14', 2, NULL, 0, NULL),
-(378, '123', 26, 796, '2026-01-14', 1, NULL, 0, NULL),
-(379, '123', 20, 291, '2026-01-14', 2, NULL, 0, NULL),
-(380, '123', 22, 685, '2026-01-14', 1, NULL, 0, NULL),
-(381, '123', 17, 356, '2026-01-14', 2, NULL, 0, NULL),
-(382, '123', 26, 103, '2026-01-14', 1, NULL, 0, NULL),
-(383, '123', 24, 626, '2026-01-14', 2, NULL, 0, NULL),
-(384, '123', 24, 937, '2026-01-14', 1, NULL, 0, NULL),
-(385, '123', 22, 483, '2026-01-14', 2, NULL, 0, NULL),
-(386, '123', 11, 604, '2026-01-14', 1, NULL, 0, NULL),
-(387, '123', 1957, 943, '2026-01-14', 2, NULL, 0, NULL);
+(300, 'Товар 300', 21, 357, '2026-01-14', 1, NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -579,8 +496,8 @@ CREATE TABLE `properties` (
 
 INSERT INTO `properties` (`id_properties`, `name_properties`) VALUES
 (1, 'Цвет'),
-(2, 'Арбуз'),
-(3, 'Крутое');
+(2, 'Размер'),
+(3, 'Качество');
 
 -- --------------------------------------------------------
 
@@ -672,20 +589,21 @@ CREATE TABLE `users` (
   `date_create_users` date DEFAULT NULL,
   `avatar_users` varchar(100) DEFAULT NULL,
   `is_banned_users` tinyint(1) NOT NULL DEFAULT '0',
-  `roles_id_users` int NOT NULL DEFAULT '2'
+  `roles_id_users` int NOT NULL DEFAULT '2',
+  `tel_users` varchar(13) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`, `is_banned_users`, `roles_id_users`) VALUES
-(1, 'admin@admin.com', '$2y$12$8LMBMMOS4akH4L7RVMCiGuht366OX4kBwF42ZtFz4q5LOQBJ0MoMi', 'Админ', '2025-11-30', NULL, 0, 1),
-(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 2),
-(3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 2),
-(4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 3),
-(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 3),
-(6, 'support@support.com', '$2y$12$NwKRC2m9kxTbyixtilAlB.0U11evwtkcynPm1AmclIbGdhnp0zabG', 'ПоддрежкаОдин', '2026-05-16', NULL, 0, 4);
+INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, `date_create_users`, `avatar_users`, `is_banned_users`, `roles_id_users`, `tel_users`) VALUES
+(1, 'admin@admin.com', '$2y$12$8LMBMMOS4akH4L7RVMCiGuht366OX4kBwF42ZtFz4q5LOQBJ0MoMi', 'Админ', '2025-11-30', NULL, 0, 1, NULL),
+(2, 'user@user.com', '$2y$12$.iazHfKUey3WBOZFxhJgReCkDIXLx9zjStcHGXNfOzUhKX9Ddn35q', 'пользователь', '2025-11-30', NULL, 0, 2, NULL),
+(3, 'test@test.com', '$2y$12$uEnyqUE7pYWjb.nlWsd6O.GZNONfVQB0MoSh5eXi0YMDlMt9FTVlC', 'Тест', '2026-03-17', NULL, 1, 2, NULL),
+(4, 'del1@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикОдин', '2026-04-06', NULL, 0, 3, NULL),
+(5, 'del2@g.g', '$2y$12$73pbhz0bIrj0J/DDZhU6AO3VSXrr2ZI8DlcXWyFm6g1qmqOZoQzvi', 'ДоставщикДва', '2026-04-06', NULL, 0, 3, NULL),
+(6, 'support@support.com', '$2y$12$NwKRC2m9kxTbyixtilAlB.0U11evwtkcynPm1AmclIbGdhnp0zabG', 'ПоддрежкаОдин', '2026-05-16', NULL, 0, 4, NULL);
 
 --
 -- Индексы сохранённых таблиц
@@ -809,19 +727,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `attributes`
 --
 ALTER TABLE `attributes`
-  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `favorites`
@@ -833,7 +751,7 @@ ALTER TABLE `favorites`
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=388;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=301;
 
 --
 -- AUTO_INCREMENT для таблицы `items_images`
@@ -881,13 +799,13 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `supports`
 --
 ALTER TABLE `supports`
-  MODIFY `id_supports` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_supports` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `talks`
 --
 ALTER TABLE `talks`
-  MODIFY `id_talks` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_talks` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
@@ -898,12 +816,6 @@ ALTER TABLE `users`
 --
 -- Ограничения внешнего ключа сохраненных таблиц
 --
-
---
--- Ограничения внешнего ключа таблицы `attributes`
---
-ALTER TABLE `attributes`
-  ADD CONSTRAINT `attributes_ibfk_1` FOREIGN KEY (`properties_id_attributes`) REFERENCES `properties` (`id_properties`) ON DELETE CASCADE ON UPDATE RESTRICT;
 
 --
 -- Ограничения внешнего ключа таблицы `baskets`

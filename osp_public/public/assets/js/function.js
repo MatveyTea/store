@@ -69,24 +69,6 @@ function setProperties(form) {
             });
         });
     }
-
-    form.addEventListener("submit", (event) => {
-        const itemsProperties = document.querySelector(".input[data-name='items_properties']");
-        const allProperty = document.querySelectorAll(".field.property");
-        const attributes = [];
-        allProperty.forEach((field) => {
-            const valuesProperty = Array.from(field.querySelectorAll(".input[data-name='attributes_select_value'][data-is-insert-server='0']"));
-            valuesProperty.forEach((valueProperty) => {
-                attributes.push({
-                    "type": valueProperty.checked ? "add" : "remove",
-                    "id_attributes": valueProperty.value,
-                    "id_properties": document.querySelector(`.field.property:has(#${valueProperty.id}) select`).value
-                });
-            });
-        });
-        itemsProperties.value = JSON.stringify(attributes ?? "");
-        itemsProperties.dispatchEvent(new Event("change"));
-    });
 }
 
 function checkInput(input, rule) {
@@ -198,9 +180,11 @@ function setBasicSettingInput(inputs, form) {
         }
 
         const action = input.tagName == "SPAN" ? "click" : "change";
-        input.addEventListener(action, () => {
+        input.addEventListener(action, (event) => {
             rule.currentValue[input.id] = rule.wayDefineValue(input);
-            checkInput(input, rule);
+            if (event.isTrusted) {
+                checkInput(input, rule);
+            }
         });
     });
 
@@ -219,6 +203,7 @@ function setValidationForm(form) {
     }
 
     form.addEventListener("submit", (event) => {
+        // event.preventDefault();
         let hasError = false;
         let hasUpdate = false;
         Array.from(inputs).forEach((input) => {
@@ -708,7 +693,7 @@ function getValidationRules() {
                 });
                 if (input.value != JSON.stringify(result)) {
                     input.value = JSON.stringify(result);
-                    input.dispatchEvent(new Event("change"));
+                    input.dispatchEvent(new Event("change"));//?
                 }
 
                 return false;
@@ -978,6 +963,28 @@ function getValidationRules() {
                 return false;
             }
         },
+        "id_search_attributes": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": null,
+            "inputs": null,
+            "nameRule": "id_search_attributes",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "check": function (input) {
+                return false;
+            }
+        },
         "discount_search_items": {
             "wayDefineValue": function(input) {
                 return input.checked;
@@ -1064,17 +1071,28 @@ function getValidationRules() {
             "nameRule": "items_properties",
             "oldValue": null,
             "files": ["editItem.php", "addItem.php"],
-            "required": false,
+            "required": true,
             "timerId": null,
             "length": null,
             "placeMsg": null,
             "check": function (input) {
+                const attributesIds = document.querySelectorAll(".field.property .input[data-name='attributes_select_value'][data-is-insert-server='0']");
+                if (attributesIds.length < 1) return false;
+                const attributes = [];
+                attributesIds.forEach((attributesId) => {
+                    attributes.push({
+                        "type": attributesId.checked ? "add" : "remove",
+                        "id_attributes": attributesId.value,
+                        "id_properties": document.querySelector(`.field.property:has(#${attributesId.id}) select`).value
+                    });
+                });
                 try {
-                    JSON.stringify(input.value);
+                    input.value = JSON.stringify(attributes);
+                    input.dispatchEvent(new Event("change"));
                     return false;
                 } catch (Error) {
                     return "Некорректный JSON";
-                }
+                }    
             }
         },
         "attributes_select_property": {
@@ -1172,7 +1190,7 @@ function getValidationRules() {
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
             }
         },
-        //
+        // Атрибуты
         "attributes": {
             "wayDefineValue": function(input) {
                 return input.value;
@@ -1184,42 +1202,41 @@ function getValidationRules() {
             "isInsertServer": null,
             "nameInput": null,
             "inputs": null,
-            "nameRule": "items_properties",
+            "nameRule": "attributes",
             "oldValue": null,
             "files": ["editTable.php"],
-            "required": false,
+            "required": true,
             "timerId": null,
             "length": null,
             "placeMsg": null,
             "check": function (input) {
-                try {
-                    JSON.stringify(input.value);
+                const form = document.querySelector(`.form:has(#${input.id})`);
+                const values = form.querySelectorAll(".input[data-name='value_attributes'][data-is-insert-server='0']");
+                if (values.length < 1) {
+                    input.value = "";
+                    input.dispatchEvent(new Event("change"));
                     return false;
-                } catch (Error) {
+                }
+                const idProperty = form.querySelector(".input[data-name='id_properties']");
+                const result = [];
+                values.forEach((value) => {
+                    let temp = {};
+                    if (value.hasAttribute("data-id-attributes")) {
+                        temp["id_attributes"] = value.dataset.idAttributes;
+                    }
+                    if (idProperty) {
+                        temp["properties_id_attributes"] = idProperty.value;
+                    }
+                    temp["value_attributes"] = value.value;
+                    result.push(temp);
+                });
+                if (result.length > 0) {
+                    input.value = JSON.stringify(result);
+                    input.dispatchEvent(new Event("change"));
+                    return false;
+                } else {
                     return "Некорректный JSON";
                 }
-            }
-        },
-        "attributes_search": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": false,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": null,
-            "inputs": null,
-            "nameRule": "attributes_search",
-            "oldValue": null,
-            "files": ["index.php"],
-            "required": false,
-            "timerId": null,
-            "length": null,
-            "placeMsg": null,
-            "check": function (input) {
-                return false;
             }
         },
         "id_attributes": {
@@ -1310,57 +1327,6 @@ function getValidationRules() {
             "nameInput": "тип товара",
             "inputs": null,
             "nameRule": "name_items_type",
-            "oldValue": null,
-            "files": ["editTable.php"],
-            "required": true,
-            "timerId": null,
-            "length": 80,
-            "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
-                    return false;
-                }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
-            }
-        },
-        // Статус покупки
-        "id_status": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": ["name_status"],
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": null,
-            "inputs": null,
-            "nameRule": "id_status",
-            "oldValue": null,
-            "files": ["editTable.php"],
-            "required": true,
-            "timerId": null,
-            "length": null,
-            "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
-                    return false;
-                }
-                return "Введите число до 9 999 999";
-            }
-        },
-        "name_status": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": ["id_status"],
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "статус",
-            "inputs": null,
-            "nameRule": "name_status",
             "oldValue": null,
             "files": ["editTable.php"],
             "required": true,
@@ -1578,17 +1544,17 @@ function getValidationRules() {
                         return "Некорректный тип файла. Файл должен быть jpg, png или webp";
                     }
 
-                    // let reader = new FileReader();
-                    // reader.readAsDataURL(input.files[0]);
-                    // reader.addEventListener("load", (event) => {
-                    //     if (event.target.result != null) {
-                    //         let img = input.parentElement.querySelector("img");
-                    //         img.classList.remove("hidden");
-                    //         img.src = event.target.result;
-                    //     } else {
-                    //         return "Не удалось загрузить картинку";
-                    //     }
-                    // });
+                    let reader = new FileReader();
+                    reader.readAsDataURL(input.files[0]);
+                    reader.addEventListener("load", (event) => {
+                        if (event.target.result != null) {
+                            let img = input.parentElement.querySelector("img");
+                            img.classList.remove("hidden");
+                            img.src = event.target.result;
+                        } else {
+                            return "Не удалось загрузить картинку";
+                        }
+                    });
                 }
                 return false;
             }

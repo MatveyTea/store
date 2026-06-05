@@ -5,7 +5,7 @@ if (!isAdmin()) {
     redirect();
 }
 
-if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
+if (!empty($_POST["submit_button"])) {
     unset($_POST["submit_button"]);
     $validatedData = getValidatedData(array_merge($_POST, $_FILES));
     $_SESSION["data"] = $validatedData["data"];
@@ -52,7 +52,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $_SESSION["data"]["item_properties"] = $validatedData["data"]["items_properties"] ?? [];
     }
 
-    redirectYourself();
+    //redirectYourself();
 }
 
 $allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
@@ -82,16 +82,14 @@ $attributesItem = $_SESSION["data"]["item_properties"] ?? [];
 $attributesItemHTML = "";
 if (!empty($attributesItem)) {
     foreach ($attributesItem as $key => $attribute) {
-        if ($key == 0) {
-            $dataValue[] = $attribute["id_attributes"];
-            continue;
-        }
         if ($propertyID != $attribute["id_properties"] && $propertyID != null) {
             $allAttributesHTMLSome = "";
             foreach ($allAttributes as $attributeSome) {
-                echo  "$attributeSome[id_attributes] | $attribute[id_attributes]";
                 $isInsertServer = $attributeSome["id_attributes"] == $attribute["id_attributes"] ? 0 : 1;
-                $allAttributesHTMLSome .= "<label class='hidden'>$attributeSome[value_attributes]<input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'></label>";
+                $allAttributesHTMLSome .= "<label class='hidden'>
+                    $attributeSome[value_attributes]
+                    <input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'>
+                </label>";
             }
             $attributesItemHTML .= getAdditionalSelectHTML(0, $allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[$key - 1]["id_properties"], $dataValue);
             $dataValue = [];
@@ -102,7 +100,10 @@ if (!empty($attributesItem)) {
     $allAttributesHTMLSome = "";
     foreach ($allAttributes as $attributeSome) {
         $isInsertServer = $attributeSome["id_attributes"] == $attributesItem[count($attributesItem) - 1]["id_attributes"] ? 0 : 1;
-        $allAttributesHTMLSome .= "<label class='hidden'>$attributeSome[value_attributes]<input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'></label>";
+        $allAttributesHTMLSome .= "<label class='hidden'>
+            $attributeSome[value_attributes]
+            <input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'>
+        </label>";
     }
     $attributesItemHTML .= getAdditionalSelectHTML(0, $allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
 }
@@ -188,7 +189,7 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="file" data-name="image_items_images" multiple="true">
+            <input class="input file" type="file" data-name="image_items_images" multiple="true">
             <?= getSliderImagesItemHTML([], false) ?>
             <span class="error-wrapper">
                 <p class="error"></p>

@@ -155,14 +155,14 @@ if (isUserAuth()) {
         <legend class='title'>Оставить отзыв</legend>
         <div class='field'>
             <label class='label'></label>
-            <textarea class='input textarea' data-name='text_comments' data-is-server-insert='1'></textarea>
+            <textarea class='input textarea' data-name='text_comments'></textarea>
             <span class='error-wrapper'>
                 <p class='error'></p>
             </span>
         </div>
         <div class='field'>
             <label class='label'></label>
-            <span class='input' data-name='rating_comments' data-is-server-insert='1'>
+            <span class='input' data-name='rating_comments'>
                 $starsHTML
             </span>
             <span class='error-wrapper'>
@@ -170,7 +170,6 @@ if (isUserAuth()) {
             </span>
         </div>
         <div class='field'>
-            $editItemHTML
             <input type='submit' name='submit_button' class='button'>
         </div>
     </form>";

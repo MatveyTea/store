@@ -249,7 +249,7 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="file" data-name="image_items_images" multiple="true">
+            <input class="input file" type="file" data-name="image_items_images" multiple="true">
             <input class="input" type="hidden" data-name="image_items_update">
             <?= getSliderImagesItemHTML($imagesItem, false) ?>
             <span class="error-wrapper">
