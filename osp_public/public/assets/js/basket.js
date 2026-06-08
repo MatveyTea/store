@@ -1,8 +1,8 @@
 "use strict";
 
 const buyButton = document.querySelector("button.buy");
-const historyBasket = document.querySelector(".history-basket");
-const currentBasket = document.querySelector(".current-basket");
+const historyBasket = document.querySelector(".orders:not(.current)");
+const currentBasket = document.querySelector(".orders.current");
 const cancelBasket = document.querySelector(".cancel-basket");
 
 buyButton?.addEventListener("click", async () => {
@@ -25,7 +25,7 @@ buyButton?.addEventListener("click", async () => {
         if (resultData["status"] == "OK") {
             historyBasket.querySelector("h2").textContent = "История покупок";
             historyBasket.querySelector("h2").insertAdjacentHTML("afterend", resultData["data"]["historyHTML"]);
-            currentBasket.innerHTML = "<h2>У вас нет ничего в корзине</h2>";
+            currentBasket.innerHTML = "<h2 class='notfound'>В данный момент в корзине пусто.</h2>";
             makeOrder.classList.remove();
             showModal("Успешно")
         } else {

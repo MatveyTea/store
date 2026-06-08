@@ -20,7 +20,7 @@ if (!empty($_POST["submit_button"])) {
         $images = $validatedData["data"]["image_items_images"] ?? [];
         foreach ($images as $image) {
             $sql .= "INSERT INTO `items_images` (`items_id_items_images`, `image_items_images`) VALUES (?, ?);";
-            array_push($params, $id, $image);
+            array_push($params, $id, $image["current_name"]);
         }
 
         $isSucceedImages = true;
@@ -43,6 +43,9 @@ if (!empty($_POST["submit_button"])) {
 
         if ($isSucceedItem && $isSucceedImages && $isSucceedProperties) {
             clearValidatedSession();
+            foreach ($images as $img) {
+                move_uploaded_file($img["tmp_name"], __DIR__ . "/../../app/upload/items/$img[current_name]");
+            }
             $_SESSION["server"] = "Товар добавлен";
         } else {
             $_SESSION["server"] = "Не удалось добавить товар";
@@ -52,7 +55,7 @@ if (!empty($_POST["submit_button"])) {
         $_SESSION["data"]["item_properties"] = $validatedData["data"]["items_properties"] ?? [];
     }
 
-    //redirectYourself();
+    redirectYourself();
 }
 
 $allProperties = makeSelectQuery("SELECT * FROM `properties`", [], false);
@@ -91,7 +94,7 @@ if (!empty($attributesItem)) {
                     <input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'>
                 </label>";
             }
-            $attributesItemHTML .= getAdditionalSelectHTML(0, $allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[$key - 1]["id_properties"], $dataValue);
+            $attributesItemHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[$key - 1]["id_properties"], dataValue: $dataValue);
             $dataValue = [];
         }
         $propertyID = $attribute["id_properties"];
@@ -105,7 +108,7 @@ if (!empty($attributesItem)) {
             <input class='input' type='checkbox' value='$attributeSome[id_attributes]' data-name='attributes_select_value' data-is-insert-server='$isInsertServer'>
         </label>";
     }
-    $attributesItemHTML .= getAdditionalSelectHTML(0, $allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
+    $attributesItemHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTMLSome, $attributesItem[count($attributesItem) - 1]["id_properties"], dataValue: $dataValue);
 }
 
 

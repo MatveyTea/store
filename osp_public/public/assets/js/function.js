@@ -25,7 +25,7 @@ function setProperties(form) {
 
     const addProperties = form.querySelector(".add-properties");
     const fieldProperties = form.querySelector(".field-properties");
-    const isEditFile = "/editItem.php" == window.location.pathname;
+    const isEditFile = "/admin/editItem.php" == window.location.pathname;
 
     const allSelectProperty = document.querySelectorAll(".field.property select");
     allSelectProperty.forEach((select) => {
@@ -57,10 +57,10 @@ function setProperties(form) {
                 event.preventDefault();
                 const resultData = await sendToServer({
                     "server_type": "delete_item_properties",
-                    "id_properties": button.dataset.idProperty
+                    "id_items_properties": button.dataset.idItemsProperties
                 });
                 if (resultData["status"] == "OK") {
-                    const parent = form.querySelector(`.field.property:has(.button[data-id-property='${button.dataset.idProperty}'])`);
+                    const parent = form.querySelector(`.field.property:has(.button[data-id-items-properties='${button.dataset.idItemsProperties}'])`);
                     parent.remove();
                     currentCountProperties--;
                 } else {
@@ -76,7 +76,7 @@ function checkInput(input, rule) {
     let isCorrect = true;
 
     if (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0 || rule.nameRule == "image_items_update"))) {
-        const result = rule.check(input);
+        const result = rule.regExp == null ? rule.check(input) : rule.check(input, rule.regExp);
         if (result !== false) {
             textMessage = result;
             isCorrect = false;
@@ -175,7 +175,7 @@ function setBasicSettingInput(inputs, form) {
             input.setAttribute("placeholder", `Введите ${rule.nameInput}`);
         }
 
-        if (input.tagName != "SPAN" && (input.value != "" || input?.selectedIndex || input.isInsertServer == 0)) {
+        if (input?.selectedIndex != 0 && input.tagName != "SPAN" && (input.value != "" || input.isInsertServer == 0)) {
             checkInput(input, rule);
         }
 
@@ -203,7 +203,6 @@ function setValidationForm(form) {
     }
 
     form.addEventListener("submit", (event) => {
-        // event.preventDefault();
         let hasError = false;
         let hasUpdate = false;
         Array.from(inputs).forEach((input) => {
@@ -214,9 +213,11 @@ function setValidationForm(form) {
                 hasUpdate = true;
             }
         });
-        // if (hasError || !hasUpdate) {
-        //     event.preventDefault();
-        // }
+        if (false && (hasError || !hasUpdate)) {
+            event.preventDefault();
+        } else {
+            //document.querySelector(img);
+        }
     });
 }
 
@@ -238,64 +239,25 @@ function getValidationRules() {
         timerId - id таймера для показа ошибок | Int
         placeMsg - место куда выводить ошибки, виде  | Array<String, DOM>
         length - длина вводимых символов | ?Int
+        regExp - регулярное выражение | ?RegExp
         check - функция валидации | function(input): Bool, String 
     */
     let result = [];
     const splitFile = window.location.pathname.split("/");
     const file = window.location.pathname == "/" ? "index.php" : splitFile[splitFile.length - 1];
 
+    const symbols = {
+        "id": "^[0-9]{1,10}$",
+        "num": "0-9",
+        "space": " ",
+        "ru": "А-Яа-я",
+        "eng": "A-Za-z",
+        "special": "!@#\$%^&*()\-+=_\{\}\\[\\]|:;\"'<>?/\\.,",
+        "simple": "().,:\"'-"
+    };
+
     const rules = {
         // Пользователь
-        "name_users": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "имя",
-            "inputs": null,
-            "nameRule": "name_users",
-            "oldValue": null,
-            "files": ["reg.php", "profile.php"],
-            "required": true,
-            "timerId": null,
-            "placeMsg": null,
-            "length": 30,
-            "check": function (input) {
-                if (/^[а-яёА-ЯЁ-]{1,30}$/u.test(input.value)) {
-                    return false;
-                }
-                return "Введите только кириллические символы, 1-30 символов.";
-            }
-        },
-        "tel_users": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "телефон",
-            "inputs": null,
-            "nameRule": "tel_users",
-            "oldValue": null,
-            "files": ["profile.php"],
-            "required": false,
-            "timerId": null,
-            "placeMsg": null,
-            "length": 13,
-            "check": function (input) {
-                if (input.value == "" || /^\+[0-9]{9,12}$/u.test(input.value)) {
-                    return false;
-                }
-                return "Введите корректный номер телефона.";
-            }
-        },
         "email_users": {
             "wayDefineValue": function(input) {
                 return input.value;
@@ -314,58 +276,12 @@ function getValidationRules() {
             "timerId": null,
             "length": 80,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}._%+-]{1,50}@[${symbols.eng}${symbols.num}.-]{1,15}\\.[${symbols.eng}]{2,15}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите действительный email-адрес до 80 символов.";
-            },
-        },
-        "email_search_users": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "email-адрес",
-            "inputs": null,
-            "nameRule": "email_search_users",
-            "oldValue": null,
-            "files": ["editUser.php"],
-            "required": false,
-            "timerId": null,
-            "length": 80,
-            "placeMsg": null,
-            "check": function (input) {
-                if (/^[A-Za-z0-9._%+-@]{1,80}$/.test(input.value)) {
-                    return false;
-                }
-                return "Введите действительный email-адрес до 80 символов.";
-            },
-        },
-        "is_banned_search_users": {
-            "wayDefineValue": function(input) {
-                return input.selectedIndex;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "Искать среди",
-            "inputs": null,
-            "nameRule": "is_banned_search_users",
-            "oldValue": null,
-            "files": ["editUser.php"],
-            "required": false,
-            "timerId": null,
-            "length": null,
-            "placeMsg": null,
-            "check": function (input) {
-                return input.selectedIndex > -1 ? false : "Выберите элемент";
+                return "Введите действительный email-адрес, 4-80 символов.";
             },
         },
         "password_users": {
@@ -384,11 +300,12 @@ function getValidationRules() {
             "files": ["reg.php", "auth.php", "profile.php"],
             "required": "profile.php" != file,
             "timerId": null,
-            "length": 40,
+            "length": 64,
             "placeMsg": null,
-            "check": function (input) {
-                if (!/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/.test(input.value)) {
-                    return "Введите латинские символы, цифры или допустимые символы (@#$%^&*()_+-={}\:;\"'<>,.?\/), 1-40 символов.";
+            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}${symbols.special}]{8,64}$`, "u"),
+            "check": function (input, regExp) {
+                if (!regExp.test(input.value)) {
+                    return `Введите латинские символы, цифры или допустимые символы (${symbols.special}), 8-64 символов.`;
                 }
 
                 const rePassword = document.querySelector("input[data-name^=re_password_users]");
@@ -398,7 +315,7 @@ function getValidationRules() {
                         rePasswordPlaceError.textContent = "Пароли должны совпадать!";
                         rePasswordPlaceError.classList.remove("hidden");
                         rePassword.removeAttribute("name");
-                        return "Пароли должны совпадать!";
+                        return "Пароли должны совпадать.";
                     } else if (rePassword.value == input.value && input.value != "") {
                         rePasswordPlaceError.textContent = "";
                         rePasswordPlaceError.classList.add("hidden");
@@ -424,11 +341,12 @@ function getValidationRules() {
             "files": ["reg.php", "profile.php"],
             "required": "profile.php" != file,
             "timerId": null,
-            "length": 80,
+            "length": 64,
             "placeMsg": null,
-            "check": function (input) {
-                if (!/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/.test(input.value)) {
-                    return /^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/.test(input.value) ? false : "Введите латинские символы, цифры или допустимые символы (@#$%^&*()_+-={}\:;\"'<>,.?\/), 1-40 символов.";
+            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}${symbols.special}]{8,64}$`, "u"),
+            "check": function (input, regExp) {
+                if (!regExp.test(input.value)) {
+                    return `Введите латинские символы, цифры или допустимые символы (${symbols.special}), 8-64 символов.`;
                 }
 
                 const password = document.querySelector("input[data-name=password_users]");
@@ -438,7 +356,7 @@ function getValidationRules() {
                         passwordPlaceError.textContent = "Пароли должны совпадать!";
                         passwordPlaceError.classList.remove("hidden");
                         password.removeAttribute("name");
-                        return "Пароли должны совпадать!";
+                        return "Пароли должны совпадать.";
                     } else if (password.value == input.value && input.value != "") {
                         passwordPlaceError.textContent = "";
                         passwordPlaceError.classList.add("hidden");
@@ -446,6 +364,32 @@ function getValidationRules() {
                     }
                 }
                 return false;
+            }
+        },
+        "name_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "имя",
+            "inputs": null,
+            "nameRule": "name_users",
+            "oldValue": null,
+            "files": ["reg.php", "profile.php"],
+            "required": true,
+            "timerId": null,
+            "placeMsg": null,
+            "length": 100,
+            "regExp": new RegExp(`^$|^[${symbols.ru}${symbols.eng}${symbols.space}-]{1,100}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
+                    return false;
+                }
+                return "Введите только кириллические символы, 1-100 символов.";
             }
         },
         "avatar_users": {
@@ -466,15 +410,16 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": new RegExp(" "),
             "check": function (input) {
                 if (input.files.length > 0) {
                     let extension = input.files[0].name.split(".");
                     extension = extension[extension.length - 1];
-                    if (input.files[0].size > 3_000_000) {
-                        return "Размер файла не должен превышать 3МБ";
+                    if (input.files[0].size > 2_000_000) {
+                        return "Размер изображения не должен превышать 2МБ.";
                     }
                     if (!["jpg", "png", "webp"].includes(extension)) {
-                        return "Некорректный тип файла. Файл должен быть jpg, png или webp";
+                        return "Изображение должно быть в формате jpg, png или webp.";
                     }
                     let reader = new FileReader();
                     reader.readAsDataURL(input.files[0]);
@@ -484,12 +429,88 @@ function getValidationRules() {
                             img.classList.remove("hidden");
                             img.src = event.target.result;
                         } else {
-                            return "Не удалось загрузить картинку";
+                            return "Не удалось сделать предварительный просмотр изображения.";
                         }
                     });
                 }
                 return false;
             }
+        },
+        "tel_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "телефон",
+            "inputs": null,
+            "nameRule": "tel_users",
+            "oldValue": null,
+            "files": ["profile.php"],
+            "required": false,
+            "timerId": null,
+            "placeMsg": null,
+            "regExp": new RegExp(`^$|^\\+[${symbols.num}]{11}$`, "u"),
+            "length": 12,
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
+                    return false;
+                }
+                return "Введите корректный номер телефона начиная с плюса.";
+            }
+        },
+        // Поиск пользователя
+        "email_search_users": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "email-адрес",
+            "inputs": null,
+            "nameRule": "email_search_users",
+            "oldValue": null,
+            "files": ["editUser.php"],
+            "required": false,
+            "timerId": null,
+            "length": 80,
+            "placeMsg": null,
+            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}._%+-]{1,50}@[${symbols.eng}${symbols.num}.-]{1,15}\\.[${symbols.eng}]{2,15}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
+                    return false;
+                }
+                return "Введите действительный email-адрес, 4-80 символов.";
+            },
+        },
+        "is_banned_search_users": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "Искать среди",
+            "inputs": null,
+            "nameRule": "is_banned_search_users",
+            "oldValue": null,
+            "files": ["editUser.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "regExp": null,
+            "check": function (input) {
+                return input.selectedIndex > 0 ? false : "Выберите другой элемент из списка.";
+            },
         },
         // Товар
         "id_items": {
@@ -508,13 +529,14 @@ function getValidationRules() {
             "files": ["editItem.php"],
             "required": true,
             "timerId": null,
-            "length": 7,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input,regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return null;
             }
         },
         "name_items": {
@@ -533,13 +555,40 @@ function getValidationRules() {
             "files": ["editItem.php", "addItem.php"],
             "required": true,
             "timerId": null,
-            "length": 80,
+            "length": 100,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,100}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-100 символов.";
+            }
+        },
+        "description_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "описание товара",
+            "inputs": null,
+            "nameRule": "description_items",
+            "oldValue": null,
+            "files": ["editItem.php", "addItem.php"],
+            "required": false,
+            "timerId": null,
+            "length": 3000,
+            "placeMsg": null,
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,3000}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-3000 символов.";
             }
         },
         "count_items": {
@@ -558,13 +607,14 @@ function getValidationRules() {
             "files": ["editItem.php", "addItem.php"],
             "required": true,
             "timerId": null,
-            "length": 7,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input, regExp) {
+                if (/^[0-9]{1,10}$/.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return "Введите число, 1-10 символов.";
             }
         },
         "cost_items": {
@@ -583,13 +633,14 @@ function getValidationRules() {
             "files": ["editItem.php", "addItem.php"],
             "required": true,
             "timerId": null,
-            "length": 7,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input, regExp) {
+                if (/^[0-9]{1,10}$/.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return "Введите число, 1-10 символов.";
             }
         },
         "discount_items": {
@@ -608,13 +659,14 @@ function getValidationRules() {
             "files": ["editItem.php", "addItem.php"],
             "required": false,
             "timerId": null,
-            "length": 7,
+            "length": 3,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+                if (input.value <= 100 && input.value > 0) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return "Введите число от 1 до 100.";
             }
         },
         "image_items_images": {
@@ -635,13 +687,14 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": new RegExp(" "),
             "check": function (input) {
                 const imagesContainer = document.querySelector(".images-container");
                 const templateImage = document.querySelector(".template-image").content.firstElementChild;
                 Array.from(input.files).forEach((file) => {
                     let extension = file.name.split(".");
                     extension = extension[extension.length - 1];
-                    if (file.size > 3_000_000) {
+                    if (file.size > 2_000_000) {
                         return "Размер файла не должен превышать 3МБ";
                     }
 
@@ -682,20 +735,22 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
-            "check": function (input) {
+            "regExp": new RegExp(`${symbols.id}|^${symbols.num}{13,14}\\.|png|jpg|webp$`, "u"),
+            "check": function (input, regExp) {
                 const result = [];
                 const deleteImages = document.querySelectorAll(".images-container .hidden[data-id-items-images][data-path]");
                 deleteImages.forEach((image) => {
-                    result.push({
-                        "id": image.dataset.idItemsImages,
-                        "path": image.dataset.path
-                    });
+                    if (regExp.test(image.dataset.idItemsImages) && regExp.test(image.dataset.path)) {
+                        result.push({
+                            "id": image.dataset.idItemsImages,
+                            "path": image.dataset.path
+                        });
+                    } else {
+                        return false;
+                    }
                 });
-                if (input.value != JSON.stringify(result)) {
-                    input.value = JSON.stringify(result);
-                    input.dispatchEvent(new Event("change"));//?
-                }
-
+                input.value = JSON.stringify(result);
+                input.dispatchEvent(new Event("change"));
                 return false;
             }
         },
@@ -717,33 +772,9 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
-                return input.selectedIndex > 0 ? false : "Выберите элемент";
-            }
-        },
-        "description_items": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "описание товара",
-            "inputs": null,
-            "nameRule": "description_items",
-            "oldValue": null,
-            "files": ["editItem.php", "addItem.php"],
-            "required": false,
-            "timerId": null,
-            "length": 255,
-            "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/.test(input.value)) {
-                    return false;
-                }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-255 символов.";
+                return input.selectedIndex > 0 ? false : "Выберите другой элемент из списка.";
             }
         },
         // Поиск товара
@@ -763,13 +794,14 @@ function getValidationRules() {
             "files": ["index.php"],
             "required": false,
             "timerId": null,
-            "length": 80,
+            "length": 100,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,100}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-100 символов.";
             }
         },
         "description_search_items": {
@@ -788,85 +820,14 @@ function getValidationRules() {
             "files": ["index.php"],
             "required": false,
             "timerId": null,
-            "length": 255,
+            "length": 3000,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,3000}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-255 символов.";
-            }
-        },
-        "items_type_id_search_items": {
-            "wayDefineValue": function(input) {
-                return input.selectedIndex;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "тип товара",
-            "inputs": null,
-            "nameRule": "items_type_id_search_items",
-            "oldValue": null,
-            "files": ["index.php"],
-            "required": false,
-            "timerId": null,
-            "length": 7,
-            "placeMsg": null,
-            "check": function (input) {
-                return false;
-            }
-        },
-        "min_cost_items": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "мин. стоимость",
-            "inputs": null,
-            "nameRule": "min_cost_items",
-            "oldValue": null,
-            "files": ["index.php"],
-            "required": false,
-            "timerId": null,
-            "length": 7,
-            "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
-                    return false;
-                }
-                return "Введите число до 9 999 999";
-            }
-        },
-        "max_cost_items": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": true,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "макс. стоимость",
-            "inputs": null,
-            "nameRule": "max_cost_items",
-            "oldValue": null,
-            "files": ["index.php"],
-            "required": false,
-            "timerId": null,
-            "length": 7,
-            "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
-                    return false;
-                }
-                return "Введите число до 9 999 999";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-3000 символов.";
             }
         },
         "min_count_items": {
@@ -885,13 +846,14 @@ function getValidationRules() {
             "files": ["index.php"],
             "required": false,
             "timerId": null,
-            "length": 7,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input, regExp) {
+                if (/^[0-9]{1,10}$/.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return "Введите число, 1-10 символов.";
             }
         },
         "max_count_items": {
@@ -910,13 +872,113 @@ function getValidationRules() {
             "files": ["index.php"],
             "required": false,
             "timerId": null,
-            "length": 7,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input, regExp) {
+                if (/^[0-9]{1,10}$/.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return "Введите число, 1-10 символов.";
+            }
+        },
+        "min_cost_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "мин. стоимость",
+            "inputs": null,
+            "nameRule": "min_cost_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "timerId": null,
+            "length": 10,
+            "placeMsg": null,
+            "regExp": new RegExp(symbols.id),
+            "check": function (input, regExp) {
+                if (/^[0-9]{1,10}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите число, 1-10 символов.";
+            }
+        },
+        "max_cost_items": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "макс. стоимость",
+            "inputs": null,
+            "nameRule": "max_cost_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": 10,
+            "placeMsg": null,
+            "regExp": new RegExp(symbols.id),
+            "check": function (input, regExp) {
+                if (/^[0-9]{1,10}$/.test(input.value)) {
+                    return false;
+                }
+                return "Введите число, 1-10 символов.";
+            }
+        },
+        "discount_search_items": {
+            "wayDefineValue": function(input) {
+                return input.checked;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "искать товары со скидкой",
+            "inputs": null,
+            "nameRule": "discount_search_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "regExp": null,
+            "check": function (input) {
+                return false;
+            }
+        },
+        "items_type_id_search_items": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "тип товара",
+            "inputs": null,
+            "nameRule": "items_type_id_search_items",
+            "oldValue": null,
+            "files": ["index.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "regExp": null,
+            "check": function (input) {
+                return false;
             }
         },
         "strict_search": {
@@ -937,6 +999,7 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
                 return false;
             }
@@ -959,6 +1022,7 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
                 return false;
             }
@@ -981,28 +1045,7 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
-            "check": function (input) {
-                return false;
-            }
-        },
-        "discount_search_items": {
-            "wayDefineValue": function(input) {
-                return input.checked;
-            },
-            "currentValue": null,
-            "hasName": false,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "искать товары со скидкой",
-            "inputs": null,
-            "nameRule": "discount_search_items",
-            "oldValue": null,
-            "files": ["index.php"],
-            "required": false,
-            "timerId": null,
-            "length": null,
-            "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
                 return false;
             }
@@ -1024,13 +1067,14 @@ function getValidationRules() {
             "files": ["aboutItem.php"],
             "required": false,
             "timerId": null,
-            "length": 255,
+            "length": 1500,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,1500}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-255 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-1500 символов.";
             }
         },
         "rating_comments": {
@@ -1051,9 +1095,10 @@ function getValidationRules() {
             "timerId": null,
             "length": 5,
             "placeMsg": null,
+            "regExp": new RegExp(" "),
             "check": function (input) {
                 const activeStars = input.querySelectorAll("svg.active").length;
-                return activeStars > 0 && activeStars < 6 ? false : "Введите число от 1 до 5";
+                return activeStars > 0 && activeStars < 6 ? false : "Выберите количество звёзд от 1 до 5.";
             }
         },
         // Свойство у товаров
@@ -1075,24 +1120,29 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
-            "check": function (input) {
+            "regExp": new RegExp(symbols.id, "u"),
+            "check": function (input, regExp) {
                 const attributesIds = document.querySelectorAll(".field.property .input[data-name='attributes_select_value'][data-is-insert-server='0']");
-                if (attributesIds.length < 1) return false;
+                if (attributesIds.length < 1) {
+                    input.value = "";
+                    input.dispatchEvent(new Event("change"));
+                    return false;
+                }
                 const attributes = [];
                 attributesIds.forEach((attributesId) => {
+                    const idProperty = document.querySelector(`.field.property:has(#${attributesId.id}) select`).value;
+                    if (!regExp.test(attributesId.value) || !regExp.test(idProperty)) {
+                        return false;
+                    }
                     attributes.push({
                         "type": attributesId.checked ? "add" : "remove",
                         "id_attributes": attributesId.value,
-                        "id_properties": document.querySelector(`.field.property:has(#${attributesId.id}) select`).value
+                        "id_properties": idProperty
                     });
                 });
-                try {
-                    input.value = JSON.stringify(attributes);
-                    input.dispatchEvent(new Event("change"));
-                    return false;
-                } catch (Error) {
-                    return "Некорректный JSON";
-                }    
+                input.value = JSON.stringify(attributes);
+                input.dispatchEvent(new Event("change"));
+                return false;
             }
         },
         "attributes_select_property": {
@@ -1113,6 +1163,7 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
                 return false;
             }
@@ -1135,6 +1186,7 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
                 return false;
             }
@@ -1156,13 +1208,14 @@ function getValidationRules() {
             "files": ["editTable.php"],
             "required": true,
             "timerId": null,
-            "length": null,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input,regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return null;
             }
         },
         "name_properties": {
@@ -1181,13 +1234,14 @@ function getValidationRules() {
             "files": ["editTable.php"],
             "required": true,
             "timerId": null,
-            "length": 80,
+            "length": 50,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,80}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,50}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-50 символов.";
             }
         },
         // Атрибуты
@@ -1209,7 +1263,8 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
-            "check": function (input) {
+            "regExp": new RegExp(`${symbols.id}|^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,50}$`, "u"),
+            "check": function (input, regExp) {
                 const form = document.querySelector(`.form:has(#${input.id})`);
                 const values = form.querySelectorAll(".input[data-name='value_attributes'][data-is-insert-server='0']");
                 if (values.length < 1) {
@@ -1218,6 +1273,7 @@ function getValidationRules() {
                     return false;
                 }
                 const idProperty = form.querySelector(".input[data-name='id_properties']");
+                if (idProperty && regExp.test(idProperty.value)) return null;
                 const result = [];
                 values.forEach((value) => {
                     let temp = {};
@@ -1227,16 +1283,15 @@ function getValidationRules() {
                     if (idProperty) {
                         temp["properties_id_attributes"] = idProperty.value;
                     }
+                    if (!regExp.test(value.value)) {
+                        return null;
+                    }
                     temp["value_attributes"] = value.value;
                     result.push(temp);
                 });
-                if (result.length > 0) {
-                    input.value = JSON.stringify(result);
-                    input.dispatchEvent(new Event("change"));
-                    return false;
-                } else {
-                    return "Некорректный JSON";
-                }
+                input.value = JSON.stringify(result);
+                input.dispatchEvent(new Event("change"));
+                return false;
             }
         },
         "id_attributes": {
@@ -1255,13 +1310,14 @@ function getValidationRules() {
             "files": ["editTable.php"],
             "required": false,
             "timerId": null,
-            "length": null,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input,regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return null;
             }
         },
         "value_attributes": {
@@ -1280,13 +1336,14 @@ function getValidationRules() {
             "files": ["editTable.php"],
             "required": false,
             "timerId": null,
-            "length": 80,
+            "length": 50,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,80}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,50}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-50 символов.";
             }
         },
         // Типы товаров
@@ -1306,13 +1363,14 @@ function getValidationRules() {
             "files": ["editTable.php"],
             "required": true,
             "timerId": null,
-            "length": null,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input,regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return null;
             }
         },
         "name_items_type": {
@@ -1331,13 +1389,14 @@ function getValidationRules() {
             "files": ["editTable.php"],
             "required": true,
             "timerId": null,
-            "length": 80,
+            "length": 50,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,50}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'%), 1-80 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-50 символов.";
             }
         },
         // Заказы
@@ -1357,13 +1416,14 @@ function getValidationRules() {
             "files": ["basket.php"],
             "required": true,
             "timerId": null,
-            "length": 100,
+            "length": 180,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,100}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,180}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-100 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-180 символов.";
             }
         },
         "home_address_orders": {
@@ -1382,13 +1442,14 @@ function getValidationRules() {
             "files": ["basket.php"],
             "required": true,
             "timerId": null,
-            "length": 100,
+            "length": 50,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,100}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,50}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-100 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-50 символов.";
             }
         },
         "number_address_orders": {
@@ -1407,13 +1468,14 @@ function getValidationRules() {
             "files": ["basket.php"],
             "required": false,
             "timerId": null,
-            "length": 100,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,55}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите цифры 1-55 символов.";
+                return "Введите цифры, 1-10 символов.";
             }
         },
         "datetime_plan_orders": {
@@ -1434,8 +1496,9 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
-                return input.selectedIndex > 0 ? false : "Выберите элемент";
+                return input.selectedIndex > 0 ? false : "Выберите другой элемент из списка.";
             }
         },
         "note_orders": {
@@ -1456,14 +1519,41 @@ function getValidationRules() {
             "timerId": null,
             "length": 255,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,255}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,255}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
                 return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-255 символов.";
             }
         },
         // Техподдержка
+        "title_talks": {
+            "wayDefineValue": function(input) {
+                return input.value;
+            },
+            "currentValue": null,
+            "hasName": false,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "заголовок",
+            "inputs": null,
+            "nameRule": "title_talks",
+            "oldValue": null,
+            "files": ["support.php"],
+            "required": true,
+            "timerId": null,
+            "length": 100,
+            "placeMsg": null,
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,100}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
+                    return false;
+                }
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-100 символов.";
+            }
+        },
         "text_supports": {
             "wayDefineValue": function(input) {
                 return input.value;
@@ -1480,13 +1570,14 @@ function getValidationRules() {
             "files": ["support.php"],
             "required": true,
             "timerId": null,
-            "length": 255,
+            "length": 1000,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,255}$/.test(input.value)) {
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.num}${symbols.space}${symbols.simple}]{1,1000}$`, "u"),
+            "check": function (input, regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-255 символов.";
+                return "Введите латинские, кириллические символы, цифры или допустимые символы (().,:\"'-), 1-1000 символов.";
             }
         },
         "talks_id_supports": {
@@ -1505,13 +1596,14 @@ function getValidationRules() {
             "files": ["support.php"],
             "required": true,
             "timerId": null,
-            "length": 7,
+            "length": 10,
             "placeMsg": null,
-            "check": function (input) {
-                if (/^[0-9]{1,7}$/.test(input.value)) {
+            "regExp": new RegExp(symbols.id),
+            "check": function (input,regExp) {
+                if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите число до 9 999 999";
+                return null;
             }
         },
         "image_supports": {
@@ -1532,16 +1624,16 @@ function getValidationRules() {
             "timerId": null,
             "length": null,
             "placeMsg": null,
+            "regExp": null,
             "check": function (input) {
                 if (input.files.length > 0) {
                     let extension = input.files[0].name.split(".");
                     extension = extension[extension.length - 1];
-                    if (input.files[0].size > 3_000_000) {
-                        return "Размер файла не должен превышать 3МБ";
+                    if (input.files[0].size > 2_000_000) {
+                        return "Размер изображения не должен превышать 2МБ.";
                     }
-
                     if (!["jpg", "png", "webp"].includes(extension)) {
-                        return "Некорректный тип файла. Файл должен быть jpg, png или webp";
+                        return "Изображение должно быть в формате jpg, png или webp.";
                     }
 
                     let reader = new FileReader();
@@ -1552,36 +1644,11 @@ function getValidationRules() {
                             img.classList.remove("hidden");
                             img.src = event.target.result;
                         } else {
-                            return "Не удалось загрузить картинку";
+                            return "Не удалось сделать предварительный просмотр изображения.";
                         }
                     });
                 }
                 return false;
-            }
-        },
-        "title_talks": {
-            "wayDefineValue": function(input) {
-                return input.value;
-            },
-            "currentValue": null,
-            "hasName": false,
-            "connectedRules": null,
-            "connectedInputs": null,
-            "isInsertServer": null,
-            "nameInput": "заголовок",
-            "inputs": null,
-            "nameRule": "title_talks",
-            "oldValue": null,
-            "files": ["support.php"],
-            "required": true,
-            "timerId": null,
-            "length": 255,
-            "placeMsg": null,
-            "check": function (input) {
-                if (/^[А-Яа-яa-zA-Z0-9 -().,:\"']{1,255}$/.test(input.value)) {
-                    return false;
-                }
-                return "Введите латинские, кириллические символы, цифры или допустимые символы (-().,:\"'), 1-255 символов.";
             }
         }
     };

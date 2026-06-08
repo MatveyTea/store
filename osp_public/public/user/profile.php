@@ -10,16 +10,29 @@ if (!empty($_POST["submit_button"])) {
     $validatedData = getValidatedData(array_merge($_POST, $_FILES));
 
     if ($validatedData["isCorrect"]) {
-        $result = getUpdateSQL(array_diff_key($validatedData["data"], ["re_password_users" => true]));
-        $result["params"][] = getUserID();
-        $isSuccess = makeSafeQuery("UPDATE `users` SET $result[sql] WHERE `id_users` = ?", $result["params"]);
-        if ($isSuccess) {
-            $_SESSION["server"] = "Данные обновлены";
+        $isSuccess = false;
+        if (!empty($validatedData["data"]["avatar_users"])) {
+            $tempUserImg = getUserInfo();
+            $result = getUpdateSQL(array_merge(array_diff_key($validatedData["data"], ["re_password_users" => true, "avatar_users" => true]), ["avatar_users" => $validatedData["data"]["avatar_users"]["current_name"]]));
+            $result["params"][] = getUserID();
+            $isSuccess = makeSafeQuery("UPDATE `users` SET $result[sql] WHERE `id_users` = ?", $result["params"]);
+            if ($isSuccess && move_uploaded_file($validatedData["data"]["avatar_users"]["tmp_name"], __DIR__ . "/../../app/upload/avatars/" . $validatedData["data"]["avatar_users"]["current_name"])) {
+                if (!empty($tempUserImg["avatar_users"])) {
+                    // unlink(__DIR__ . "/../../app/upload/avatars/$tempUserImg[avatar_users]");
+                }
+            }
         } else {
-            $_SESSION["server"] = "Не удалось обновить данные";
+            $result = getUpdateSQL(array_diff_key($validatedData["data"], ["re_password_users" => true]));
+            $result["params"][] = getUserID();
+            $isSuccess = makeSafeQuery("UPDATE `users` SET $result[sql] WHERE `id_users` = ?", $result["params"]);
+        }
+        if ($isSuccess) {
+            $_SESSION["server"] = "Данные обновлены.";
+        } else {
+            $_SESSION["server"] = "Не удалось обновить данные.";
         }
     } else {
-        $_SESSION["server"] = "Не корректные данные";
+        $_SESSION["server"] = "Не корректные данные.";
     }
     redirectYourself();
 }

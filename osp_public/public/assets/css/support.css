@@ -1,4 +1,4 @@
-.content > .form .field:has(.input[data-name='image_supports']) img {
+.content .form .field:has(.input[data-name='image_supports']) img {
     width: 100%;
 } 
 
@@ -28,7 +28,7 @@
 
 .chat {
     display: flex;
-    min-height: 150px;
+    height: 200px;
     flex-wrap: wrap;
     gap: 20px;
     padding: 20px;
@@ -66,6 +66,10 @@
 .talks:has(.title) {
     justify-content: center;
     align-items: center;
+    text-align: center;
+}
+
+.talks .title {
     text-align: center;
 }
 

@@ -26,7 +26,9 @@ if (!empty(file_get_contents("php://input"))) {
             searchItems($json);
         } else if ($isAuth && $serverType == "add_comment" && !empty($json["id_items"] && !empty($json["rating_comments"]))) { // aboutItem.js - Добавление комментария о товаре
             addComment($json["id_items"], $json["rating_comments"], $json["text_comments"] ?? "");
-        } else if ($isAdmin && $serverType == "delete_from_table" && !empty($json["id"]) && !empty($json["table"])) { // editTable.js - Удаление поля из таблиц ("properties" или "status" или "items_type")
+        } else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_items_properties"])) {
+            deleteItemProperties($json["id_items_properties"]);
+        } else if ($isAdmin && $serverType == "delete_from_table" && !empty($json["id"]) && !empty($json["table"])) { // editTable.js - Удаление поля из таблиц ("properties" или "items_type")
             deleteFromTable($json["table"], $json["id"]);
         } else if ($isAuth && $serverType == "delete_comment" && !empty($json["id_comment"])) { // aboutItem.js - Удаление комментария
             deleteComment($json["id_comment"]);
@@ -34,8 +36,8 @@ if (!empty(file_get_contents("php://input"))) {
             addView($json["id_item"]);
         } else if ($isAdmin && $serverType == "delete_one_from_table" && !empty($json["id"])) { // editTable.js - Удалить свойства из таблицы attributes
             deleteOneFromTable($json["id"]);
-        } else if ($isAdmin && $serverType == "banned_users" && !empty($json["id_users"]) && isset($json["is_banned_users"])) { // editUser.js - Блокировка пользователя
-            bannedUser($json["id_users"], $json["is_banned_users"]);
+        } else if ($isAdmin && $serverType == "banned_users" && !empty($json["id_users"])) { // editUser.js - Блокировка пользователя
+            bannedUser($json["id_users"]);
         } else if ($isAdmin && $serverType == "search_users") { // editUser.js - Поиск пользователей
             searchUsers($json);
         } else if ($isAdmin && $serverType == "delete_user" && !empty($json["id_users"])) { // editUser.js - Удаление пользователей

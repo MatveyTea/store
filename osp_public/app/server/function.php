@@ -16,7 +16,7 @@ function getModalHTML()
     </template>";
 }
 
-function getAdditionalSelectHTML($isInsertServer, $allPropertiesHTML, $allAttributesHTML, $value, $dataValue = [])
+function getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML, $value = 0, $idItemsProperty = 0, $dataValue = [])
 {
     $startIndexValue = strpos($allPropertiesHTML, "value='$value'");
     $selectSelected = substr($allPropertiesHTML, 0, $startIndexValue) . " selected " . substr($allPropertiesHTML, $startIndexValue);
@@ -27,16 +27,16 @@ function getAdditionalSelectHTML($isInsertServer, $allPropertiesHTML, $allAttrib
         $dataValue = "";
     }
 
-    if ($value == 0) {
-        $value = "";
+    if ($idItemsProperty == 0) {
+        $idItemsProperty = "";
     } else {
-        $value = "data-id-property='$value'";
+        $idItemsProperty = "data-id-items-properties='$idItemsProperty'";
     }
 
     return "<div class='field property'>
                 <div class='field'>
                     <label class='label'></label>
-                    <select class='input' data-name='attributes_select_property' data-is-insert-server='$isInsertServer' $dataValue>
+                    <select class='input' data-name='attributes_select_property' $dataValue>
                         <option selected disabled>Выбрать</option>
                         $selectSelected
                     </select>
@@ -46,7 +46,7 @@ function getAdditionalSelectHTML($isInsertServer, $allPropertiesHTML, $allAttrib
                     $allAttributesHTML
                 </div>
                 <div class='field'>
-                    <button class='delete-property button' $value>Удалить</button>
+                    <button class='delete-property button' $idItemsProperty>Удалить</button>
                 </div>
             </div>
         ";
@@ -87,7 +87,7 @@ function getAdditionalTemplateHTML($allPropertiesHTML, $allAttributesHTML, $attr
     $dependencies = json_encode($dependencies);
 
     echo "<template data-max-count='$max[count]' data-current-count='$current[count]'>" .
-        getAdditionalSelectHTML(1, $allPropertiesHTML, $allAttributesHTML, 0) ."
+        getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML) ."
         <p>$dependencies</p>
     </template>";
 }
@@ -120,7 +120,7 @@ function isUserAuth()
 
 function isAdmin()
 {
-    return getUserID() == 1;
+    return (getUserInfo()["roles_id_users"] ?? 0) == 1;
 }
 
 function isDeliver()
@@ -469,6 +469,16 @@ function getValidationRules($file = "")
         $file = basename($_SERVER["SCRIPT_NAME"]);
     }
 
+    $symbols = [
+        "id" => "^[0-9]{1,10}$",
+        "num" => "0-9",
+        "space" => " ",
+        "ru" => "А-Яа-я",
+        "eng" => "A-Za-z",
+        "special" => "!@#\$%^&*()\-+=_\{\}[]|:;\"'<>?\/\\.,",
+        "simple" => "().,:\"'-"
+    ];
+
     $rules = [
         // Пользователь
         "id_users" => [
@@ -476,26 +486,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/u", $value);
-            }
-        ],
-        "name_users" => [
-            "files" => ["reg.php", "profile.php"],
-            "required" => true,
-            "canUpdate" => true,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[а-яёА-Я Ё-]{1,30}$/u", $value);
-            }
-        ],
-        "tel_users" => [
-            "files" => ["profile.php"],
-            "required" => false,
-            "canUpdate" => true,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return $value == "" || preg_match("/^\+[0-9]{9,12}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "email_users" => [
@@ -503,17 +495,70 @@ function getValidationRules($file = "")
             "required" => true,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[A-Za-z0-9._%+-]{1,50}@[A-Za-z0-9.-]{1,15}\.[A-Za-z]{1,15}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[eng]$symbols[num]._%+-]{1,50}@[$symbols[eng]$symbols[num].-]{1,15}\.[$symbols[eng]]{2,15}$/u", $value);
             },
         ],
+        "password_users" => [
+            "files" => ["reg.php", "auth.php", "profile.php"],
+            "required" => true,
+            "canUpdate" => $file == "profile.php",
+            "returned_value" => true,
+            "pattern" => function ($value) use ($file, $symbols) {
+                if (preg_match("/[$symbols[eng]$symbols[num]$symbols[special]]{8,64}$/u", $value)) {
+                    return $file == "auth.php" ? $value : password_hash($value, PASSWORD_DEFAULT);
+                }
+                return false;
+            }
+        ],
+        "re_password_users" => [
+            "files" => ["reg.php", "profile.php"],
+            "required" => true,
+            "canUpdate" => $file == "profile.php",
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/[$symbols[eng]$symbols[num]$symbols[special]]{8,64}$/u", $value);
+            }
+        ],
+        "name_users" => [
+            "files" => ["reg.php", "profile.php"],
+            "required" => true,
+            "canUpdate" => true,
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[space]-]{1,100}$/u", $value);
+            }
+        ],
+        "avatar_users" => [
+            "files" => ["profile.php"],
+            "required" => false,
+            "canUpdate" => true,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
+                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
+                    return ["tmp_name" => $value["tmp_name"], "current_name" => date("YmdHis") . ".$extension"];
+                }
+                return false;
+            }
+        ],
+        "tel_users" => [
+            "files" => ["profile.php"],
+            "required" => false,
+            "canUpdate" => true,
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^$|^\+[$symbols[num]]{11}$/u", $value);
+            }
+        ],
+        // Поиск пользователя
         "email_search_users" => [
             "files" => ["editUser.php"],
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                if (preg_match("/^[A-Za-z0-9._%+-@]{1,80}$/u", $value)) {
+            "pattern" => function ($value) use ($symbols) {
+                if (preg_match("/^[$symbols[eng]$symbols[num]._%+-]{1,50}@[$symbols[eng]$symbols[num].-]{1,15}\.$symbols[eng]{2,15}$/u", $value)) {
                     return ["sql" => "`email_users` LIKE ?", "params" => ["%$value%"]];
                 }
                 return false;
@@ -533,61 +578,14 @@ function getValidationRules($file = "")
                 return false;
             }
         ],
-        "password_users" => [
-            "files" => ["reg.php", "auth.php", "profile.php"],
-            "required" => true,
-            "canUpdate" => true,
-            "returned_value" => true,
-            "pattern" => function ($value) use ($file) {
-                if (preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/u", $value)) {
-                    return $file == "auth.php" ? $value : password_hash($value, PASSWORD_DEFAULT);
-                }
-                return false;
-            }
-        ],
-        "re_password_users" => [
-            "files" => ["reg.php", "profile.php"],
-            "required" => true,
-            "canUpdate" => true,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[a-zA-Z0-9!@#\$%^&*()_+\-\=\{\}\\:;\"\'<>,\.?\/]{1,40}$/u", $value);
-            }
-        ],
-        "avatar_users" => [
-            "files" => ["profile.php"],
-            "required" => false,
-            "canUpdate" => true,
-            "returned_value" => true,
-            "pattern" => function ($value) {
-                $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
-                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 3_000_000) {
-                    $datetime = date("y-m-d-H-i-s") . ".$extension";
-                    if (move_uploaded_file($value["tmp_name"], __DIR__ . "/../upload/avatars/$datetime")) {
-                        deleteAvatar(true);
-                        return $datetime;
-                    }
-                }
-                return false;
-            }
-        ],
-        "is_banned_users" => [
-            "files" => ["editUser.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-1]$/u", $value);
-            }
-        ],
         // Товар
         "id_items" => [
             "files" => ["index.php", "editItem.php", "aboutItem.php"],
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "name_items" => [
@@ -595,8 +593,17 @@ function getValidationRules($file = "")
             "required" => true,
             "canUpdate" => $file == "editItem.php",
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,100}$/u", $value);
+            }
+        ],
+        "description_items" => [
+            "files" => ["editItem.php", "addItem.php"],
+            "required" => false,
+            "canUpdate" => $file == "editItem.php",
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,3000}$/u", $value);
             }
         ],
         "count_items" => [
@@ -604,8 +611,8 @@ function getValidationRules($file = "")
             "required" => "index.php" != $file,
             "canUpdate" => $file == "editItem.php",
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "cost_items" => [
@@ -613,8 +620,8 @@ function getValidationRules($file = "")
             "required" => true,
             "canUpdate" => $file == "editItem.php",
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "discount_items" => [
@@ -623,7 +630,16 @@ function getValidationRules($file = "")
             "canUpdate" => $file == "editItem.php",
             "returned_value" => false,
             "pattern" => function ($value) {
-                return $value <= 100;
+                return $value <= 100 && $value > 0;
+            }
+        ],
+        "items_type_id_items" => [
+            "files" => ["editItem.php", "addItem.php"],
+            "required" => true,
+            "canUpdate" => $file == "editItem.php",
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "image_items_images" => [
@@ -636,13 +652,8 @@ function getValidationRules($file = "")
                 if (empty($value)) return false;
                 for($i = 0; $i < count($value["name"]); $i++) {
                     $extension = pathinfo($value["name"][$i], PATHINFO_EXTENSION);
-                    if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"][$i] < 3_000_000) {
-                        $datetime = date("Y-m-d-H-i-s") . "$i.$extension";
-                        if (move_uploaded_file($value["tmp_name"][$i], __DIR__ . "/../upload/items/$datetime")) {
-                            $imagesFileName[] = $datetime;
-                        } else {
-                            return false;
-                        }
+                    if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"][$i] < 2_000_000) {
+                        $imagesFileName[] = ["tmp_name" => $value["tmp_name"][$i], "current_name" => date("YmdHis") . "$i.$extension"];
                     } else {
                         return false;
                     }
@@ -655,40 +666,15 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => true,
             "returned_value" => true,
-            "pattern" => function ($value) use ($result) {
+            "pattern" => function ($value) use ($symbols) {
                 $imgs = json_decode($value, true);
                 foreach ($imgs as $img) {
-                    // unlink(unlink__DIR__ . "/../upload/items/$img[path]);
+                    if (!preg_match("/$symbols[id]/", $img["id"]) || !preg_match("/^[$symbols[num]]{13,14}\.|png|jpg|webp$/", $img["path"])) {
+                        return false;
+                    }
                 }
                 return $imgs;
             }
-        ],
-        "items_type_id_items" => [
-            "files" => ["editItem.php", "addItem.php"],
-            "required" => true,
-            "canUpdate" => $file == "editItem.php",
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/u", $value);
-            }
-        ],
-        "description_items" => [
-            "files" => ["editItem.php", "addItem.php"],
-            "required" => false,
-            "canUpdate" => $file == "editItem.php",
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[а-яА-Яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
-            }
-        ],
-        "datetime_buy_orders" => [
-            "files" => ["allOrders.php", "deliveryItem.php", "myOrders.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/u", $value);
-            }  
         ],
         // Поиск товара
         "name_search_items" => [
@@ -696,8 +682,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                if (preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value)) {
+            "pattern" => function ($value) use ($symbols) {
+                if (preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,100}$/u", $value)) {
                     return ["sql" => "`name_items` LIKE ?", "param" => "%$value%"];
                 }
                 return false;
@@ -708,30 +694,9 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                if (preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value)) {
+            "pattern" => function ($value) use ($symbols) {
+                if (preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,3000}$/u", $value)) {
                     return ["sql" => "`description_items` LIKE ?", "param" => "%$value%"];
-                }
-                return false;
-            }
-        ],
-        "items_type_id_search_items" => [
-            "files" => ["index.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => true,
-            "pattern" => function ($value) {
-                $isCorrect = true;
-                $itemsType = json_decode($value, true);
-                if (count($itemsType) < 1) return false;
-                foreach ($itemsType as $type) {
-                    if (!preg_match("/^[0-9]{1,}$/u",  $type)) {
-                        $isCorrect = false;
-                        break;
-                    }
-                }
-                if ($isCorrect) {
-                    return $itemsType;
                 }
                 return false;
             }
@@ -741,8 +706,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                if (preg_match("/^[0-9]{1,7}$/u", $value)) {
+            "pattern" => function ($value) use ($symbols) {
+                if (preg_match("/$symbols[id]/u", $value)) {
                     return ["sql" => "`cost_items` > ?", "param" => $value];
                 }
                 return false;
@@ -753,8 +718,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                    if (preg_match("/^[0-9]{1,7}$/u", $value)) {
+            "pattern" => function ($value) use ($symbols) {
+                    if (preg_match("/$symbols[id]/u", $value)) {
                     return ["sql" => "`cost_items` < ?", "param" => $value];
                 }
                 return false;
@@ -765,8 +730,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                if (preg_match("/^[0-9]{1,7}$/u", $value)) {
+            "pattern" => function ($value) use ($symbols) {
+                if (preg_match("/$symbols[id]/u", $value)) {
                     return ["sql" => "`count_items` > ?", "param" => $value];
                 }
                 return false;
@@ -777,20 +742,72 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                    if (preg_match("/^[0-9]{1,7}$/u", $value)) {
+            "pattern" => function ($value) use ($symbols) {
+                if (preg_match("/$symbols[id]/u", $value)) {
                     return ["sql" => "`count_items` < ?", "param" => $value];
                 }
                 return false;
             }
+        ],
+        "discount_search_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) {
+                if ($value == "on") {
+                    return ["sql" => "`discount_items` > ?", "param" => 0];
+                }
+                return false;
+            }
+        ],
+        "items_type_id_search_items" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) use ($symbols) {
+                $isCorrect = true;
+                $itemsType = json_decode($value, true);
+                foreach ($itemsType as $type) {
+                    if (!preg_match("/$symbols[id]/u",  $type)) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $itemsType;
+                }
+                return false;
+            }
+        ],
+        "id_search_attributes" => [
+            "files" => ["index.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => true,
+            "pattern" => function ($value) use ($symbols) {
+                $isCorrect = true;
+                $attributesIds = json_decode($value, true);
+                foreach ($attributesIds as $id) {
+                    if (!preg_match("/$symbols[id]/u", $id)) {
+                        $isCorrect = false;
+                        break;
+                    }
+                }
+                if ($isCorrect) {
+                    return $attributesIds;
+                }
+                return false;
+            } 
         ],
         "offset_search_items" => [
             "files" => ["index.php"],
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "strict_search" => [
@@ -814,46 +831,14 @@ function getValidationRules($file = "")
                 return false;
             }
         ],
-        "discount_search_items" => [
-            "files" => ["index.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => true,
-            "pattern" => function ($value) {
-                if ($value == "on") {
-                    return ["sql" => "`discount_items` > ?", "param" => 0];
-                }
-                return false;
-            }
-        ],
-        "id_search_attributes" => [
-            "files" => ["index.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => true,
-            "pattern" => function ($value) {
-                $isCorrect = true;
-                $attributesIds = json_decode($value, true);
-                foreach ($attributesIds as $id) {
-                    if (!preg_match("/[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,255}$/u", $id)) {
-                        $isCorrect = false;
-                        break;
-                    }
-                }
-                if ($isCorrect) {
-                    return $attributesIds;
-                }
-                return false;
-            } 
-        ],
         // Комментарии
         "id_comments" => [
             "files" => ["aboutItem.php"],
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "text_comments" => [
@@ -861,8 +846,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,1500}$/u", $value);
             }
         ],
         "rating_comments" => [
@@ -880,8 +865,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "items_properties" => [
@@ -889,13 +874,13 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => $file == "editItem.php",
             "returned_value" => true,
-            "pattern" => function ($value) {
+            "pattern" => function ($value) use ($symbols) {
                 $isCorrect = true;
                 $properties = json_decode($value, true);
                 foreach ($properties as $property) {
                     $isType = in_array($property["type"], ["add", "remove"]);
-                    $isIdAttributes = preg_match("/^[0-9]{1,}$/u", $property["id_attributes"]);
-                    $isIdProperties = preg_match("/^[0-9]{1,}$/u", $property["id_properties"]);
+                    $isIdAttributes = preg_match("/^$symbols[id]$/u", $property["id_attributes"]);
+                    $isIdProperties = preg_match("/^$symbols[id]$/u", $property["id_properties"]);
                     if (!$isType || !$isIdAttributes || !$isIdProperties) {
                         $isCorrect = false;
                         break;
@@ -913,8 +898,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "name_properties" => [
@@ -922,8 +907,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => true,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,80}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,50}$/u", $value);
             }
         ],
         // Атрибуты
@@ -932,12 +917,12 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
+            "pattern" => function ($value) use ($symbols) {
                 $isCorrect = true;
                 $attributes = json_decode($value, true);
                 foreach ($attributes as $attribute) {
-                    $idProperty = preg_match("/[0-9]{1,7}$/u", $attribute["properties_id_attributes"] ?? 1);
-                    $valueAttribute = preg_match("/[А-Яа-яa-zA-Z0-9 ().,:\"'%-]{1,255}$/u", $attribute["value_attributes"]);
+                    $idProperty = preg_match("/^$symbols[id]$/u", $attribute["properties_id_attributes"] ?? 1);
+                    $valueAttribute = preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,50}$/u", $attribute["value_attributes"]);
                     if (!$idProperty || !$valueAttribute) {
                         $isCorrect = false;
                         break;
@@ -954,8 +939,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         // Типы товаров
@@ -964,8 +949,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "name_items_type" => [
@@ -973,8 +958,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => true,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,80}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,50}$/u", $value);
             }
         ],
         // Заказы
@@ -983,8 +968,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/[0-9]{1,7}$/", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
             }
         ],
         "address_orders" => [
@@ -992,9 +977,14 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
+            "pattern" => function ($value) use ($symbols) {
                 if (!empty($value["street"]) && !empty($value["home"])) {
-                    return "Ул. $value[street], д. $value[home]" . (!empty($value["number"]) ? ", кв. $value[number]" : "");
+                    $isStreet =  preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,180}$/u", $value["street"]);
+                    $isHome =  preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,50}$/u", $value["home"]);
+                    $isNumber =  preg_match("/$symbols[id]/u", $value["number"] ?? 0);
+                    if ($isStreet && $isHome && $isNumber) {
+                        return "Ул. $value[street], д. $value[home]" . (!empty($value["number"]) ? ", кв. $value[number]" : "");
+                    }
                 }
                 return false;
             }
@@ -1004,8 +994,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,255}$/u", $value);
             }
         ],
         "datetime_plan_orders" => [
@@ -1013,19 +1003,40 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => true,
-            "pattern" => function ($value) {
-                $split = explode(" - ", $value);
-                return ["start" => date("y-m-d") . " " . $split[0] . ":00", "end" => date("y-m-d") . " " . $split[1] . ":00"];
+            "pattern" => function ($value) use ($symbols) {
+                if (preg_match("/^[$symbols[num]]{2}:[$symbols[num]]{2} - [$symbols[num]]{2}:[$symbols[num]]{2}$/u", $value)) {
+                    $split = explode(" - ", $value);
+                    return ["start" => date("y-m-d") . " " . $split[0] . ":00", "end" => date("y-m-d") . " " . $split[1] . ":00"];
+                }
+                return false;
             }
         ],
         // Техподдержка
+        "id_talks" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
+            }
+        ],
+        "talks_id_supports" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
+            }
+        ],
         "title_talks" => [
             "files" => ["support.php"],
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,50}$/u", $value);
             }
         ],
         "text_supports" => [
@@ -1033,8 +1044,8 @@ function getValidationRules($file = "")
             "required" => false,
             "canUpdate" => false,
             "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[А-Яа-яa-zA-Z0-9 -().,:\"'%]{1,255}$/u", $value);
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,1000}$/u", $value);
             }
         ],
         "image_supports" => [
@@ -1049,33 +1060,12 @@ function getValidationRules($file = "")
                     if ($decodedFile !== false) {
                         $finfo = new finfo(FILEINFO_MIME_TYPE);
                         $realMimeType = $finfo->buffer($decodedFile);
-                        if (in_array($realMimeType, ["image/jpg", "image/png", "image/webp"]) && strlen($decodedFile) < 3_000_000) {
-                            $datetime = date("Y-m-d-H-i-s") . "." . explode("/", $realMimeType)[1];
-                            if (file_put_contents(__DIR__ . "/../upload/supports/$datetime", $decodedFile)) {
-                                return $datetime;
-                            }
+                        if (in_array($realMimeType, ["image/jpg", "image/png", "image/webp"]) && strlen($decodedFile) < 2_000_000) {
+                            return ["current_name" => date("YmdHis") . "." . explode("/", $realMimeType)[1], "content" => $decodedFile];
                         }
                     }
                 }
                 return false;
-            }
-        ],
-        "id_talks" => [
-            "files" => ["support.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
-            }
-        ],
-        "talks_id_supports" => [
-            "files" => ["support.php"],
-            "required" => false,
-            "canUpdate" => false,
-            "returned_value" => false,
-            "pattern" => function ($value) {
-                return preg_match("/^[0-9]{1,7}$/", $value);
             }
         ]
     ];
@@ -1288,19 +1278,19 @@ function changeBasket($idItem, $countItem, $actionItem)
     }
 }
 
-function deleteAvatar($justTry = false)
+function deleteAvatar()
 {
     $user = getUserInfo();
-    if (!$justTry && (count($user) < 1 || $user["avatar_users"] == null)) setAnswer("FAIL");
+    if (count($user) < 1 || $user["avatar_users"] == null) setAnswer("FAIL");
 
     $file = __DIR__ . "/../upload/avatars/$user[avatar_users]";
-    if (!$justTry && !file_exists($file)) setAnswer("FAIL");
+    if (!file_exists($file)) setAnswer("FAIL");
     // unlink($file);
 
     $isSuccess = makeSafeQuery("UPDATE `users` SET `avatar_users` = NULL WHERE `id_users` = ?", [$user["id_users"]]);
-    if (!$justTry && !$isSuccess) setAnswer("FAIL");
+    if (!$isSuccess) setAnswer("FAIL");
 
-    if (!$justTry) setAnswer("OK", ["src" => getValidImage()]);
+    setAnswer("OK", ["src" => getValidImage("avatars/")]);
 }
 
 function buyItems($json)
@@ -1506,19 +1496,13 @@ function addComment($idItem, $rating, $text)
     setAnswer("OK", ["comments" => getCommentsHTML($comment), "rating" => getRatingItem($validatedData["id_items"])]);
 }
 
-function deleteItemProperties($idProperties)
+function deleteItemProperties($idItemsProperties)
 {
-    $validatedData = getValidatedData(["id_properties" => $idProperties], "editItem.php");
+    $validatedData = getValidatedData(["id_items_properties" => $idItemsProperties], "editItem.php");
 
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
-    $isSuccess = makeSafeQuery("DELETE FROM `items_properties`
-        WHERE EXISTS (
-            SELECT 1 FROM `attributes`
-            WHERE `attributes`.`id_attributes` = `items_properties`.`attributes_id_items_properties`
-            AND `properties_id_attributes` = ?
-        )
-    ", [$idProperties]);
+    $isSuccess = makeSafeQuery("DELETE FROM `items_properties` WHERE `id_items_properties` = ?", [$idItemsProperties]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
@@ -1567,14 +1551,14 @@ function deleteOneFromTable($id)
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
-function bannedUser($id, $idBanned)
+function bannedUser($id)
 {
     if ($id == 1) setAnswer("FAIL");
 
-    $validatedData = getValidatedData(["id_users" => $id, "is_banned_users" => $idBanned], "editUser.php");
+    $validatedData = getValidatedData(["id_users" => $id], "editUser.php");
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
-    $isSuccess = makeSafeQuery("UPDATE `users` SET `is_banned_users` = ? WHERE `id_users` = ?", [$idBanned, $id]);
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `is_banned_users` = CASE WHEN `is_banned_users` = 1 THEN 0 ELSE 1 END WHERE `id_users` = ?", [$id]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
@@ -1660,19 +1644,24 @@ function receiptOrders($id)
 function startTalk($json)
 {
     $validatedData = getValidatedData($json, "support.php");
-
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
 
     $datetime = date("y-m-d H:i:s");
-
     $isSuccess = makeSafeQuery("INSERT INTO `talks` (`users_id_talks`, `title_talks`, `datetime_start_user_talks`) VALUES (?, ?, ?)", [getUserID(), $validatedData["data"]["title_talks"], $datetime]);
     if (!$isSuccess) setAnswer("FAIL");
 
     unset($validatedData["data"]["title_talks"]);
     $talksId = $GLOBALS["link"]->lastInsertId();
 
-    $sql = getInsertSQL(array_merge($validatedData["data"], ["datetime_supports" => $datetime, "users_write_supports" => getUserID(), "talks_id_supports" => $talksId]));
+    $sql = getInsertSQL(
+        array_merge(
+            array_diff_key($validatedData["data"], ["image_supports" => true]),
+            ["datetime_supports" => $datetime, "users_write_supports" => getUserID(), "talks_id_supports" => $talksId, "image_supports" => $validatedData["data"]["image_supports"]["current_name"] ?? null]
+        )
+    );
     $isSuccess = makeSafeQuery("INSERT INTO `supports` ($sql[sql]) VALUES ($sql[question])", $sql["params"]);
+
+    if (!$isSuccess || !empty($validatedData["data"]["image_supports"]) && !file_put_contents(__DIR__ . "/../upload/supports/" . $validatedData["data"]["image_supports"]["current_name"], $validatedData["data"]["image_supports"]["content"])) setAnswer("FAyIL");
 
     $messages = makeSelectQuery("SELECT
         `user`.`id_users` AS `user_id`,
@@ -1708,10 +1697,15 @@ function continueTalk($json)
 
     $datetime = date("Y-m-d H:i:s");
 
-    $sql = getInsertSQL(array_merge($validatedData["data"], ["datetime_supports" => $datetime, "users_write_supports" => getUserID()]));
+    $sql = getInsertSQL(
+        array_merge(
+            array_diff_key($validatedData["data"], ["image_supports" => true]),
+            ["datetime_supports" => $datetime, "users_write_supports" => getUserID(), "image_supports" => $validatedData["data"]["image_supports"]["current_name"] ?? null]
+        )
+    );
 
     $isSuccess = makeSafeQuery("INSERT INTO `supports` ($sql[sql]) VALUES ($sql[question])", $sql["params"]);
-    if (!$isSuccess) setAnswer("FAIL");
+    if (!$isSuccess || !empty($validatedData["data"]["image_supports"]) && !file_put_contents(__DIR__ . "/../upload/supports/" . $validatedData["data"]["image_supports"]["current_name"], $validatedData["data"]["image_supports"]["content"])) setAnswer("FAIL");
         
     $userInfo = getUserInfo();
 
@@ -1721,7 +1715,7 @@ function continueTalk($json)
         "name" => $userInfo["name_users"],
         "text" => $validatedData["data"]["text_supports"],
         "date" => dateformat($datetime),
-        "image" => $validatedData["data"]["image_supports"] ?? ""
+        "image" => $validatedData["data"]["image_supports"]["current_name"] ?? ""
     ];
 
     setAnswer($userInfo ? "OK" : "FAIL", ["message" => getMessageHTML($message, "me")]);
@@ -1747,8 +1741,6 @@ function acceptSupport($idTalks)
     $isSuccess = makeSafeQuery("UPDATE `talks` SET `users_support_talks` = ?, `datetime_accept_support_talks` = ? WHERE `id_talks` = ?", [getUserID(), date("y-m-d H:i:s"), $idTalks]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
-
-
 
 function getTalkHTML($idTalks)
 {
@@ -1824,7 +1816,8 @@ function getStartMessageHTML($messages, $isSupport = false) {
                             <span class='error-wrapper'>
                                 <p class='error'></p>
                             </span>
-                            <input class='input' type='file' data-name='image_supports'>
+                            <img src='' class='hidden'>
+                            <input class='input file' type='file' data-name='image_supports'>
                         </div>
                         <div class='field'>
                             $buttonEndTalk

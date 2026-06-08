@@ -68,6 +68,12 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         if ($sql != "" && $params != []) {
             clearValidatedSession();
             if (makeSafeQuery($sql, $params)) {
+                foreach ($images as $img) {
+                    move_uploaded_file($img["tmp_name"], __DIR__ . "/../../app/upload/items/$img[current_name]");
+                }
+                foreach ($imageItemsUpdate as $img) {
+                    // unlink(__DIR__ . "/../../app/upload/items/$img);
+                }
                 $_SESSION["server"] = "Товар изменен";
             } else {
                 $_SESSION["server"] = "Не удалось обновить товар";
@@ -79,7 +85,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $_SESSION["server"] = "Не корректные данные";
     }
 
-    redirectYourself("id_item=$idItem");
+    //redirectYourself("id_item=$idItem");
 }
 
 $itemInfo = makeSelectQuery("SELECT
@@ -124,6 +130,7 @@ $attributesHTML = "";
 $propertyID = null;
 $attributesItem = makeSelectQuery(
     "SELECT 
+    `id_items_properties`,
     `attributes`.`id_attributes`,
     `attributes`.`value_attributes`,
     `properties`.`id_properties`,
@@ -149,13 +156,13 @@ if (!empty($attributesItem)) {
             continue;
         }
         if ($propertyID != $attribute["id_properties"] && $propertyID != null) {
-            $attributesHTML .= getAdditionalSelectHTML(1, $allPropertiesHTML, $allAttributesHTML,$attributesItem[$key - 1]["id_properties"], $dataValue);
+            $attributesHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML, $attributesItem[$key - 1]["id_properties"],  $attributesItem[count($attributesItem) - 1]["id_items_properties"], $dataValue);
             $dataValue = [];
         }
         $propertyID = $attribute["id_properties"];
         $dataValue[] = $attribute["id_attributes"];
     }
-    $attributesHTML .= getAdditionalSelectHTML(1, $allPropertiesHTML, $allAttributesHTML,$attributesItem[count($attributesItem) - 1]["id_properties"], $dataValue);
+    $attributesHTML .= getAdditionalSelectHTML($allPropertiesHTML, $allAttributesHTML, $attributesItem[count($attributesItem) - 1]["id_properties"],  $attributesItem[count($attributesItem) - 1]["id_items_properties"], $dataValue);
 }
 
 $attributes = makeSelectQuery(
