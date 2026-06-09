@@ -20,6 +20,10 @@ async function getSearchItems() {
         data["items_type_id_search_items"] = JSON.stringify(types);
     }
 
+    await insertContent(data);
+}
+
+async function insertContent(data) {
     const dataResult = await sendToServer(data);
 
     if (dataResult["status"] == "OK") {
@@ -78,6 +82,8 @@ let isCanGet = true;
 let maxScroll = 0;
 let offset = items.length ?? 0;
 let isResetSearch = false;
+let isCatalogScroll = false;
+let catalogId = null
 
 const form = document.querySelector(".form");
 const formInputs = Array.from(form.querySelectorAll(".input[data-name]"));
@@ -88,11 +94,7 @@ const url = new URL(document.location);
 const idType = url.searchParams.get("items_type_id_items");
 url.searchParams.delete("items_type_id_items");
 window.history.pushState({}, "", url.toString());
-if (idType != null) {
-    const needInputItemsType = form.querySelector(`.input[data-name='items_type_id_search_items'][value='${idType}']`);
-    needInputItemsType.checked = true;
-    needInputItemsType.dispatchEvent(new Event("change"));
-}
+if (idType != null) {}
 
 
 if (isAuth) {
@@ -110,13 +112,23 @@ window.addEventListener("resize", () => {
 window.addEventListener("scroll", async () => {
     if (isCanGet && scrollY >= maxScroll) {
         isCanGet = false;
-        getSearchItems();
+        if (isCatalogScroll) {
+            await insertContent({
+                "server_type": "search_items",
+                "offset_search_items": offset,
+                "items_type_id_search_items": catalogId
+            });
+        } else {
+            getSearchItems();
+        }
     }
 });
 
 searchButton.addEventListener("click", (event) => {
     event.preventDefault();
     isResetSearch = true;
+    isCatalogScroll = true;
+    catalogId = null;
     getSearchItems();
 });
 
@@ -127,4 +139,33 @@ const formAppear = formWrapper.querySelector(".form-appear");
 formSwitches.addEventListener("click", () => {
     formSwitchesImg.classList.toggle("close");
     formAppear.classList.toggle("close");
+});
+
+const catalogWrapper = document.querySelector(".catalog-wrapper");
+const catalogSwitches = catalogWrapper.querySelector(".catalog-switches");
+const catalogSwitchesImg = catalogSwitches.querySelector(".catalog-switches img");
+const catalogAppear = catalogWrapper.querySelector(".catalog-appear");
+const catalogItems = catalogAppear.querySelectorAll(".catalog-item");
+catalogSwitches.addEventListener("click", () => {
+    catalogAppear.classList.toggle("close");
+    catalogSwitchesImg.classList.toggle("close");
+});
+
+catalogItems.forEach((item) => {
+    item.addEventListener("click", async () => {
+        form.reset();
+        formSwitchesImg.classList.add("close");
+        formAppear.classList.add("close");
+        isResetSearch = true;
+        isCatalogScroll = true;
+        offset = 0;
+        catalogAppear.classList.add("close");
+        catalogSwitchesImg.classList.add("close");
+        catalogId = JSON.stringify([item.dataset.idItemsType]);
+        await insertContent({
+            "server_type": "search_items",
+            "offset_search_items": offset,
+            "items_type_id_search_items": catalogId
+        });
+    });
 });

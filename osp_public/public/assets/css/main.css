@@ -436,6 +436,7 @@ footer {
 }
 
 .item {
+    overflow: hidden;
     background-color: var(--child-bg-color);
     width: 100%;
     padding: 10px;
@@ -831,7 +832,7 @@ header nav a:focus {
 
     /* ===== ТОВАРЫ ===== */
     .items {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         padding: 10px;
     }
 

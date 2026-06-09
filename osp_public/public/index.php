@@ -2,6 +2,7 @@
 include_once __DIR__ . "/../app/server/function.php";
 
 $typesHTML = "";
+$catalogHTML = "";
 $types = makeSelectQuery("SELECT * FROM `items_type`", [], false);
 if ($types == "FAIL") {
     redirect();
@@ -11,6 +12,9 @@ foreach ($types as $type) {
         $type[name_items_type]
         <input class='input checkbox' type='checkbox' data-name='items_type_id_search_items' value='$type[id_items_type]'>
     </label>";
+    $catalogHTML .= "<div class='catalog-item button'data-id-items-type='$type[id_items_type]'>
+        $type[name_items_type]
+    </div>";
 }
 
 $attributesHTML = "";
@@ -57,13 +61,13 @@ if (!empty($_GET["items_type_id_items"])) {
 if ($itemsHTML == "") {
     $itemsHTML = "
         <h2 class='notfound'>Ничего не найдено</h2>
-        <h2 class='title hidden'>Каталог</h2>
+        <h2 class='title hidden'>Товары</h2>
         <article class='items'></article>
     ";
 } else {
     $itemsHTML = "
         <h2 class='notfound hidden'>Ничего не найдено</h2>
-        <h2 class='title'>Каталог</h2>
+        <h2 class='title'>Товары</h2>
         <article class='items'>
             $itemsHTML
         </article>
@@ -74,10 +78,21 @@ include_once __DIR__ . "/../app/server/header.php";
 ?>
 
 <main class="content">
+    <section class="catalog-wrapper">
+        <article class="catalog-switches button">
+            <h1 class="legend">Каталог</h1>
+            <img src="assets/img/selectArrow.png" class="close">
+        </article>
+        <article class="catalog-appear close">
+            <div>
+                <?= $catalogHTML ?>
+            </div>
+        </article>
+    </section>
     <section class="form-wrapper">
-        <article class="form-switches button close">
+        <article class="form-switches button">
             <h1 class="legend">Поиск</h1>
-            <img src="assets/img/selectArrow.png">
+            <img src="assets/img/selectArrow.png" class="close">
         </article>
         <article class="form-appear close">
             <form action="/" method="POST" class="form">

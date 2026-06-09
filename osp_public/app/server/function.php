@@ -207,7 +207,7 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
         LEFT JOIN `comments` ON `id_items` = `items_id_comments` 
         $whereSQL
         GROUP BY `id_items`
-        ORDER BY $orderBy `id_items` DESC 
+        ORDER BY $orderBy `id_items` DESC
         LIMIT $limit OFFSET $offset
         ", $whereParams, false
     );
@@ -473,7 +473,7 @@ function getValidationRules($file = "")
         "id" => "^[0-9]{1,10}$",
         "num" => "0-9",
         "space" => " ",
-        "ru" => "А-Яа-я",
+        "ru" => "А-Яа-яёЁ",
         "eng" => "A-Za-z",
         "special" => "!@#\$%^&*()\-+=_\{\}[]|:;\"'<>?\/\\.,",
         "simple" => "().,:\"'!?-"

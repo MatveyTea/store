@@ -1,7 +1,7 @@
 <?php
 
-$headerHTML = "<a href='/'>Каталог</a>";
-$headerMobileHTML = "";
+$headerHTML = "<a href='/'>Главная</a>";
+$headerMobileHTML = "<a href='/'>Главная</a>";
 
 if (isUserAuth()) {
     if (isAdmin()) {

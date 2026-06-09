@@ -1,16 +1,20 @@
-.form-switches {
+.catalog-switches {
+    margin: 0 !important;
+}
+
+.form-switches, .catalog-switches {
     display: flex;
     align-items: center;
     gap: 15px;
     width: max-content;
 }
 
-.form-switches .legend {
+:is(.form-switches, .catalog-switches) .legend {
     text-align: center;
     font-size: 2.5rem;
 }
 
-.form-switches img {
+:is(.form-switches, .catalog-switches) img {
     width: 25px;
     margin-top: 9px;
     height: auto;
@@ -18,26 +22,66 @@
     transition: transform 0.3s linear;
 }
 
-.form-switches img.close {
+.catalog-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.catalog-appear > div {
+    display: grid;
+    background-color: var(--child-bg-color);
+    border-radius: 20px;
+    padding: 20px;
+    gap: 20px;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.catalog-item {
+    width: 100%;
+    height: 100px;
+}
+
+*:is(.form-switches, .catalog-switches) img.close {
     transform: rotate(180deg);
 }
 
-.form-appear {
+.catalog-appear, .form-appear {
     display: grid;
     grid-template-rows: 2fr;
     overflow: hidden;
     transition: grid-template-rows 0.3s linear;
 }
 
-.form-appear.close {
+.catalog-appear.close, .form-appear.close {
     grid-template-rows: 0fr;
+
 }
 
-.form-appear .form {
+.catalog-appear > div, .form-appear .form {
     min-height: 0;
-    transition: margin 0.3s linear;
+    transition: margin 0.3s linear, padding 0.3s linear;
 }
 
-.form-appear.close .form {
+.catalog-appear.close >  div, .form-appear.close .form {
     margin: 0;
+    padding: 0;
+}
+
+@media (min-width: 769px) and (max-width: 1440px) {
+    .catalog-appear > div {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 401px) and (max-width: 768px) {
+    .catalog-appear > div {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media  (min-width: 1px) and (max-width: 400px) {
+    .catalog-appear > div {
+        grid-template-columns: repeat(1, 1fr);
+    }
 }
