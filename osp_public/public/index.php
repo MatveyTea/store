@@ -75,11 +75,11 @@ include_once __DIR__ . "/../app/server/header.php";
 
 <main class="content">
     <section class="form-wrapper">
-        <article class="form-switches">
+        <article class="form-switches button close">
             <h1 class="legend">Поиск</h1>
             <img src="assets/img/selectArrow.png">
         </article>
-        <article class="form-appear">
+        <article class="form-appear close">
             <form action="/" method="POST" class="form">
                 <div class="field">
                     <label class="label"></label>

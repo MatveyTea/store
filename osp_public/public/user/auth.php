@@ -17,7 +17,6 @@ if (!empty($_POST["submit_button"])) {
         } else if (!empty($userInfo) && password_verify($validatedData["data"]["password_users"], $userInfo["password_users"])) {
             if ($userInfo["is_banned_users"] == 0) {
                 $_SESSION["id_user"] = $userInfo["id_users"];
-                $_SESSION["token"] = bin2hex(random_bytes(32));
                 clearValidatedSession();
                 redirect();
             } else {

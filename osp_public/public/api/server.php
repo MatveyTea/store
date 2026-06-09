@@ -4,7 +4,7 @@ include_once __DIR__ . "/../../app/server/function.php";
 if (!empty(file_get_contents("php://input"))) {
     $json = json_decode(file_get_contents("php://input"), true);
 
-    if ($json["token"] == $_SESSION["token"]) {
+    if (!empty($json["token"]) && !empty($_SESSION["token"]) && $json["token"] == $_SESSION["token"]) {
         $serverType = $json["server_type"] ?? "";
         unset($json["server_type"], $json["token"]);
         $isAuth = isUserAuth();

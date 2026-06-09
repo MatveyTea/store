@@ -253,7 +253,7 @@ function getValidationRules() {
         "ru": "А-Яа-я",
         "eng": "A-Za-z",
         "special": "!@#\$%^&*()\-+=_\{\}\\[\\]|:;\"'<>?/\\.,",
-        "simple": "().,:\"'-"
+        "simple": "().,:\"'!?\-"
     };
 
     const rules = {

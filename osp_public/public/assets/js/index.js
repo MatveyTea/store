@@ -121,9 +121,10 @@ searchButton.addEventListener("click", (event) => {
 });
 
 const formWrapper = document.querySelector(".form-wrapper");
-const formSwitches = formWrapper.querySelector(".form-switches img");
+const formSwitches = formWrapper.querySelector(".form-switches");
+const formSwitchesImg = formWrapper.querySelector(".form-switches img");
 const formAppear = formWrapper.querySelector(".form-appear");
 formSwitches.addEventListener("click", () => {
-    formSwitches.classList.toggle("close");
+    formSwitchesImg.classList.toggle("close");
     formAppear.classList.toggle("close");
 });

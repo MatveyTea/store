@@ -10,7 +10,7 @@ if ($itemsHTML == "") {
     $itemsHTML = "<h2 class='notfound'>У Вас нет избранных товаров.</h2>";
 } else {
     $itemsHTML = "
-        <h2 class='title'>Избранные товары</h2> <article>
+        <h2 class='title'>Избранные товары</h2> <article class='items'>
         $itemsHTML
         </article>
     ";

@@ -476,7 +476,7 @@ function getValidationRules($file = "")
         "ru" => "А-Яа-я",
         "eng" => "A-Za-z",
         "special" => "!@#\$%^&*()\-+=_\{\}[]|:;\"'<>?\/\\.,",
-        "simple" => "().,:\"'-"
+        "simple" => "().,:\"'!?-"
     ];
 
     $rules = [
@@ -981,7 +981,7 @@ function getValidationRules($file = "")
                 if (!empty($value["street"]) && !empty($value["home"])) {
                     $isStreet =  preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,180}$/u", $value["street"]);
                     $isHome =  preg_match("/^[$symbols[ru]$symbols[eng]$symbols[num]$symbols[space]$symbols[simple]]{1,50}$/u", $value["home"]);
-                    $isNumber =  preg_match("/$symbols[id]/u", $value["number"] ?? 0);
+                    $isNumber =  preg_match("/$symbols[id]/u", empty($value["number"]) ? 1 : $value["number"]);
                     if ($isStreet && $isHome && $isNumber) {
                         return "Ул. $value[street], д. $value[home]" . (!empty($value["number"]) ? ", кв. $value[number]" : "");
                     }

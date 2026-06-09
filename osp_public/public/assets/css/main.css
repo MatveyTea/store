@@ -279,7 +279,7 @@ footer {
 
 .form .field-properties .field p,
 .form .field-properties .field .label {
-    width: 100%;
+    width: 100% !important;
 }
 
 .form .field-properties .field label,
@@ -424,7 +424,7 @@ footer {
 
 .items {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 15px;
     padding: 15px;
     background-color: var(--parent-bg-color);
@@ -607,7 +607,7 @@ footer {
 
 .images-view {
     width: 100%;
-    max-height: 700px;
+    /* max-height: 700px; */
     position: sticky;
     top: 120px;
     overflow: hidden;
@@ -694,7 +694,7 @@ header {
     position: fixed;
     top: 0;
     z-index: 20;
-    opacity: 0.1 !important; /* ===== ===== Чтобы видеть ошибки ===== ===== */
+    /* opacity: 0.1 !important; ===== ===== Чтобы видеть ошибки ===== ===== */
 }
 
 header nav a {
@@ -831,7 +831,7 @@ header nav a:focus {
 
     /* ===== ТОВАРЫ ===== */
     .items {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         padding: 10px;
     }
 

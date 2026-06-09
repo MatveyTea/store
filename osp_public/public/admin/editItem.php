@@ -18,7 +18,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $images = $validatedData["data"]["image_items_images"] ?? [];
         foreach ($images as $image) {
             $sql .= "INSERT INTO `items_images` (`items_id_items_images`, `image_items_images`) VALUES (?, ?);";
-            array_push($params, $idItem, $image);
+            array_push($params, $idItem, $image["current_name"]);
         }
 
         $imageItemsUpdate = $validatedData["data"]["image_items_update"] ?? [];
@@ -85,7 +85,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
         $_SESSION["server"] = "Не корректные данные";
     }
 
-    //redirectYourself("id_item=$idItem");
+    redirectYourself("id_item=$idItem");
 }
 
 $itemInfo = makeSelectQuery("SELECT

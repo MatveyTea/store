@@ -1,4 +1,5 @@
 <?php
+
 $headerHTML = "<a href='/'>Каталог</a>";
 $headerMobileHTML = "";
 
@@ -55,9 +56,12 @@ if (file_exists(__DIR__ . "/../../public/assets/css/$currentFileName.css")) {
 }
 
 $tokenHTML = "";
-if (!empty($_SESSION["token"])) {
-    $tokenHTML .= "<meta name='token' content='$_SESSION[token]'>";
+
+if (empty($_SESSION["token"])) {
+    $_SESSION["token"] = bin2hex(random_bytes(32));
 }
+$tokenHTML .= "<meta name='token' content='$_SESSION[token]'>";
+
 ?>
 
 <!DOCTYPE html>

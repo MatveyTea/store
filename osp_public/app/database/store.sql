@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Июн 08 2026 г., 23:36
+-- Время создания: Июн 09 2026 г., 21:09
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -78,6 +78,13 @@ CREATE TABLE `comments` (
   `items_id_comments` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
+--
+-- Дамп данных таблицы `comments`
+--
+
+INSERT INTO `comments` (`id_comments`, `users_id_comments`, `text_comments`, `rating_comments`, `date_add_comments`, `items_id_comments`) VALUES
+(2, 1, 'Крутой товар Очень нравится', 5, '2026-06-09 18:31:52', 305);
+
 -- --------------------------------------------------------
 
 --
@@ -89,6 +96,14 @@ CREATE TABLE `favorites` (
   `items_id_favorites` int NOT NULL,
   `users_id_favorites` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Дамп данных таблицы `favorites`
+--
+
+INSERT INTO `favorites` (`id_favorites`, `items_id_favorites`, `users_id_favorites`) VALUES
+(5, 307, 1),
+(6, 306, 2);
 
 -- --------------------------------------------------------
 
@@ -410,9 +425,12 @@ INSERT INTO `items` (`id_items`, `name_items`, `description_items`, `count_items
 (295, 'Товар 295', NULL, 19, 914, NULL, 2, 0, '2026-01-14'),
 (296, 'Товар 296', NULL, 28, 938, NULL, 1, 0, '2026-01-14'),
 (297, 'Товар 297', NULL, 9, 343, NULL, 2, 0, '2026-01-14'),
-(298, 'Товар 298', NULL, 24, 883, NULL, 1, 0, '2026-01-14'),
-(299, 'Товар 299', NULL, 26, 585, NULL, 2, 0, '2026-01-14'),
-(300, 'Товар 300', NULL, 21, 357, NULL, 1, 0, '2026-01-14');
+(298, 'Подушка', NULL, 24, 883, NULL, 1, 1, '2026-01-14'),
+(299, 'Полотенце', NULL, 26, 585, NULL, 2, 1, '2026-01-14'),
+(300, 'Щетка', NULL, 21, 357, NULL, 1, 2, '2026-01-14'),
+(305, 'Кастрюля', NULL, 400, 5500, 10, 1, 5, '2026-06-09'),
+(306, 'Ложка', 'Ложка', 100, 200, NULL, 2, 2, '2026-06-09'),
+(307, 'Тостер', 'ляляляля', 345, 500, 34, 3, 3, '2026-06-09');
 
 -- --------------------------------------------------------
 
@@ -426,6 +444,18 @@ CREATE TABLE `items_images` (
   `image_items_images` varchar(25) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
+--
+-- Дамп данных таблицы `items_images`
+--
+
+INSERT INTO `items_images` (`id_items_images`, `items_id_items_images`, `image_items_images`) VALUES
+(9, 305, '202606091827270.png'),
+(11, 306, '202606091831080.webp'),
+(17, 307, '202606092023130.jpg'),
+(18, 300, '202606092027270.jpg'),
+(19, 299, '202606092027560.jpg'),
+(20, 298, '202606092028250.jpg');
+
 -- --------------------------------------------------------
 
 --
@@ -437,6 +467,15 @@ CREATE TABLE `items_properties` (
   `items_id_items_properties` int NOT NULL,
   `attributes_id_items_properties` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Дамп данных таблицы `items_properties`
+--
+
+INSERT INTO `items_properties` (`id_items_properties`, `items_id_items_properties`, `attributes_id_items_properties`) VALUES
+(3, 307, 7),
+(4, 307, 9),
+(5, 307, 1);
 
 -- --------------------------------------------------------
 
@@ -727,43 +766,43 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `attributes`
 --
 ALTER TABLE `attributes`
-  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT для таблицы `baskets`
 --
 ALTER TABLE `baskets`
-  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_baskets` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT для таблицы `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_comments` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблицы `favorites`
 --
 ALTER TABLE `favorites`
-  MODIFY `id_favorites` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id_favorites` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=301;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=308;
 
 --
 -- AUTO_INCREMENT для таблицы `items_images`
 --
 ALTER TABLE `items_images`
-  MODIFY `id_items_images` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_items_images` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`
@@ -775,13 +814,13 @@ ALTER TABLE `items_type`
 -- AUTO_INCREMENT для таблицы `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_orders` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT для таблицы `properties`
 --
 ALTER TABLE `properties`
-  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT для таблицы `roles`
@@ -799,19 +838,19 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT для таблицы `supports`
 --
 ALTER TABLE `supports`
-  MODIFY `id_supports` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_supports` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT для таблицы `talks`
 --
 ALTER TABLE `talks`
-  MODIFY `id_talks` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_talks` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_users` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
