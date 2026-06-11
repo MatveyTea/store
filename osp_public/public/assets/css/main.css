@@ -116,6 +116,10 @@ footer {
     flex-shrink: 0;
 }
 
+footer * {
+    color: white;
+}
+
 .footer-container {
     display: flex;
     flex-wrap: wrap;
@@ -127,7 +131,6 @@ footer {
 .footer-slogan {
     width: 100%;
     text-align: justify;
-    color: white;
 }
 
 .footer-items {
@@ -139,14 +142,24 @@ footer {
 }
 
 .footer-item {
-    color: white;
     display: block;
+}
+
+.footer-privacy {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.footer-privacy a {
+    text-decoration: underline;
 }
 
 .footer-copyright {
     width: 100%;
     text-align: center;
-    color: white;
 }
 
 .footer-copyright br {
@@ -277,6 +290,10 @@ footer {
     gap: 10px;
 }
 
+.form .field-properties .field:has(.input[data-name=items_type_id_search_items]) {
+    width: 100%;
+}
+
 .form .field-properties .field p,
 .form .field-properties .field .label {
     width: 100% !important;
@@ -295,6 +312,12 @@ footer {
 
 .form .field:has(input[type=checkbox]) .label {
     width: 100%;
+    justify-content: unset;
+    gap: 0;
+}
+
+.form .field:has(input[type=checkbox]) .label .input.checkbox {
+    margin-left: auto;
 }
 
 .form .field-properties .field label .input,
@@ -695,7 +718,7 @@ header {
     position: fixed;
     top: 0;
     z-index: 20;
-    /* opacity: 0.1 !important; ===== ===== Чтобы видеть ошибки ===== ===== */
+    opacity: 0.1 !important; /* ===== ===== Чтобы видеть ошибки ===== ===== */
 }
 
 header nav a {

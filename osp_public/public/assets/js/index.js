@@ -94,8 +94,9 @@ const url = new URL(document.location);
 const idType = url.searchParams.get("items_type_id_items");
 url.searchParams.delete("items_type_id_items");
 window.history.pushState({}, "", url.toString());
-if (idType != null) {}
-
+if (idType != null) {
+    document.querySelector(`.catalog-item[data-id-items-type='${idType}']`)?.dispatchEvent(new Event("click"));
+}
 
 if (isAuth) {
     items.forEach((item) => clickableItem(item));

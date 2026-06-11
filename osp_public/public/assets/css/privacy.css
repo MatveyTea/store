@@ -1,0 +1,27 @@
+.privacy-container {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--parent-bg-color);
+    gap: 20px;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.privacy-item {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--child-bg-color);
+    border-radius: 20px;
+    padding: 20px;
+    gap: 10px;
+}
+
+.privacy-title {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.privacy-text {
+    font-size: 1.25rem;
+    margin-left: 25px;
+}

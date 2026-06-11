@@ -74,7 +74,6 @@ function setProperties(form) {
 function checkInput(input, rule) {
     let textMessage = "";
     let isCorrect = true;
-
     if (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0 || rule.nameRule == "image_items_update"))) {
         const result = rule.regExp == null ? rule.check(input) : rule.check(input, rule.regExp);
         if (result !== false) {
@@ -156,14 +155,11 @@ function setBasicSettingInput(inputs, form) {
             const label = form.querySelector(`.field:not(.property):has(#${input.id}) .label`);
             if (label) {
                 label.setAttribute("for", input.id);
-                if (label.children.length > 0) {
-                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1) + label.innerHTML;
-                } else {
-                    label.innerHTML = rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1);
-                }
+                let required = "";
                 if (rule.required) {
-                    label.innerHTML += "<b>*</b>";
+                    required = "<b>*</b>";
                 }
+                label.insertAdjacentHTML("afterBegin", rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1) + required);
             }
         }
 
@@ -175,7 +171,7 @@ function setBasicSettingInput(inputs, form) {
             input.setAttribute("placeholder", `Введите ${rule.nameInput}`);
         }
 
-        if (input?.selectedIndex != 0 && input.tagName != "SPAN" && (input.value != "" || input.isInsertServer == 0)) {
+        if (input?.selectedIndex != 0 && input.tagName != "SPAN" && (input.checked || (input.value != "" && !input?.checked && input.value != "on") || input.isInsertServer == 0)) {
             checkInput(input, rule);
         }
 
@@ -216,7 +212,27 @@ function setValidationForm(form) {
         if (false && (hasError || !hasUpdate)) {
             event.preventDefault();
         } else {
-            //document.querySelector(img);
+            const updateInput = form.querySelectorAll(".input[data-is-insert-server='0']");
+            const imgsView = form.querySelectorAll(".image-view img");
+            const imgOne = form.querySelector("img:not(.image-view img)");
+            if (event.defaultPrevented) {
+                updateInput.forEach((input) => {
+                    input.value = "";
+                    input.checked = !input.checked;
+                    input.dispatchEvent(new Event("change"));
+                });
+            }
+            imgsView?.forEach((img) => img.remove());
+            if (imgOne) {
+                imgOne.src = "";
+                const timerId = setInterval(() => {
+                    if (imgOne.src != "") {
+                        imgOne.classList.add("hidden");
+                        imgOne.src = "";
+                        clearInterval(timerId);
+                    }
+                }, 10);
+            }
         }
     });
 }
@@ -460,6 +476,32 @@ function getValidationRules() {
                     return false;
                 }
                 return "Введите корректный номер телефона начиная с плюса.";
+            }
+        },
+        "privacy_users": {
+            "wayDefineValue": function(input) {
+                return input.checked;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "согласие на обработку персональных данных",
+            "inputs": null,
+            "nameRule": "privacy_users",
+            "oldValue": null,
+            "files": ["reg.php"],
+            "required": true,
+            "timerId": null,
+            "placeMsg": null,
+            "regExp": null,
+            "length": null,
+            "check": function (input) {
+                if (input.checked) {
+                    return false;
+                }
+                return "Нужно согласиться.";
             }
         },
         // Поиск пользователя
@@ -1267,13 +1309,13 @@ function getValidationRules() {
             "check": function (input, regExp) {
                 const form = document.querySelector(`.form:has(#${input.id})`);
                 const values = form.querySelectorAll(".input[data-name='value_attributes'][data-is-insert-server='0']");
-                if (values.length < 1) {
+                if (values.length < 0) {
                     input.value = "";
                     input.dispatchEvent(new Event("change"));
                     return false;
                 }
                 const idProperty = form.querySelector(".input[data-name='id_properties']");
-                if (idProperty && regExp.test(idProperty.value)) return null;
+                if (idProperty && !regExp.test(idProperty.value)) return null;
                 const result = [];
                 values.forEach((value) => {
                     let temp = {};

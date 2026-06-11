@@ -1,0 +1,15 @@
+.terms-container {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--parent-bg-color);
+    gap: 20px;
+    border-radius: 20px;
+    padding: 20px;
+}
+
+.terms-text {
+    font-size: 1.5rem;
+    background-color: var(--child-bg-color);
+    padding: 20px;
+    border-radius: 20px;
+}

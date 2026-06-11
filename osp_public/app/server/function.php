@@ -551,6 +551,15 @@ function getValidationRules($file = "")
                 return preg_match("/^$|^\+[$symbols[num]]{11}$/u", $value);
             }
         ],
+        "privacy_users" => [
+            "files" => ["reg.php"],
+            "required" => true,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) {
+                return $value == "on";
+            }
+        ],
         // Поиск пользователя
         "email_search_users" => [
             "files" => ["editUser.php"],
@@ -1397,7 +1406,7 @@ function searchItems($json)
     $isPopularItems = !empty($data["popular_items"]);
     $offset = $data["offset_search_items"];
     $attributes = $data["id_search_attributes"] ?? [];
-    $types = $data["items_type_id_search_items"] ?? [];
+    $types = empty($data["items_type_id_search_items"]) ? [] : $data["items_type_id_search_items"];
     $strictType = empty($data["strict_search"]) ? "OR" : "AND";
    
     $whereSQL = "";

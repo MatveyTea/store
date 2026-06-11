@@ -78,7 +78,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
     } else {
         $_SESSION["server"] = "Не корректные данные";
     }
-    //redirectYourself("table=$tableName");
+    redirectYourself("table=$tableName");
 }
 
 $columnNames = makeSelectQuery("SELECT `COLUMN_NAME` FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_NAME` = ? AND `COLUMN_NAME` NOT LIKE 'id_%'", [$tableName], false);

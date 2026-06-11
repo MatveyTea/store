@@ -93,7 +93,6 @@ function talkAction(talk) {
             "image_supports": base64String
         });
         if (dataResult["status"] == "OK") {
-            form.reset();
             messages.insertAdjacentHTML("beforeend", dataResult["data"]["message"]);
             messages.scrollTop = messages.scrollHeight;
         } else {

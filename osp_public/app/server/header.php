@@ -1,5 +1,4 @@
 <?php
-
 $headerHTML = "<a href='/'>Главная</a>";
 $headerMobileHTML = "<a href='/'>Главная</a>";
 

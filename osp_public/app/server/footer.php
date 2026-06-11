@@ -22,6 +22,11 @@ if ($randomCategory == "FAIL") {
             <a href="/" class="footer-item"><img src="/assets/img/logo.png"></a>
             <a href="/?items_type_id_items=<?= $randomCategory["id_items_type"] ?>" class="footer-item button">Случайная категория</a>
         </div>
+        <span class="footer-privacy">
+            <a href="/user/privacy.php">Политика конфиденциальности</a>
+            <p>и</p>
+            <a href="/user/terms.php">Условия использования</a>
+        </span>
         <p class="footer-copyright">© 2026 Интернет-магазин. <br>Все права защищены.</p>
     </div>
 </footer>

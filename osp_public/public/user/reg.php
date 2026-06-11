@@ -15,7 +15,7 @@ if (!empty($_POST["submit_button"])) {
         if ($checkEmail === "FAIL") {
             $_SESSION["server"] = "Не удалось вставить пользователя";
         } else if (empty($checkEmail)) {
-            $result = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["re_password_users"=> true]), ["date_create_users" => date("y-m-d")]));
+            $result = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["re_password_users" => true, "privacy_users" => true]), ["date_create_users" => date("y-m-d")]));
             $isSuccess = makeSafeQuery("INSERT INTO `users` ($result[sql]) VALUES ($result[question])", $result["params"]);
             if ($isSuccess) {
                 clearValidatedSession();
@@ -67,6 +67,12 @@ include_once __DIR__ . "/../../app/server/header.php";
         <div class="field">
             <label class="label"></label>
             <input class="input" type="password" data-name="re_password_users" autocomplete="new-password">
+            <span class="error-wrapper">
+                <p class="error"></p>
+            </span>
+        </div>
+        <div class="field">
+            <label class="label"><input class="input checkbox" type="checkbox" data-name="privacy_users"></label>
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
