@@ -5,6 +5,8 @@ const talks = document.querySelector(".talks");
 const chats = document.querySelector(".chats");
 const allChat = chats.querySelectorAll(".chat");
 allChat.forEach((chat) => chat.addEventListener("click", () => chatAction(chat)));
+let lastId = null;
+let currentActiveChat = null;
 
 const startTalk = document.querySelector(".start-talk");
 startTalk?.addEventListener("submit", async (event) => {
@@ -45,6 +47,20 @@ startTalk?.addEventListener("submit", async (event) => {
 });
 
 
+setInterval(async () => {
+    if (lastId == null) return;
+    const dataResult = await sendToServer({
+        "server_type": "ping_message",
+        "id_supports": lastId
+    });
+    if (dataResult["status"] == "OK") {
+        const messages = cache[currentActiveChat].querySelector(".messages");
+        messages.insertAdjacentHTML("beforeend", dataResult["data"]["message"]);
+        messages.scrollTop = messages.scrollHeight;
+        lastId = messages.lastElementChild.dataset.idSupport;
+    }
+}, 5000);
+
 async function chatAction(chat) {
     if (cache[chat.dataset.idTalks] == null) {
         const dataResult = await sendToServer({
@@ -56,7 +72,7 @@ async function chatAction(chat) {
             tempContainer.insertAdjacentHTML("afterbegin", dataResult["data"]["messages"]);
             const form = tempContainer.querySelector(".form");
             const inputs = form?.querySelectorAll(".input");
-            setBasicSettingInput(inputs, form);;
+            setBasicSettingInput(inputs, form);
             talkAction(tempContainer.querySelector(".talk"));
             talks.innerHTML = "";
             cache[chat.dataset.idTalks] = tempContainer.children[0];
@@ -68,6 +84,8 @@ async function chatAction(chat) {
         talks.innerHTML = "";
         talks.appendChild(cache[chat.dataset.idTalks]);
     }
+    lastId = cache[chat.dataset.idTalks].querySelector(".messages").lastElementChild.dataset.idSupport;
+    currentActiveChat = chat.dataset.idTalks;
 }
 
 function talkAction(talk) {
@@ -93,8 +111,10 @@ function talkAction(talk) {
             "image_supports": base64String
         });
         if (dataResult["status"] == "OK") {
+            form.reset();
             messages.insertAdjacentHTML("beforeend", dataResult["data"]["message"]);
             messages.scrollTop = messages.scrollHeight;
+            lastId = cache[chat.dataset.idTalks].querySelector(".messages").lastElementChild.dataset.idSupport;
         } else {
             showModal("Не удалось отправить");
         }

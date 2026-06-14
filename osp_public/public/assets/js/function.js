@@ -159,7 +159,9 @@ function setBasicSettingInput(inputs, form) {
                 if (rule.required) {
                     required = "<b>*</b>";
                 }
-                label.insertAdjacentHTML("afterBegin", rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1) + required);
+                if (!label.textContent.toLowerCase().includes(rule.nameInput)) {
+                    label.insertAdjacentHTML("afterBegin", rule.nameInput.slice(0, 1).toUpperCase() + rule.nameInput.slice(1) + required);
+                }
             }
         }
 

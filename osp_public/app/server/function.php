@@ -1030,6 +1030,15 @@ function getValidationRules($file = "")
                 return preg_match("/$symbols[id]/u", $value);
             }
         ],
+        "id_supports" => [
+            "files" => ["support.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
+            }
+        ],
         "talks_id_supports" => [
             "files" => ["support.php"],
             "required" => false,
@@ -1683,6 +1692,7 @@ function startTalk($json)
         `support`.`avatar_users` AS `support_avatar`,
         `users_write_supports`,
         `title_talks`,
+        `id_supports`,
         `is_end_talks`,
         `talks_id_supports`,
         `text_supports`,
@@ -1715,6 +1725,7 @@ function continueTalk($json)
 
     $isSuccess = makeSafeQuery("INSERT INTO `supports` ($sql[sql]) VALUES ($sql[question])", $sql["params"]);
     if (!$isSuccess || !empty($validatedData["data"]["image_supports"]) && !file_put_contents(__DIR__ . "/../upload/supports/" . $validatedData["data"]["image_supports"]["current_name"], $validatedData["data"]["image_supports"]["content"])) setAnswer("FAIL");
+    $id = $GLOBALS["link"]->lastInsertId();
         
     $userInfo = getUserInfo();
 
@@ -1724,10 +1735,53 @@ function continueTalk($json)
         "name" => $userInfo["name_users"],
         "text" => $validatedData["data"]["text_supports"],
         "date" => dateformat($datetime),
-        "image" => $validatedData["data"]["image_supports"]["current_name"] ?? ""
+        "image" => $validatedData["data"]["image_supports"]["current_name"] ?? "",
+        "id" => $id
     ];
 
     setAnswer($userInfo ? "OK" : "FAIL", ["message" => getMessageHTML($message, "me")]);
+}
+
+function pingMessage($json)
+{
+    $validatedData = getValidatedData($json, "support.php");
+    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $message = makeSelectQuery("SELECT
+        `user`.`id_users` AS `user_id`,
+        `user`.`name_users` AS `user_name`,
+        `user`.`roles_id_users` AS `user_role`,
+        `user`.`avatar_users` AS `user_avatar`,
+        `support`.`id_users` AS `support_id`,
+        `support`.`name_users` AS `support_name`,
+        `support`.`roles_id_users` AS `support_role`,
+        `support`.`avatar_users` AS `support_avatar`,
+        `users_write_supports`,
+        `title_talks`,
+        `id_supports`,
+        `is_end_talks`,
+        `talks_id_supports`,
+        `text_supports`,
+        `image_supports`,
+        `datetime_supports`,
+        `users_id_talks`
+        FROM `supports`
+        JOIN `talks` ON `id_talks` = `talks_id_supports`
+        JOIN `users` AS `user` ON `user`.`id_users` = `users_id_talks`
+        LEFT JOIN `users` AS `support` ON `support`.`id_users` = `users_support_talks`
+        WHERE `id_supports` > ? AND (`user`.`id_users` = ? OR `support`.`id_users` = ?) AND `users_write_supports` != ?", [$validatedData["data"]["id_supports"], getUserID(), getUserID(), getUserID()], true);
+    if ($message == "FAIL") setAnswer("FAIL");
+    if (empty($message)) setAnswer("NOTFOUND");
+    
+    $result = [
+        "name" => $message["users_write_supports"] == $message["support_id"] ? $message["support_name"] : $message["user_name"],
+        "text" => $message["text_supports"],
+        "image" => $message["image_supports"],
+        "date" => dateformat($message["datetime_supports"]),
+        "id" => $message["id_supports"]
+    ];
+
+    setAnswer("OK", ["message" => getMessageHTML($result, $message["users_write_supports"] == getUserID() ? "me" : "other")]);
 }
 
 function endTalk($idTalks)
@@ -1772,6 +1826,7 @@ function getTalkHTML($idTalks)
         `users_write_supports`,
         `title_talks`,
         `is_end_talks`,
+        `id_supports`,
         `talks_id_supports`,
         `text_supports`,
         `image_supports`,
@@ -1803,7 +1858,7 @@ function getStartMessageHTML($messages, $isSupport = false) {
         }
         $isMyMessage = getUserID() == $message["users_write_supports"] ? "me" : "other";
         $name = $message["users_write_supports"] == $message["support_id"] ? $message["support_name"] : $message["user_name"];
-        $result .= getMessageHTML(["name" => $name, "text" => $message["text_supports"], "image" => $message["image_supports"], "date" => dateformat($message["datetime_supports"])], $isMyMessage);
+        $result .= getMessageHTML(["name" => $name, "text" => $message["text_supports"], "image" => $message["image_supports"], "date" => dateformat($message["datetime_supports"]), "id" => $message["id_supports"]], $isMyMessage);
         if ($index == count($messages) - 1 || $messages[$index + 1]["talks_id_supports"] != $message["talks_id_supports"]) {
             $startTalkFrom = "";
             if ($message["is_end_talks"] != 1) {
@@ -1841,13 +1896,13 @@ function getStartMessageHTML($messages, $isSupport = false) {
     return $result;
 }
 
-function getMessageHTML($message = ["name" => "", "text" => "", "date" => "", "image" => ""], $who = "")
+function getMessageHTML($message = ["name" => "", "text" => "", "date" => "", "image" => "", "id" => ""], $who = "")
 {
     $img = "";
     if ($message["image"] != "") {
         $img = "<img class='message-image' src='" . getValidImage("supports/$message[image]") . "'>";
     }
-    return "<div class='message $who'>
+    return "<div class='message $who' data-id-support='$message[id]'>
         <p class='message-name'>$message[name]</p>
         <p class='message-text'>$message[text]</p>
         <p class='message-date'>$message[date]</p>

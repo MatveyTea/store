@@ -20,6 +20,7 @@
     height: auto;
     cursor: pointer;
     transition: transform 0.3s linear;
+    filter: invert(100%);
 }
 
 .catalog-wrapper {

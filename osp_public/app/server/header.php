@@ -13,7 +13,8 @@ if (isUserAuth()) {
         ";
     }
     $supportHeader = "";
-    if (isSupport()) {
+    $isSupport = isSupport();
+    if ($isSupport) {
         $supportHeader .= "
             <a href='/support/allSupport.php'>Все обращения</a>
             <a href='/user/support.php'>Мои обращения</a>
@@ -23,12 +24,22 @@ if (isUserAuth()) {
     }
     $userInfo = getUserInfo();
     $img = empty($userInfo["avatar_users"]) ? "" : $userInfo["avatar_users"];
-    $headerHTML .= "
-        <a href='/user/basket.php'>Корзина</a>
-        <a href='/user/favorites.php'>Избранные</a>
-        $supportHeader
-        <a href='/user/profile.php'><img class='avatar' src='" . getValidImage("avatars/$img") . "'></a>
-    ";
+    if ($isSupport) {
+        $headerHTML .= "
+            $supportHeader
+            <a href='/user/basket.php'>Корзина</a>
+            <a href='/user/favorites.php'>Избранные</a>
+            <a href='/user/profile.php'><img class='avatar' src='" . getValidImage("avatars/$img") . "'></a>
+        ";
+    } else {
+        $headerHTML .= "
+            <a href='/user/basket.php'>Корзина</a>
+            <a href='/user/favorites.php'>Избранные</a>
+            $supportHeader
+            <a href='/user/profile.php'><img class='avatar' src='" . getValidImage("avatars/$img") . "'></a>
+        ";
+    }
+
     $headerMobileHTML = $headerHTML;
 } else {
     $headerHTML .= "

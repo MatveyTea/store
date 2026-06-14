@@ -23,8 +23,11 @@ buyButton?.addEventListener("click", async () => {
             "datetime_plan_orders": makeOrder.querySelector(".input[data-name='datetime_plan_orders']").value.split(", ")[1]
         });
         if (resultData["status"] == "OK") {
-            historyBasket.querySelector("h2").textContent = "История покупок";
-            historyBasket.querySelector("h2").insertAdjacentHTML("afterend", resultData["data"]["historyHTML"]);
+            const title = historyBasket.querySelector("h2");
+            title.textContent = "История покупок";
+            title.classList.remove("notfound");
+            title.classList.add("title");
+            title.insertAdjacentHTML("afterend", resultData["data"]["historyHTML"]);
             currentBasket.innerHTML = "<h2 class='notfound'>В данный момент в корзине пусто.</h2>";
             makeOrder.classList.remove();
             showModal("Успешно")

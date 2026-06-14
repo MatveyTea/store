@@ -18,7 +18,7 @@ if (!empty($_POST["submit_button"])) {
             if ($userInfo["is_banned_users"] == 0) {
                 $_SESSION["id_user"] = $userInfo["id_users"];
                 clearValidatedSession();
-                redirect();
+                redirect("user/profile.php");
             } else {
                 $_SESSION["server"] = "Ваш аккаунт заблокирован";
             }

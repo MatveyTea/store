@@ -613,8 +613,8 @@ INSERT INTO `users` (`id_users`, `email_users`, `password_users`, `name_users`, 
 (1, 'admin@admin.com', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'Админ', NULL, NULL, '2025-11-30', 0, 1),
 (2, 'user@user.com', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'пользователь', NULL, NULL, '2025-11-30', 0, 2),
 (3, 'test@test.com', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'Тест', NULL, NULL, '2026-03-17', 1, 2),
-(4, 'del1@g.g', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'ДоставщикОдин', NULL, NULL, '2026-04-06', 0, 3),
-(5, 'del2@g.g', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'ДоставщикДва', NULL, NULL, '2026-04-06', 0, 3),
+(4, 'del1@deliver.com', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'ДоставщикОдин', NULL, NULL, '2026-04-06', 0, 3),
+(5, 'del2@deliver.com', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'ДоставщикДва', NULL, NULL, '2026-04-06', 0, 3),
 (6, 'support@support.com', '$2y$12$lJbCbUGrxndLxrkAiZmazus4gXdSlN3dM3huUAt4j5g7Co68nsyb6', 'ПоддрежкаОдин', NULL, NULL, '2026-05-16', 0, 4);
 
 --

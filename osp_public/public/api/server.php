@@ -56,6 +56,8 @@ if (!empty(file_get_contents("php://input"))) {
             startTalk($json);
         } else if ($isAuth && $serverType == "continue_talk" && !empty($json["talks_id_supports"]) && !empty($json["text_supports"])) { // support.js - Написание сообщение в поддержку пользователем
             continueTalk($json);
+        } else if ($isAuth && $serverType == "ping_message" && !empty($json["id_supports"])) { // support.js - Получение сообщения через интервал времени
+            pingMessage($json);
         } else if ($isAuth && $serverType == "end_talk" && !empty($json["talks_id_supports"])) { // support.js - Конец разговора
             endTalk($json["talks_id_supports"]);
         } else if ($isSupport && $serverType == "accept_support" && !empty($json["id_talks"])) { // allSupport.js - Принятие сообщение
