@@ -102,5 +102,9 @@ $tokenHTML .= "<meta name='token' content='$_SESSION[token]'>";
             </div>
         </nav>
     </header>
+    <span class="loader">
+        <p>Загрузка</p>
+        <img src="/assets/img/loader.png">
+    </span>
 </body>
 </html>

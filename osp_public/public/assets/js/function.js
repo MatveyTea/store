@@ -211,7 +211,7 @@ function setValidationForm(form) {
                 hasUpdate = true;
             }
         });
-        if (false && (hasError || !hasUpdate)) {
+        if (hasError || !hasUpdate) {
             event.preventDefault();
         } else {
             const updateInput = form.querySelectorAll(".input[data-is-insert-server='0']");
@@ -436,8 +436,8 @@ function getValidationRules() {
                     if (input.files[0].size > 2_000_000) {
                         return "Размер изображения не должен превышать 2МБ.";
                     }
-                    if (!["jpg", "png", "webp"].includes(extension)) {
-                        return "Изображение должно быть в формате jpg, png или webp.";
+                    if (!["jpg", "png", "webp", "jpeg"].includes(extension)) {
+                        return "Изображение должно быть в формате jpg, png, jpeg или webp.";
                     }
                     let reader = new FileReader();
                     reader.readAsDataURL(input.files[0]);
@@ -1716,7 +1716,13 @@ if (validatedForm) {
 }
 
 const token = document.querySelector("meta[name='token']")?.getAttribute("content") ?? "notfound";
+const loader = document.querySelector(".loader");
 async function sendToServer(data) {
+    let timerLoader = setTimeout(() => {
+        loader.classList.add("active");
+        loader.style.top = `${window.scrollY}px`;
+    }, 250);
+
     data["token"] = token;
     const result = await fetch("/api/server.php", {
         "method": "POST",
@@ -1725,7 +1731,10 @@ async function sendToServer(data) {
             "Content-type": "application/json"
         }
     });
-    return await result.json();
+    const json = await result.json();
+    clearTimeout(timerLoader);
+    loader.classList.remove("active");
+    return json;
 }
 
 function clickableItem(item) {

@@ -18,7 +18,7 @@ if (!empty($_POST["submit_button"])) {
             $isSuccess = makeSafeQuery("UPDATE `users` SET $result[sql] WHERE `id_users` = ?", $result["params"]);
             if ($isSuccess && move_uploaded_file($validatedData["data"]["avatar_users"]["tmp_name"], __DIR__ . "/../../app/upload/avatars/" . $validatedData["data"]["avatar_users"]["current_name"])) {
                 if (!empty($tempUserImg["avatar_users"])) {
-                    // unlink(__DIR__ . "/../../app/upload/avatars/$tempUserImg[avatar_users]");
+                    unlink(__DIR__ . "/../../app/upload/avatars/$tempUserImg[avatar_users]");
                 }
             }
         } else {

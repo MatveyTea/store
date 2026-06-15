@@ -257,7 +257,9 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
             $rating = "<p class='item-notfound'>Нет подробной информации</p>";
         }
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
-                <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link' >
+            <a href='/admin/editItem.php?id_item=$item[id_items]' class='button'>Изменить товар</a>
+            <p class='item-name'>$item[name_items]</p>
+                <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link'>
                     <img src='" . getValidImage("items/$item[image_items_images]") . "' class='item-image'>
                     <span class='item-cost'>
                         $cost
@@ -536,7 +538,7 @@ function getValidationRules($file = "")
             "returned_value" => true,
             "pattern" => function ($value) {
                 $extension = pathinfo($value["name"], PATHINFO_EXTENSION);
-                if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"] < 2_000_000) {
+                if (in_array($extension, ["jpg", "png", "webp", "jpeg"]) && $value["size"] < 2_000_000) {
                     return ["tmp_name" => $value["tmp_name"], "current_name" => date("YmdHis") . ".$extension"];
                 }
                 return false;
@@ -661,7 +663,7 @@ function getValidationRules($file = "")
                 if (empty($value)) return false;
                 for($i = 0; $i < count($value["name"]); $i++) {
                     $extension = pathinfo($value["name"][$i], PATHINFO_EXTENSION);
-                    if (in_array($extension, ["jpg", "png", "webp"]) && $value["size"][$i] < 2_000_000) {
+                    if (in_array($extension, ["jpg", "png", "webp", "jpeg"]) && $value["size"][$i] < 2_000_000) {
                         $imagesFileName[] = ["tmp_name" => $value["tmp_name"][$i], "current_name" => date("YmdHis") . "$i.$extension"];
                     } else {
                         return false;
@@ -678,7 +680,7 @@ function getValidationRules($file = "")
             "pattern" => function ($value) use ($symbols) {
                 $imgs = json_decode($value, true);
                 foreach ($imgs as $img) {
-                    if (!preg_match("/$symbols[id]/", $img["id"]) || !preg_match("/^[$symbols[num]]{13,14}\.|png|jpg|webp$/", $img["path"])) {
+                    if (!preg_match("/$symbols[id]/", $img["id"]) || !preg_match("/^[$symbols[num]]{13,14}\.|png|jpg|webp|jpeg$/", $img["path"])) {
                         return false;
                     }
                 }
@@ -1078,7 +1080,7 @@ function getValidationRules($file = "")
                     if ($decodedFile !== false) {
                         $finfo = new finfo(FILEINFO_MIME_TYPE);
                         $realMimeType = $finfo->buffer($decodedFile);
-                        if (in_array($realMimeType, ["image/jpg", "image/png", "image/webp"]) && strlen($decodedFile) < 2_000_000) {
+                        if (in_array($realMimeType, ["image/jpg", "image/png", "image/webp", "image/jpeg"]) && strlen($decodedFile) < 2_000_000) {
                             return ["current_name" => date("YmdHis") . "." . explode("/", $realMimeType)[1], "content" => $decodedFile];
                         }
                     }
@@ -1303,7 +1305,7 @@ function deleteAvatar()
 
     $file = __DIR__ . "/../upload/avatars/$user[avatar_users]";
     if (!file_exists($file)) setAnswer("FAIL");
-    // unlink($file);
+    unlink($file);
 
     $isSuccess = makeSafeQuery("UPDATE `users` SET `avatar_users` = NULL WHERE `id_users` = ?", [$user["id_users"]]);
     if (!$isSuccess) setAnswer("FAIL");
