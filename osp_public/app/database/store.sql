@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.4:3306
--- Время создания: Июн 15 2026 г., 22:42
+-- Время создания: Июн 15 2026 г., 23:57
 -- Версия сервера: 8.4.6
 -- Версия PHP: 8.4.13
 
@@ -180,8 +180,8 @@ INSERT INTO `items` (`id_items`, `name_items`, `description_items`, `count_items
 (338, 'Шляпа летняя', NULL, 40, 800, 3, 2, 0, '2026-06-09'),
 (339, 'Гольфы утеплённые', NULL, 65, 1100, 4, 2, 0, '2026-06-09'),
 (340, 'Шарф шерстяной', NULL, 35, 1500, 6, 2, 0, '2026-06-09'),
-(341, 'Пальто шерстяное', NULL, 15, 9500, 10, 2, 1, '2026-06-09'),
-(342, 'Косоворотка', NULL, 45, 2100, 2, 2, 1, '2026-06-09'),
+(341, 'Пальто шерстяное', NULL, 15, 9500, 10, 2, 0, '2026-06-09'),
+(342, 'Косоворотка', NULL, 45, 2100, 2, 2, 0, '2026-06-09'),
 (344, 'Блузка летняя', NULL, 65, 2800, 4, 2, 0, '2026-06-09'),
 (345, 'Трикотажные штаны', NULL, 55, 3300, 6, 2, 0, '2026-06-09'),
 (346, 'Носки шерстяные', NULL, 150, 200, 1, 2, 0, '2026-06-09'),
@@ -390,7 +390,8 @@ INSERT INTO `items_images` (`id_items_images`, `items_id_items_images`, `image_i
 (73, 538, '202606152128000.jpg'),
 (74, 568, '202606152128140.jpg'),
 (75, 570, '202606152128500.jpg'),
-(76, 364, '202606152131050.jpg');
+(76, 364, '202606152131050.jpg'),
+(85, 602, '202606152337340.jpg');
 
 -- --------------------------------------------------------
 
@@ -715,7 +716,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `attributes`
 --
 ALTER TABLE `attributes`
-  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_attributes` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=336;
 
 --
 -- AUTO_INCREMENT для таблицы `baskets`
@@ -739,19 +740,19 @@ ALTER TABLE `favorites`
 -- AUTO_INCREMENT для таблицы `items`
 --
 ALTER TABLE `items`
-  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=604;
+  MODIFY `id_items` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=611;
 
 --
 -- AUTO_INCREMENT для таблицы `items_images`
 --
 ALTER TABLE `items_images`
-  MODIFY `id_items_images` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id_items_images` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
 -- AUTO_INCREMENT для таблицы `items_properties`
 --
 ALTER TABLE `items_properties`
-  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_items_properties` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `items_type`

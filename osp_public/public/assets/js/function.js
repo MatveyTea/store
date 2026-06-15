@@ -213,6 +213,7 @@ function setValidationForm(form) {
         });
         if (hasError || !hasUpdate) {
             event.preventDefault();
+            showModal("Некорректные данные");
         } else {
             const updateInput = form.querySelectorAll(".input[data-is-insert-server='0']");
             const imgsView = form.querySelectorAll(".image-view img");

@@ -114,7 +114,7 @@ function talkAction(talk) {
             form.reset();
             messages.insertAdjacentHTML("beforeend", dataResult["data"]["message"]);
             messages.scrollTop = messages.scrollHeight;
-            lastId = cache[chat.dataset.idTalks].querySelector(".messages").lastElementChild.dataset.idSupport;
+            lastId = cache[currentActiveChat].querySelector(".messages").lastElementChild.dataset.idSupport;
         } else {
             showModal("Не удалось отправить");
         }

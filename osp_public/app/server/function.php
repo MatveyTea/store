@@ -257,8 +257,6 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
             $rating = "<p class='item-notfound'>Нет подробной информации</p>";
         }
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
-            <a href='/admin/editItem.php?id_item=$item[id_items]' class='button'>Изменить товар</a>
-            <p class='item-name'>$item[name_items]</p>
                 <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link'>
                     <img src='" . getValidImage("items/$item[image_items_images]") . "' class='item-image'>
                     <span class='item-cost'>
@@ -1403,6 +1401,12 @@ function deleteItem($idItem)
     $validatedData = getValidatedData(["id_items" => $idItem,  "name_items" => 1, "count_items" => 1, "cost_items" => 1, "items_type_id_items" => 1], "editItem.php");
 
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+    
+    $itemImages = makeSelectQuery("SELECT `image_items_images` FROM `items_images` WHERE `items_id_items_images` = ?", [$idItem], false);
+    if ($itemImages == "FAIL") setAnswer("FAIL");
+    foreach ($itemImages as $image) {
+        unlink(__DIR__ . "/../upload/items/$image[image_items_images]"); 
+    }
 
     $isSuccess = makeSafeQuery("DELETE FROM `items` WHERE `id_items` = ?", [$idItem]);
     setAnswer($isSuccess ? "OK" : "FAIL");
