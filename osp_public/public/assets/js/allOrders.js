@@ -11,7 +11,7 @@ acceptOrdersButton.forEach((button) => {
         if (dataResult["status"] == "OK") {
             window.location.href = "/deliver/myOrders.php";
         } else {
-            showModal("Не удалось принять заказ");
+            showModal("Не удалось выполнить запрос.");
         }
     });
 });

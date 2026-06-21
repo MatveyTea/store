@@ -5,6 +5,11 @@ if (!isAdmin()) {
     redirect();
 }
 
+$users = getUsers("WHERE `id_users` != ?", [1]);
+if (str_contains($users, "{\"status\":\"FAIL\"}")) {
+   redirect("admin/admin.php");
+}
+
 getModalHTML();
 include_once __DIR__ . "/../../app/server/header.php";
 ?>
@@ -22,7 +27,8 @@ include_once __DIR__ . "/../../app/server/header.php";
         <div class="field">
             <label class="label"></label>
             <select class="input" data-name="is_banned_search_users" data-is-insert-server="1">
-                <option value="2" selected>Всех</option>
+                <option value="-1" selected disabled>Выбрать</option>
+                <option value="2">Всех</option>
                 <option value="1">Заблокированных</option>
                 <option value="0">Разблокированных</option>
             </select>
@@ -35,7 +41,7 @@ include_once __DIR__ . "/../../app/server/header.php";
         </div>
     </form>
     <section class="users">
-        <?= getUsers("WHERE `id_users` != ?", [1]) ?>
+        <?= $users ?>
     </section>
 </main>
 

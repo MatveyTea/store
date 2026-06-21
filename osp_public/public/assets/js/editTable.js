@@ -14,9 +14,9 @@ deleteAll.forEach((button) => {
         if (dataResult?.isValid == false) return;
         if (dataResult["status"] == "OK") {
             form.remove();
-            showModal("Удалено");
+            showModal("Успешно выполнено.");
         } else {
-            showModal("Не удалось выполнить запрос")
+            showModal("Не удалось выполнить запрос.");
             form.classList.remove("hidden");
         }
     })
@@ -56,9 +56,9 @@ async function deleteOne(button, additional) {
         if (dataResult?.isValid == false) return;
         if (dataResult["status"] == "OK") {
             additional.remove();
-            showModal("Удалено");
+            showModal("Успешно выполнено.");
         } else {
-            showModal("Не удалось выполнить запрос")
+            showModal("Не удалось выполнить запрос.");
             additional.classList.remove("hidden");
         }
     } else {

@@ -11,6 +11,6 @@ receiptButton?.addEventListener("click", async () => {
         document.querySelector(".status p:last-of-type").classList.add("completed");
         receiptButton.remove();
     } else {
-        showModal("Не удалось");
+        showModal("Не удалось выполнить запрос.");
     }
 });

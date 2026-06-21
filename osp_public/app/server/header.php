@@ -1,6 +1,6 @@
 <?php
 $headerHTML = "<a href='/'>Главная</a>";
-$headerMobileHTML = "<a href='/'>Главная</a>";
+$headerMobileHTML = "";
 
 if (isUserAuth()) {
     if (isAdmin()) {
@@ -40,7 +40,7 @@ if (isUserAuth()) {
         ";
     }
 
-    $headerMobileHTML = $headerHTML;
+    $headerMobileHTML = explode("<a href='/'>Главная</a>", $headerHTML)[1];
 } else {
     $headerHTML .= "
         <span>
@@ -92,6 +92,7 @@ $tokenHTML .= "<meta name='token' content='$_SESSION[token]'>";
             <?= $headerHTML ?>
         </nav>
         <nav class="content header-mobile">
+            <a href="/">Главная</a>
             <div class="header-mobile-burger">
                 <span></span>
                 <span></span>

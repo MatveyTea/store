@@ -11,7 +11,7 @@ acceptSupportButton.forEach((button) => {
         if (dataResult["status"] == "OK") {
             window.location.href = "/user/support.php";
         } else {
-            showModal("Не удалось принять");
+            showModal("Не удалось выполнить запрос.");
         }
     });
 });

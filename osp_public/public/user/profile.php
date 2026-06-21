@@ -27,9 +27,9 @@ if (!empty($_POST["submit_button"])) {
             $isSuccess = makeSafeQuery("UPDATE `users` SET $result[sql] WHERE `id_users` = ?", $result["params"]);
         }
         if ($isSuccess) {
-            $_SESSION["server"] = "Данные обновлены.";
+            $_SESSION["server"] = "Успешно выполнено.";
         } else {
-            $_SESSION["server"] = "Не удалось обновить данные.";
+            $_SESSION["server"] = "Не удалось выполнить запрос.";
         }
     } else {
         $_SESSION["server"] = "Не корректные данные.";

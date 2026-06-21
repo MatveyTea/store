@@ -65,17 +65,17 @@ function setProperties(form) {
                     parent.remove();
                     currentCountProperties--;
                 } else {
-                    showModal("Не удалось удалить свойство");
+                    showModal("Не удалось выполнить запрос.");
                 }
             });
         });
     }
 }
 
-function checkInput(input, rule) {
+function checkInput(input, rule, isTrusted = true) {
     let textMessage = "";
     let isCorrect = true;
-    if (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0 || rule.nameRule == "image_items_update"))) {
+    if (isTrusted && (rule.required || (!rule.required && (input.value != "" || input?.files?.length > 0 || rule.nameRule == "image_items_update")))) {
         const result = rule.regExp == null ? rule.check(input) : rule.check(input, rule.regExp);
         if (result !== false) {
             textMessage = result;
@@ -181,9 +181,7 @@ function setBasicSettingInput(inputs, form) {
         const action = input.tagName == "SPAN" ? "click" : "change";
         input.addEventListener(action, (event) => {
             rule.currentValue[input.id] = rule.wayDefineValue(input);
-            if (event.isTrusted) {
-                checkInput(input, rule);
-            }
+            checkInput(input, rule, event.isTrusted);
         });
     });
 }
@@ -217,7 +215,7 @@ function setValidationForm(form) {
         if (!isValidInputs(inputs)) {
             event.preventDefault();
             isValid = false;
-            showModal("Некорректные данные");
+            showModal("Некорректные данные.");
         } else {
             isValid = true;
             const updateInput = form.querySelectorAll(".input[data-is-insert-server='0']");
@@ -274,7 +272,7 @@ function getValidationRules() {
         "id": "^[0-9]{1,10}$",
         "num": "0-9",
         "space": " ",
-        "ru": "А-Яа-яеЁ",
+        "ru": "А-Яа-яеЁё",
         "eng": "A-Za-z",
         "special": "!@#\$%^&*()\-+=_\{\}\\[\\]|:;\"'<>?/\\.,",
         "simple": "().,:\"'!?\-"
@@ -486,6 +484,29 @@ function getValidationRules() {
                 return "Введите корректный номер телефона начиная с плюса.";
             }
         },
+        "roles_id_users": {
+            "wayDefineValue": function(input) {
+                return input.selectedIndex;
+            },
+            "currentValue": null,
+            "hasName": true,
+            "connectedRules": null,
+            "connectedInputs": null,
+            "isInsertServer": null,
+            "nameInput": "роль:",
+            "inputs": null,
+            "nameRule": "roles_id_users",
+            "oldValue": null,
+            "files": ["editUser.php"],
+            "required": false,
+            "timerId": null,
+            "length": null,
+            "placeMsg": null,
+            "regExp": null,
+            "check": function (input) {
+                return false;
+            }
+        },
         "privacy_users": {
             "wayDefineValue": function(input) {
                 return input.checked;
@@ -531,7 +552,7 @@ function getValidationRules() {
             "timerId": null,
             "length": 80,
             "placeMsg": null,
-            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}${symbols.eng}${symbols.num}${symbols.eng}._%+@-]{1,80}$`, "u"),
+            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}._%+@-]{1,80}$`, "u"),
             "check": function (input, regExp) {
                 if (regExp.test(input.value)) {
                     return false;
@@ -1910,7 +1931,6 @@ function setSliderImageItem(isAdminFile = false) {
     const rightSwitch = imagesView.querySelector(".images-switch-right");
     leftSwitch.addEventListener("click", (event) => {
         event.preventDefault();
-        console.log(currentIndex, countImage);
         leftSwitch.classList.toggle("hidden", currentIndex - 2 < 0 || countImage < 2);
         rightSwitch.classList.toggle("hidden", currentIndex - 1 >= countImage || countImage < 2);
         if (currentIndex - 1 < 0) return;
@@ -1958,6 +1978,7 @@ function setSliderImageItem(isAdminFile = false) {
     }, 100);
 
     if (isAdminFile) {
+        const inputImage = document.querySelector(".input[data-name='image_items_images']");
         imagesContainer.addEventListener("click", (event) => {
             if (event.target.tagName == "BUTTON") {
                 event.preventDefault();
@@ -1966,6 +1987,18 @@ function setSliderImageItem(isAdminFile = false) {
                 if (currentIndex >= countImage) {
                     leftSwitch.click();
                 }
+                const dt = new DataTransfer();
+                const files = inputImage.files;
+                for (let i = 0; i < files.length; i++) {
+                    if (files[i].name != files[currentIndex]) {
+                        dt.items.add(files[i]);
+                    }
+                }
+                inputImage.files = dt.files;
+                if (countImage == 0) {
+                    inputImage.value = "";
+                }
+                inputImage.dispatchEvent(new Event("change"));
             }
         });
         const observer = new MutationObserver((mutationsList) => {

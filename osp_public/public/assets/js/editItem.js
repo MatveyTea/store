@@ -12,6 +12,6 @@ deleteButton.addEventListener("click", async (event) => {
     if (dataResult["status"] == "OK") {
         window.location.href = "/";
     } else {
-        showModal("Не удалось удалить товар");
+        showModal("Не удалось выполнить запрос.");
     }
 });

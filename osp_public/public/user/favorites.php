@@ -7,7 +7,7 @@ if (!isUserAuth()) {
 
 $itemsHTML = getItems(0, "JOIN `favorites` ON `items_id_favorites` = `id_items` WHERE `users_id_favorites` = ?", [getUserID()]);
 if ($itemsHTML == "") {
-    $itemsHTML = "<h2 class='notfound'>У Вас нет избранных товаров.</h2>";
+    $itemsHTML = "<h2 class='notfound'>У Вас ещё нет избранных товаров.</h2>";
 } else {
     $itemsHTML = "
         <h2 class='title'>Избранные товары</h2> <article class='items'>

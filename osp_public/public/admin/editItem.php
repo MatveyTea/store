@@ -72,7 +72,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1) {
                     move_uploaded_file($img["tmp_name"], __DIR__ . "/../../app/upload/items/$img[current_name]");
                 }
                 foreach ($imageItemsUpdate as $img) {
-                    @unlink(__DIR__ . "/../../app/upload/items/$img");
+                    @unlink(__DIR__ . "/../../app/upload/items/$img[path]");
                 }
                 $_SESSION["server"] = "Товар изменен";
             } else {
@@ -239,17 +239,17 @@ getModalHTML();
         </div>
         <div class="field">
             <label class="label"></label>
-            <input class="input" type="number" value="<?= $itemInfo["discount_items"] ?? "" ?>" data-name="discount_items">
+            <select class="input" data-name="items_type_id_items">
+                <option value="" disabled selected>Выбрать</option>
+                <?= $typesHTML ?>
+            </select>
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>
         </div>
         <div class="field">
             <label class="label"></label>
-            <select class="input" data-name="items_type_id_items">
-                <option value="" disabled selected>Выбрать</option>
-                <?= $typesHTML ?>
-            </select>
+            <input class="input" type="number" value="<?= $itemInfo["discount_items"] ?? "" ?>" data-name="discount_items">
             <span class="error-wrapper">
                 <p class="error"></p>
             </span>

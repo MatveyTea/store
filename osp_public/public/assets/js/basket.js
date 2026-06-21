@@ -31,9 +31,9 @@ buyButton?.addEventListener("click", async () => {
             title.insertAdjacentHTML("afterend", dataResult["data"]["historyHTML"]);
             currentBasket.innerHTML = "<h2 class='notfound'>В данный момент в корзине пусто.</h2>";
             makeOrder.classList.remove();
-            showModal("Успешно")
+            showModal("Успешно выполнено.");
         } else {
-            showModal("Не удалось купить");
+            showModal("Не удалось выполнить запрос.");
         }
     });
 });

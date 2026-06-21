@@ -41,7 +41,7 @@ actionButtons.forEach((button) => {
                     button.textContent = allStatus[button.dataset.idStatus]["action"];
                 }
             } else {
-                showModal("Не удалось");
+                showModal("Не удалось выполнить запрос.");
             }
         });
     }

@@ -49,7 +49,7 @@ async function insertContent(data) {
         notFound.classList.remove("hidden");
         title.classList.add("hidden");
     } else if (dataResult["status"] == "FAIL") {
-        showModal("Не удалось выполнить запрос");
+        showModal("Не удалось выполнить запрос.");
     }
 
     maxScroll = document.body.scrollHeight - window.innerHeight * 2;

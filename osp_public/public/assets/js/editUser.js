@@ -5,8 +5,7 @@ const inputs = form.querySelectorAll(".input");
 const insertPlace = document.querySelector(".users");
 insertPlace.querySelectorAll(".banned").forEach((button) => button.addEventListener("click", bannedAction));
 insertPlace.querySelectorAll(".delete").forEach((button) => button.addEventListener("click", deleteAction));
-insertPlace.querySelectorAll(".deliver").forEach((button) => button.addEventListener("click", deliverAction));
-insertPlace.querySelectorAll(".support").forEach((button) => button.addEventListener("click", supportAction));
+insertPlace.querySelectorAll(".input[data-name='roles_id_users']").forEach((button) => button.addEventListener("change", () => changeRoles(button)));
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -17,8 +16,10 @@ form.addEventListener("submit", async (event) => {
         insertPlace.insertAdjacentHTML("beforeend", dataResult["data"]);
         insertPlace.querySelectorAll(".banned").forEach((button) => button.addEventListener("click", bannedAction));
         insertPlace.querySelectorAll(".delete").forEach((button) => button.addEventListener("click", deleteAction));
-        insertPlace.querySelectorAll(".status").forEach((button) => button.addEventListener("click", deliverAction));
-        insertPlace.querySelectorAll(".support").forEach((button) => button.addEventListener("click", supportAction))
+        insertPlace.querySelectorAll(".input[data-name='roles_id_users']").forEach((button) => {
+            setBasicSettingInput([button], insertPlace.querySelector(`div.form:has(.input[data-name='roles_id_users'][data-id='${button.dataset.id}'])`))
+            button.addEventListener("change", () => changeRoles(button));
+        });
     } else if (dataResult["status"] == "NOTFOUND") {
         insertPlace.innerHTML = "<p class='notfound'>Ничего не найдено</p>";
     } else {
@@ -26,23 +27,15 @@ form.addEventListener("submit", async (event) => {
     }
 });
 
-async function supportAction() {
+async function changeRoles(button) {
     const dataResult = await sendToServer({
-        "server_type": "support_users",
-        "id_users": this.dataset.id
+        "server_type": "change_roles",
+        "id_users": button.dataset.id,
+        "roles_id_users": button.value
     });
     if (dataResult?.isValid == false) return;
     if (dataResult["status"] == "OK") {
-        if (this.dataset.idStatus == 2) {
-            this.parentElement.querySelector(".user-role span").textContent = "Техподдержка";
-            this.textContent = "Убрать из поддержки";
-            this.dataset.idStatus = 4;
-        } else {
-            this.parentElement.querySelector(".user-role span").textContent = "Пользователь";
-            this.textContent = "Сделать поддержкой";
-            this.dataset.idStatus = 2;
-        }
-        showModal("Успешно.");
+        showModal("Успешно выполнено.");
     } else {
         showModal("Не удалось выполнить запрос.");
     }
@@ -57,7 +50,7 @@ async function bannedAction() {
     });
     if (dataResult?.isValid == false) return;
     if (dataResult["status"] == "OK") {
-        showModal(this.dataset.isBanned == 0 ? "Разблокирован" : "Заблокирован");
+        showModal("Успешно выполнено.");
     } else {
         toggleUser(this.parentElement, this.dataset.isBanned);
         showModal("Не удалось выполнить запрос.");
@@ -73,31 +66,9 @@ async function deleteAction() {
     if (dataResult?.isValid == false) return;
     if (dataResult["status"] == "OK") {
         this.parentElement.remove(); 
-        showModal("Пользователь удалён.");
+        showModal("Успешно выполнено.");
     } else {
         this.parentElement.classList.remove("hidden");
-        showModal("Не удалось выполнить запрос.");
-    }
-}
-
-async function deliverAction() {
-    const dataResult = await sendToServer({
-        "server_type": "deliver_users",
-        "id_users": this.dataset.id
-    });
-    if (dataResult?.isValid == false) return;
-    if (dataResult["status"] == "OK") {
-        if (this.dataset.deliver == 3) {
-            this.parentElement.querySelector(".user-role span").textContent = "Доставщик";
-            this.textContent = "Убрать из доставщика";
-            this.dataset.deliver = 2;
-        } else {
-            this.parentElement.querySelector(".user-role span").textContent = "Пользователь";
-            this.textContent = "Сделать доставщиком";
-            this.dataset.deliver = 3;
-        }
-        showModal("Успешно.");
-    } else {
         showModal("Не удалось выполнить запрос.");
     }
 }
@@ -114,7 +85,7 @@ function toggleUser(parent, isBanned) {
         button.textContent = "Заблокировать";
         button.dataset.isBanned = 0;
     }
-    showModal("Успешно.");
+    showModal("Успешно выполнено.");
 }
 
 function getSearchData(inputs) {

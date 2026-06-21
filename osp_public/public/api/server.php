@@ -26,7 +26,7 @@ if (!empty(file_get_contents("php://input"))) {
             searchItems($json);
         } else if ($isAuth && $serverType == "add_comment" && !empty($json["id_items"] && !empty($json["rating_comments"]))) { // aboutItem.js - Добавление комментария о товаре
             addComment($json["id_items"], $json["rating_comments"], $json["text_comments"] ?? "");
-        } else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_items_properties"])) {
+        } else if ($isAdmin && $serverType == "delete_item_properties" && !empty($json["id_items_properties"])) { // editItem.js - Удаление свойства у товара
             deleteItemProperties($json["id_items_properties"]);
         } else if ($isAdmin && $serverType == "delete_from_table" && !empty($json["id"]) && !empty($json["table"])) { // editTable.js - Удаление поля из таблиц ("properties" или "items_type")
             deleteFromTable($json["table"], $json["id"]);
@@ -42,15 +42,15 @@ if (!empty(file_get_contents("php://input"))) {
             searchUsers($json);
         } else if ($isAdmin && $serverType == "delete_user" && !empty($json["id_users"])) { // editUser.js - Удаление пользователей
             deleteUser($json["id_users"]);
-        } else if ($isAdmin && $serverType == "deliver_users" && !empty($json["id_users"])) { // editUser.js - Сменить роль доставщика
-            deliverUsers($json["id_users"]);
+        } else if ($isAdmin && $serverType == "change_roles" && !empty($json["id_users"]) && !empty($json["roles_id_users"])) { // editUser.js - Сменить роль пользователя
+            changeRoles($json);
         } else if ($isDeliver && $serverType == "accept_orders" && !empty($json["id_orders"])) { // allOrders.js - Принятие товаров доставщиком
             acceptOrders($json["id_orders"]);
         } else if ($isDeliver && $serverType == "status_orders" && !empty($json["id_orders"])) { // myOrders.js - Изменение статусов доставки доставщиком
             statusOrders($json["id_orders"]);
         } else if ($serverType == "receipt_orders" && !empty($json["id_orders"])) { // deliveryItem.js - Изменение статусов доставки клиентом
             receiptOrders($json["id_orders"]);
-        } else if ($isAuth && $serverType == "get_talk_html" && !empty($json["id_talks"])) {
+        } else if ($isAuth && $serverType == "get_talk_html" && !empty($json["id_talks"])) { // support.js - Получить чат
             getTalkHTML($json["id_talks"]);
         } else if ($isAuth && $serverType == "start_talk" && !empty($json["title_talks"]) && !empty($json["text_supports"])) { // support.js - Первое написание сообщение в поддержку пользователем
             startTalk($json);
@@ -62,8 +62,6 @@ if (!empty(file_get_contents("php://input"))) {
             endTalk($json["talks_id_supports"]);
         } else if ($isSupport && $serverType == "accept_support" && !empty($json["id_talks"])) { // allSupport.js - Принятие сообщение
             acceptSupport($json["id_talks"]);
-        } else if ($isAdmin && $serverType == "support_users" && !empty($json["id_users"])) { // allSupport.js - Изменение роли поддержки
-            supportUsers($json["id_users"]);
         } else { // Иначе ошибка
             setAnswer("FAIL");
         }

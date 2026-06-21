@@ -43,7 +43,7 @@ startTalk?.addEventListener("submit", async (event) => {
         chat.addEventListener("click", () => chatAction(chat));
         chats.prepend(tempContainer.children[0]);
     } else {
-        showModal("Не удалось отправить сообщение.");
+        showModal("Не удалось выполнить запрос.");
     }
 });
 
@@ -81,7 +81,7 @@ async function chatAction(chat) {
             cache[chat.dataset.idTalks] = tempContainer.children[0];
             talks.appendChild(tempContainer.children[0]);
         } else {
-            showModal("Не удалось открыть чат.");
+            showModal("Не удалось выполнить запрос.");
         }
     } else {
         talks.innerHTML = "";
@@ -120,7 +120,7 @@ function talkAction(talk) {
             messages.scrollTop = messages.scrollHeight;
             lastId = cache[currentActiveChat].querySelector(".messages").lastElementChild.dataset.idSupport;
         } else {
-            showModal("Не удалось отправить");
+            showModal("Не удалось выполнить запрос.");
         }
     });
 
@@ -138,7 +138,7 @@ async function entTalkAction(event, button, form) {
     if (dataResult["status"] == "OK") {
         form.remove();
     } else {
-        showModal("Не удалось удалить");
+        showModal("Не удалось выполнить запрос.");
     }
 }
 

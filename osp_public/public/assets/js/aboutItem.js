@@ -35,7 +35,7 @@ if (addComment) {
             commentNotFound.classList.add("hidden");
         } else {
             ratingComments[0].parentElement.click();
-            showModal("Не удалось добавить комментарий");
+            showModal("Не удалось выполнить запрос.");
         }
     });
 }
@@ -75,7 +75,7 @@ async function deleteComment() {
     if (dataResult["status"] == "OK") {
         parent.remove();
     } else {
-        showModal("Не удалось удалить комментарий");
+        showModal("Не удалось выполнить запрос.");
     }
 }
 

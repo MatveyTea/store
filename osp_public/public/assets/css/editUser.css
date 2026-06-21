@@ -26,8 +26,15 @@
     padding: 20px;
 }
 
-.user * {
-    color: white;
+div.form {
+    margin: unset;
+}
+
+div.form .field {
+    width: 100%;
+    padding: unset;
+    gap: unset;
+    min-height: unset !important;
 }
 
 .user .button {

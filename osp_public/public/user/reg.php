@@ -13,7 +13,7 @@ if (!empty($_POST["submit_button"])) {
     if ($validatedData["isCorrect"]) {
         $checkEmail = makeSelectQuery("SELECT `id_users` FROM `users` WHERE `email_users` = ?", [$validatedData["data"]["email_users"]], true);
         if ($checkEmail === "FAIL") {
-            $_SESSION["server"] = "Не удалось вставить пользователя";
+                $_SESSION["server"] = "Не удалось выполнить запрос.";
         } else if (empty($checkEmail)) {
             $result = getInsertSQL(array_merge(array_diff_key($validatedData["data"], ["re_password_users" => true, "privacy_users" => true]), ["date_create_users" => date("y-m-d")]));
             $isSuccess = makeSafeQuery("INSERT INTO `users` ($result[sql]) VALUES ($result[question])", $result["params"]);
@@ -21,15 +21,15 @@ if (!empty($_POST["submit_button"])) {
                 clearValidatedSession();
                 redirect("user/auth.php");
             } else {
-                $_SESSION["server"] = "Не удалось вставить пользователя";
+                $_SESSION["server"] = "Не удалось выполнить запрос.";
             }
         } else if (!empty($checkEmail)) {
             $_SESSION["server"] = "Такая почта занята";
         }
     } else if ($validatedData["errorField"]["password_users"] ?? 0 == 1) {
-        $_SESSION["server"] = "Пароли должны совпадать";
+        $_SESSION["server"] = "Пароли должны совпадать.";
     } else {
-        $_SESSION["server"] = "Не корректные данные";
+        $_SESSION["server"] = "Не корректные данные.";
     }
     redirectYourself();
 }

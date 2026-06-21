@@ -789,7 +789,8 @@ header nav a:focus {
 
 .header-mobile {
     display: none;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
     position: relative;
     margin: 0 auto;
 }
@@ -835,8 +836,8 @@ header nav a:focus {
     display: none;
     flex-direction: column;
     top: 100%;
-    left: 0;
-    transform: translate(-1.45%, 3.7%);
+    left: 50%;
+    transform: translate(-50%, 28px);
     background-color: var(--shell-color);
     width: 100vw;
     justify-content: space-evenly;
@@ -854,6 +855,9 @@ header nav a:focus {
     text-align: center;
     padding: 20px;
     border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ===== МОДАЛЬНОЕ ОКНО ===== */
@@ -911,6 +915,11 @@ header nav a:focus {
     .orders, .order {
         padding: 10px;
     }
+
+    /* ===== МОДАЛЬНОЕ ОКНО ===== */
+    .modal {
+        width: 50vw;
+    }
 }
 
 /* ===== ПЛАНШЕТЫ 401px - 768px ===== */
@@ -919,6 +928,10 @@ header nav a:focus {
     html {
         --content-width: 97vw !important;
         font-size: 14px;
+    }
+
+    .avatar {
+        height: 50px;
     }
 
     /* ===== ШАПКА ===== */
@@ -949,6 +962,11 @@ header nav a:focus {
     .orders, .order {
         padding: 10px;
     }
+
+    /* ===== МОДАЛЬНОЕ ОКНО ===== */
+    .modal {
+        width: 90vw;
+    }
 }
 
 /* ===== ТЕЛЕФОНЫ 1px - 400px ===== */
@@ -957,6 +975,10 @@ header nav a:focus {
     html {
         --content-width: 97vw !important;
         font-size: 12px;
+    }
+
+    .avatar {
+        height: 50px;
     }
 
     /* ===== ШАПКА ===== */
@@ -1013,6 +1035,11 @@ header nav a:focus {
     /* ===== Заказы ===== */
     .orders, .order {
         padding: 10px;
+    }
+
+    /* ===== МОДАЛЬНОЕ ОКНО ===== */
+    .modal {
+        width: 90vw;
     }
 
     /* ===== ФУТЕР ===== */

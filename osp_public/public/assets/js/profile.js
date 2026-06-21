@@ -11,7 +11,7 @@ deleteAvatar?.addEventListener("click", async (event) => {
         deleteAvatar.remove();
         document.querySelectorAll(".avatar").forEach((avatar) => avatar.src = dataResult["data"]["src"]);
     } else {
-        showModal("Не удалось удалить аватар");
+        showModal("Не удалось выполнить запрос.");
     }
 });
 

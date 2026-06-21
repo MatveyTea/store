@@ -435,31 +435,40 @@ function getUsers($where = "", $params = [])
         `roles_id_users`,
         `name_users`,
         `email_users`,
-        `id_users`,
-        `name_roles`
+        `id_users`
         FROM `users`
-        JOIN `roles` ON `id_roles` = `roles_id_users`
         $where
         ORDER BY `id_users` DESC
     ", $params, false);
     $usersHTML = "";
 
-    if ($users == "FAIL") {
-        return "FAIL";
-    }
+    if ($users == "FAIL") return json_encode(["status" => "FAIL"]);
+
+    $roles = makeSelectQuery("SELECT * FROM `roles`", [], false);
+    if ($roles == "FAIL") return json_encode(["status" => "FAIL"]);
+
 
     foreach ($users as $user) {
-        $isBanned = $user["is_banned_users"] === 1 ? "Разблокировать" : "Заблокировать";
-        $isDeliver = $user["roles_id_users"] === 3 ? "Убрать из доставщика" : "Сделать доставщиком";
-        $isSupport =  $user["roles_id_users"] === 4 ? "Убрать из поддержки" : "Сделать поддержкой";
+        $rolesHTML = "
+            <div class='form'>
+            <div class='field'>
+                <label class='label'></label>
+                <select class='input' data-name='roles_id_users' data-id='$user[id_users]'>
+        ";
+        foreach ($roles as $role) {
+            $selected = $role["id_roles"] == $user["roles_id_users"] ? "selected" : "";
+            $rolesHTML .= "<option value='$role[id_roles]' $selected>$role[name_roles]</option>";
+        }
+        $rolesHTML .= "</select></div></div>";
+
+        $bannedAction = $user["is_banned_users"] === 1 ? "Разблокировать" : "Заблокировать";
+        $bannedStatus = $user["is_banned_users"] === 1 ? "Заблокирован" : "Разблокирован";
         $usersHTML .= "<div class='user'>
             <p>Имя:<br>$user[name_users]</p>
             <p>Почта:<br>$user[email_users]</p>
-            <p class='user-status'>Статус:<br><span>" . ($isBanned == "Разблокировать" ? "Заблокирован" : "Разблокирован") . "</span></p>
-            <p class='user-role'>Роль:<br><span>$user[name_roles]</span></p>
-            <button class='button deliver' data-id='$user[id_users]' data-id-status='$user[roles_id_users]'>$isDeliver</button>
-            <button class='button support' data-id='$user[id_users]' data-id-status='$user[roles_id_users]'>$isSupport</button> 
-            <button class='button banned' data-id='$user[id_users]' data-is-banned='$user[is_banned_users]'>$isBanned</button>
+            <p class='user-status'>Статус:<br><span>$bannedStatus</span></p>
+            $rolesHTML 
+            <button class='button banned' data-id='$user[id_users]' data-is-banned='$user[is_banned_users]'>$bannedAction</button>
             <button class='button delete' data-id='$user[id_users]'>Удалить</button> 
         </div>";
     }
@@ -478,7 +487,7 @@ function getValidationRules($file = "")
         "id" => "^[0-9]{1,10}$",
         "num" => "0-9",
         "space" => " ",
-        "ru" => "А-Яа-яёЁ",
+        "ru" => "А-Яа-яЁё",
         "eng" => "A-Za-z",
         "special" => "!@#\$%^&*()\-+=_\{\}[]|:;\"'<>?\/\\.,",
         "simple" => "().,:\"'!?-"
@@ -556,6 +565,15 @@ function getValidationRules($file = "")
                 return preg_match("/^$|^\+[$symbols[num]]{11}$/u", $value);
             }
         ],
+        "roles_id_users" => [
+            "files" => ["editUser.php"],
+            "required" => false,
+            "canUpdate" => false,
+            "returned_value" => false,
+            "pattern" => function ($value) use ($symbols) {
+                return preg_match("/$symbols[id]/u", $value);
+            }
+        ],
         "privacy_users" => [
             "files" => ["reg.php"],
             "required" => true,
@@ -572,7 +590,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => true,
             "pattern" => function ($value) use ($symbols) {
-                if (preg_match("/^[$symbols[eng]$symbols[num]$symbols[eng]$symbols[num]$symbols[eng]._%+@-]{1,80}$/u", $value)) {
+                if (preg_match("/^[$symbols[eng]$symbols[num]._%+@-]{1,80}$/u", $value)) {
                     return ["sql" => "`email_users` LIKE ?", "params" => ["%$value%"]];
                 }
                 return false;
@@ -1608,26 +1626,13 @@ function deleteUser($id)
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 
-function deliverUsers($id)
+function changeRoles($json)
 {
-    if ($id == 1) setAnswer("FAIL");
-
-    $validatedData = getValidatedData(["id_users" => $id], "editUser.php");
+    $validatedData = getValidatedData($json, "editUser.php");
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+    $validatedData = $validatedData["data"];
 
-
-    $isSuccess = makeSafeQuery("UPDATE `users` SET `roles_id_users` = CASE WHEN `roles_id_users` = 3 THEN 2 ELSE 3 END WHERE `id_users` = ? AND `roles_id_users` != ?", [$id, 1]);
-    setAnswer($isSuccess ? "OK" : "FAIL");
-}
-
-function supportUsers($id)
-{
-    if ($id == 1) setAnswer("FAIL");
-
-    $validatedData = getValidatedData(["id_users" => $id], "editUser.php");
-    if (!$validatedData["isCorrect"]) setAnswer("FAIL");
-
-    $isSuccess = makeSafeQuery("UPDATE `users` SET `roles_id_users` = CASE WHEN `roles_id_users` = 4 THEN 2 ELSE 4 END WHERE `id_users` = ? AND `roles_id_users` != ?", [$id, 1]);
+    $isSuccess = makeSafeQuery("UPDATE `users` SET `roles_id_users` =  ? WHERE `id_users` = ?", [$validatedData["roles_id_users"], $validatedData["id_users"]]);
     setAnswer($isSuccess ? "OK" : "FAIL");
 }
 

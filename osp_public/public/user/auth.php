@@ -13,20 +13,20 @@ if (!empty($_POST["submit_button"])) {
     if ($validatedData["isCorrect"]) {
         $userInfo = makeSelectQuery("SELECT `id_users`, `password_users`, `is_banned_users` FROM `users` WHERE `email_users` = ?", [$validatedData["data"]["email_users"]], true);
         if ($userInfo === "FAIL") {
-            $_SESSION["server"] = "Не удалось найти пользователя";
+            $_SESSION["server"] = "Не удалось найти пользователя.";
         } else if (!empty($userInfo) && password_verify($validatedData["data"]["password_users"], $userInfo["password_users"])) {
             if ($userInfo["is_banned_users"] == 0) {
                 $_SESSION["id_user"] = $userInfo["id_users"];
                 clearValidatedSession();
                 redirect("user/profile.php");
             } else {
-                $_SESSION["server"] = "Ваш аккаунт заблокирован";
+                $_SESSION["server"] = "Ваш аккаунт заблокирован.";
             }
         } else {
-            $_SESSION["server"] = "Не верный пароль или почта";
+            $_SESSION["server"] = "Не верный пароль или почта.";
         }
     } else {
-        $_SESSION["server"] = "Не корректные данные";
+        $_SESSION["server"] = "Не корректные данные.";
     }
     redirectYourself();
 }
