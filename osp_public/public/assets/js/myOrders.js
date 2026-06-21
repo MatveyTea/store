@@ -27,13 +27,14 @@ actionButtons.forEach((button) => {
     } else {
         button.textContent = allStatus[button.dataset.idStatus]["action"];
         button.addEventListener("click", async () => {
-            const resultData = await sendToServer({
+            const dataResult = await sendToServer({
                 "server_type": "status_orders",
                 "id_orders": button.dataset.idOrder,
             });
-            if (resultData["status"] == "OK") {
+            if (dataResult?.isValid == false) return;
+            if (dataResult["status"] == "OK") {
                 button.dataset.idStatus++;
-                nameStatus.textContent = `Статус: ${resultData["data"]["name_status"]}${allStatus[button.dataset.idStatus]["text"]}`;
+                nameStatus.textContent = `Статус: ${dataResult["data"]["name_status"]}${allStatus[button.dataset.idStatus]["text"]}`;
                 if (button.dataset.idStatus > 4) {
                     button.remove();
                 } else {

@@ -8,6 +8,7 @@ deleteButton.addEventListener("click", async (event) => {
         "server_type": "delete_items",
         "id_item": url.searchParams.get("id_item")
     });
+    if (dataResult?.isValid == false) return;
     if (dataResult["status"] == "OK") {
         window.location.href = "/";
     } else {

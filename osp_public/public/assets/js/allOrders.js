@@ -3,11 +3,12 @@
 const acceptOrdersButton = document.querySelectorAll(".button[data-id-order]");
 acceptOrdersButton.forEach((button) => {
     button.addEventListener("click", async () => {
-        const resultData = await sendToServer({
+        const dataResult = await sendToServer({
             "server_type": "accept_orders",
             "id_orders": button.dataset.idOrder
         });
-        if (resultData["status"] == "OK") {
+        if (dataResult?.isValid == false) return;
+        if (dataResult["status"] == "OK") {
             window.location.href = "/deliver/myOrders.php";
         } else {
             showModal("Не удалось принять заказ");

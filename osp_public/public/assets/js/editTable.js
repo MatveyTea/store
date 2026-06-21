@@ -6,12 +6,13 @@ deleteAll.forEach((button) => {
     button.addEventListener("click", async (event) => {
         event.preventDefault();
         form.classList.add("hidden");
-        const resultData = await sendToServer({
+        const dataResult = await sendToServer({
             "server_type": "delete_from_table",
             "table": button.dataset.table,
             "id": button.dataset.id
         });
-        if (resultData["status"] == "OK") {
+        if (dataResult?.isValid == false) return;
+        if (dataResult["status"] == "OK") {
             form.remove();
             showModal("Удалено");
         } else {
@@ -48,11 +49,12 @@ deleteOneButtons?.forEach((button) => {
 async function deleteOne(button, additional) {
     if (button.hasAttribute("data-id-attributes")) {
         additional.classList.add("hidden");
-        const resultData = await sendToServer({
+        const dataResult = await sendToServer({
             "server_type": "delete_one_from_table",
             "id": button.dataset.idAttributes
         });
-        if (resultData["status"] == "OK") {
+        if (dataResult?.isValid == false) return;
+        if (dataResult["status"] == "OK") {
             additional.remove();
             showModal("Удалено");
         } else {

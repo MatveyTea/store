@@ -10,16 +10,15 @@ main.content article {
     margin-bottom: 30px;
 }
 
-main.content article h2 {
-    width: 100%;
+.title {
     text-align: center;
-    color: white;
 }
 
 main.content article a {
-    display: block;
+    display: flex;
     width: calc(20% - 20px);
-    text-align: center;
+    justify-content: center;
+    align-items: center;
 }
 
 @media (min-width: 769px) and (max-width: 1440px) {

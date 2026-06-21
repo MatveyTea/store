@@ -55,11 +55,12 @@ function setProperties(form) {
         allDeleteProperty.forEach((button) => {
             button.addEventListener("click", async (event) => {
                 event.preventDefault();
-                const resultData = await sendToServer({
+                const dataResult = await sendToServer({
                     "server_type": "delete_item_properties",
                     "id_items_properties": button.dataset.idItemsProperties
                 });
-                if (resultData["status"] == "OK") {
+                if (dataResult?.isValid == false) return;
+                if (dataResult["status"] == "OK") {
                     const parent = form.querySelector(`.field.property:has(.button[data-id-items-properties='${button.dataset.idItemsProperties}'])`);
                     parent.remove();
                     currentCountProperties--;
@@ -185,15 +186,27 @@ function setBasicSettingInput(inputs, form) {
             }
         });
     });
+}
 
-    return validationRules;
+function isValidInputs(inputs) {
+    let hasError = false;
+    let hasUpdate = false;
+    Array.from(inputs).forEach((input) => {
+        const isCorrect = checkInput(input, validationRules[input.dataset.name]);
+        if (!isCorrect) {
+            hasError = true;
+        } else if (isCorrect && input.dataset.isInsertServer == 0) {
+            hasUpdate = true;
+        }
+    });
+    return !hasError && hasUpdate || inputs.length == 0;
 }
 
 function setValidationForm(form) {
     if (form == null) return;
 
     const inputs = form.querySelectorAll(".input");
-    const validatedRules = setBasicSettingInput(inputs, form);
+    setBasicSettingInput(inputs, form);
 
     if (["/admin/editItem.php", "/admin/addItem.php"].includes(window.location.pathname)) {
         setProperties(form);
@@ -201,20 +214,12 @@ function setValidationForm(form) {
     }
 
     form.addEventListener("submit", (event) => {
-        let hasError = false;
-        let hasUpdate = false;
-        Array.from(inputs).forEach((input) => {
-            let isCorrect = checkInput(input, validatedRules[input.dataset.name]);
-            if (!isCorrect) {
-                hasError = true;
-            } else if (isCorrect && input.dataset.isInsertServer == 0) {
-                hasUpdate = true;
-            }
-        });
-        if (hasError || !hasUpdate) {
+        if (!isValidInputs(inputs)) {
             event.preventDefault();
+            isValid = false;
             showModal("Некорректные данные");
         } else {
+            isValid = true;
             const updateInput = form.querySelectorAll(".input[data-is-insert-server='0']");
             const imgsView = form.querySelectorAll(".image-view img");
             const imgOne = form.querySelector("img:not(.image-view img)");
@@ -403,12 +408,12 @@ function getValidationRules() {
             "timerId": null,
             "placeMsg": null,
             "length": 100,
-            "regExp": new RegExp(`^$|^[${symbols.ru}${symbols.eng}${symbols.space}-]{1,100}$`, "u"),
+            "regExp": new RegExp(`^[${symbols.ru}${symbols.eng}${symbols.space}-]{1,100}$`, "u"),
             "check": function (input, regExp) {
                 if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите только кириллические символы, 1-100 символов.";
+                return "Введите кириллические символы, 1-100 символов.";
             }
         },
         "avatar_users": {
@@ -526,12 +531,12 @@ function getValidationRules() {
             "timerId": null,
             "length": 80,
             "placeMsg": null,
-            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}._%+-]{1,50}@[${symbols.eng}${symbols.num}.-]{1,15}\\.[${symbols.eng}]{2,15}$`, "u"),
+            "regExp": new RegExp(`^[${symbols.eng}${symbols.num}${symbols.eng}${symbols.num}${symbols.eng}._%+@-]{1,80}$`, "u"),
             "check": function (input, regExp) {
                 if (regExp.test(input.value)) {
                     return false;
                 }
-                return "Введите действительный email-адрес, 4-80 символов.";
+                return "Введите символы входящие в email-адрес, 1-80 символов.";
             },
         },
         "is_banned_search_users": {
@@ -554,7 +559,7 @@ function getValidationRules() {
             "placeMsg": null,
             "regExp": null,
             "check": function (input) {
-                return input.selectedIndex > 0 ? false : "Выберите другой элемент из списка.";
+                return false;
             },
         },
         // Товар
@@ -1706,6 +1711,7 @@ function getValidationRules() {
     return result;
 }
 
+let isValid = true;
 let countInput = null;
 let validationRules = null;
 const validatedForm = document.querySelectorAll(".form");
@@ -1719,6 +1725,8 @@ if (validatedForm) {
 const token = document.querySelector("meta[name='token']")?.getAttribute("content") ?? "notfound";
 const loader = document.querySelector(".loader");
 async function sendToServer(data) {
+    if (!isValid) return { "isValid": false };
+
     let timerLoader = setTimeout(() => {
         loader.classList.add("active");
         loader.style.top = `${window.scrollY}px`;
@@ -1796,6 +1804,7 @@ async function changeFavorites(favoritesButton, item) {
         "server_type": "change_favorites",
         "id_items": item.dataset.id
     });
+    if (dataResult?.isValid == false) return;
     if (dataResult["status"] != "OK") {
         if (!favoritesButton.classList.contains("favorite")) {
             favoritesButton.textContent = "Убрать из избранного";
@@ -1814,7 +1823,7 @@ async function sendItem(item, counterWrapper, counterText, basketButton) {
         "count_items": parseInt(counterText.textContent),
         "action_items": basketButton.dataset.type == "add" ? "remove" : "add"
     });
-
+    if (dataResult?.isValid == false) return;
     if (dataResult["status"] != "OK") {
         changeButtonBasket(basketButton.dataset.type == "add", counterWrapper, counterText, basketButton);
     }
@@ -1884,6 +1893,10 @@ window.addEventListener("resize", () => {
     setBurgerMenu();
 });
 
+window.addEventListener("DOMContentLoaded", () => {
+    setBurgerMenu();
+});
+
 function setSliderImageItem(isAdminFile = false) {
     const imagesView = document.querySelector(".images-view");
     const imagesContainer = imagesView.querySelector(".images-container");
@@ -1897,6 +1910,7 @@ function setSliderImageItem(isAdminFile = false) {
     const rightSwitch = imagesView.querySelector(".images-switch-right");
     leftSwitch.addEventListener("click", (event) => {
         event.preventDefault();
+        console.log(currentIndex, countImage);
         leftSwitch.classList.toggle("hidden", currentIndex - 2 < 0 || countImage < 2);
         rightSwitch.classList.toggle("hidden", currentIndex - 1 >= countImage || countImage < 2);
         if (currentIndex - 1 < 0) return;
@@ -1956,8 +1970,9 @@ function setSliderImageItem(isAdminFile = false) {
         });
         const observer = new MutationObserver((mutationsList) => {
             if (mutationsList[0].addedNodes.length > 0) {
-                mutationsList[0].addedNodes[0].style.width = `${step}px`;
+                mutationsList[0].addedNodes[0].style.width = `${imagesView.clientWidth / isTwoImage - (isTwoImage == 2 ? imagesContainer.computedStyleMap().get("column-gap").value / 2 : 0)}px`;
                 rightSwitch.click();
+                countImage++;
             }
         });
         observer.observe(imagesContainer, { childList: true });

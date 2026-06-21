@@ -22,8 +22,7 @@ include_once __DIR__ . "/../../app/server/header.php";
         <div class="field">
             <label class="label"></label>
             <select class="input" data-name="is_banned_search_users" data-is-insert-server="1">
-                <option value="3" disabled selected>Выбрать</option>
-                <option value="2">Всех</option>
+                <option value="2" selected>Всех</option>
                 <option value="1">Заблокированных</option>
                 <option value="0">Разблокированных</option>
             </select>

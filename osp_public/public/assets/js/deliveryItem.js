@@ -2,11 +2,12 @@
 
 const receiptButton = document.querySelector(".button.receipt");
 receiptButton?.addEventListener("click", async () => {
-    const resultData = await sendToServer({
+    const dataResult = await sendToServer({
         "server_type": "receipt_orders",
         "id_orders": receiptButton.dataset.idOrder
     });
-    if (resultData["status"] == "OK") {
+    if (dataResult?.isValid == false) return;
+    if (dataResult["status"] == "OK") {
         document.querySelector(".status p:last-of-type").classList.add("completed");
         receiptButton.remove();
     } else {

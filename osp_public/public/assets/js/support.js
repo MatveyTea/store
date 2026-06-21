@@ -24,6 +24,7 @@ startTalk?.addEventListener("submit", async (event) => {
         "image_supports": base64String,
         "title_talks": title
     });
+    if (dataResult?.isValid == false) return;
     if (dataResult["status"] == "OK") {
         startTalk.reset();
         let tempContainer = document.createElement("div");
@@ -53,6 +54,7 @@ setInterval(async () => {
         "server_type": "ping_message",
         "id_supports": lastId
     });
+    if (dataResult?.isValid == false) return;
     if (dataResult["status"] == "OK") {
         const messages = cache[currentActiveChat].querySelector(".messages");
         messages.insertAdjacentHTML("beforeend", dataResult["data"]["message"]);
@@ -67,6 +69,7 @@ async function chatAction(chat) {
             "server_type": "get_talk_html",
             "id_talks": chat.dataset.idTalks
         });
+        if (dataResult?.isValid == false) return;
         if (dataResult["status"] == "OK") {
             const tempContainer = document.createElement("div");
             tempContainer.insertAdjacentHTML("afterbegin", dataResult["data"]["messages"]);
@@ -110,6 +113,7 @@ function talkAction(talk) {
             "text_supports": text,
             "image_supports": base64String
         });
+        if (dataResult?.isValid == false) return;
         if (dataResult["status"] == "OK") {
             form.reset();
             messages.insertAdjacentHTML("beforeend", dataResult["data"]["message"]);
@@ -130,6 +134,7 @@ async function entTalkAction(event, button, form) {
         "server_type": "end_talk",
         "talks_id_supports": button.dataset.id,
     });
+    if (dataResult?.isValid == false) return;
     if (dataResult["status"] == "OK") {
         form.remove();
     } else {

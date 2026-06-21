@@ -25,6 +25,7 @@ async function getSearchItems() {
 
 async function insertContent(data) {
     const dataResult = await sendToServer(data);
+    if (dataResult?.isValid == false) return;
 
     if (dataResult["status"] == "OK") {
         if (isResetSearch) {
@@ -130,6 +131,8 @@ searchButton.addEventListener("click", (event) => {
     isResetSearch = true;
     isCatalogScroll = true;
     catalogId = null;
+    formSwitchesImg.classList.add("close");
+    formAppear.classList.add("close");
     getSearchItems();
 });
 

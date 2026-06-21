@@ -12,7 +12,7 @@ buyButton?.addEventListener("click", async () => {
 
     makeOrder.querySelector(".form").addEventListener("submit", async (event) => {
         event.preventDefault();
-        const resultData = await sendToServer({
+        const dataResult = await sendToServer({
             "server_type": "buy_items",
             "address_orders": {
                 "street": makeOrder.querySelector(".input[data-name='street_address_orders']").value,
@@ -22,12 +22,13 @@ buyButton?.addEventListener("click", async () => {
             "note_orders": makeOrder.querySelector(".input[data-name='note_orders']").value,
             "datetime_plan_orders": makeOrder.querySelector(".input[data-name='datetime_plan_orders']").value.split(", ")[1]
         });
-        if (resultData["status"] == "OK") {
+        if (dataResult?.isValid == false) return;
+        if (dataResult["status"] == "OK") {
             const title = historyBasket.querySelector("h2");
             title.textContent = "История покупок";
             title.classList.remove("notfound");
             title.classList.add("title");
-            title.insertAdjacentHTML("afterend", resultData["data"]["historyHTML"]);
+            title.insertAdjacentHTML("afterend", dataResult["data"]["historyHTML"]);
             currentBasket.innerHTML = "<h2 class='notfound'>В данный момент в корзине пусто.</h2>";
             makeOrder.classList.remove();
             showModal("Успешно")

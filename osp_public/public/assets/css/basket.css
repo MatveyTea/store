@@ -31,8 +31,16 @@ html:has(.make-order:not(.hidden)) {
     background-color: var(--parent-bg-color);
     padding: 20px;
     border-radius: 20px;
+    overflow: auto;
 }
 
 .cancel-basket {
     width: 15%;
+}
+
+@media (max-width: 768px) {
+    .form {
+        height: 100%;
+        border-radius: unset;
+    }
 }

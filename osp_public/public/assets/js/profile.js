@@ -3,12 +3,13 @@
 const deleteAvatar = document.querySelector(".delete-avatar");
 deleteAvatar?.addEventListener("click", async (event) => {
     event.preventDefault();
-    const resultData = await sendToServer({
+    const dataResult = await sendToServer({
         "server_type": "delete_avatar"
     });
-    if (resultData["status"] == "OK") {
+    if (dataResult?.isValid == false) return;
+    if (dataResult["status"] == "OK") {
         deleteAvatar.remove();
-        document.querySelectorAll(".avatar").forEach((avatar) => avatar.src = resultData["data"]["src"]);
+        document.querySelectorAll(".avatar").forEach((avatar) => avatar.src = dataResult["data"]["src"]);
     } else {
         showModal("Не удалось удалить аватар");
     }

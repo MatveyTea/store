@@ -18,18 +18,18 @@ if (addComment) {
 
     commentButton?.addEventListener("click", async (event) => {
         event.preventDefault();
-        const resultData = await sendToServer({
+        const dataResult = await sendToServer({
             "server_type": "add_comment",
             "id_items": addComment.dataset?.id,
             "text_comments": textComment.value,
             "rating_comments": ratingComments.reduce((result, svg) => result + svg.classList.contains("active"), 0)
         });
-        if (resultData["status"] == "OK") {
+        if (dataResult["status"] == "OK") {
             document.querySelector(".form").reset();
             textComment.textContent = "";
             selectStar(ratingComments, -1);
-            commentTitle.insertAdjacentHTML("afterend", resultData["data"]["comments"]);
-            ratingItem.innerHTML = resultData["data"]["rating"];
+            commentTitle.insertAdjacentHTML("afterend", dataResult["data"]["comments"]);
+            ratingItem.innerHTML = dataResult["data"]["rating"];
             document.querySelector(".comment .button").addEventListener("click", deleteComment);
             commentTitle.classList.remove("hidden");
             commentNotFound.classList.add("hidden");
@@ -67,11 +67,12 @@ async function deleteComment() {
         commentTitle.classList.add("hidden");
         commentNotFound.classList.remove("hidden");
     }
-    const resultData = await sendToServer({
+    const dataResult = await sendToServer({
         "server_type": "delete_comment",
         "id_comment": this.dataset.id
     });
-    if (resultData["status"] == "OK") {
+    if (dataResult?.isValid == false) return;
+    if (dataResult["status"] == "OK") {
         parent.remove();
     } else {
         showModal("Не удалось удалить комментарий");

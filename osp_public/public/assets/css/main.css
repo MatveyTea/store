@@ -56,7 +56,7 @@ body main > * {
 
 .content {
     width: var(--content-width);
-    max-width: 1780px;
+    max-width: 1800px;
     margin: 20px auto;
 }
 
@@ -401,7 +401,7 @@ footer * {
 }
 
 .form .field textarea.input {
-    min-height: 100px;
+    min-height: 60px;
     max-height: 200px;
     resize: vertical;
 }
@@ -550,6 +550,7 @@ footer * {
 
 .item-name {
     width: 100%;
+    min-height: 44px;
 }
 
 .item-notfound {
@@ -589,6 +590,10 @@ footer * {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.item .edit.button {
+    width: 100%;
 }
 
 .basket-container {
@@ -712,6 +717,7 @@ footer * {
 .images-switch-left img {
     width: 30px !important;
     transform: rotate(90deg);
+    filter: invert(1);
 }
 
 .images-switch-right {
@@ -721,10 +727,10 @@ footer * {
 .images-switch-right img {
     width: 30px !important;
     transform: rotate(-90deg);
+    filter: invert(1);
 }
 
 .images-container .image {
-    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -766,6 +772,7 @@ header nav a {
     color: white;
     font-size: 1.2rem;
     transition: 0.5s color;
+    text-align: center;
 }
 
 header nav a:hover,

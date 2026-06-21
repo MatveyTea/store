@@ -80,8 +80,12 @@ if ($attributes == "FAIL") redirect();
 $itemHTML .= "<article class='about-right'>
     <div class='about-attributes'>
         <span class='attribute'>
-            <p class='attribute-name'>Стоимость</p>
+            <p class='attribute-name'>Стоимость (со скидкой)</p>
             <p class='attribute-value'>" . calculateDiscount($item, false) . "p</p>
+        </span>
+        <span class='attribute'>
+            <p class='attribute-name'>Скидка</p>
+            <p class='attribute-value'>$item[discount_items]%</p>
         </span>
         <span  class='attribute'>
             <p class='attribute-name'>Тип товара</p>

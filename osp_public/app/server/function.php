@@ -256,6 +256,10 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
         } else {
             $rating = "<p class='item-notfound'>Нет подробной информации</p>";
         }
+        $editButton = "";
+        if (isAdmin()) {
+            $editButton = "<a href='/admin/editItem.php?id_item=$item[id_items]' class='button edit'>Изменить товар</a>";
+        }
         $result .= "<span class='item' data-id='$item[id_items]' data-count='$item[count_items]'>
                 <a href ='/user/aboutItem.php?id_item=$item[id_items]' class='item-link'>
                     <img src='" . getValidImage("items/$item[image_items_images]") . "' class='item-image'>
@@ -266,6 +270,7 @@ function getItems($offset = 0, $whereSQL = "", $whereParams = [], $isPopularItem
                     $rating
                 </a>
                 $basket
+                $editButton
             </span>
         ";
     }
@@ -567,7 +572,7 @@ function getValidationRules($file = "")
             "canUpdate" => false,
             "returned_value" => true,
             "pattern" => function ($value) use ($symbols) {
-                if (preg_match("/^[$symbols[eng]$symbols[num]._%+-]{1,50}@[$symbols[eng]$symbols[num].-]{1,15}\.$symbols[eng]{2,15}$/u", $value)) {
+                if (preg_match("/^[$symbols[eng]$symbols[num]$symbols[eng]$symbols[num]$symbols[eng]._%+@-]{1,80}$/u", $value)) {
                     return ["sql" => "`email_users` LIKE ?", "params" => ["%$value%"]];
                 }
                 return false;
@@ -1303,7 +1308,7 @@ function deleteAvatar()
 
     $file = __DIR__ . "/../upload/avatars/$user[avatar_users]";
     if (!file_exists($file)) setAnswer("FAIL");
-    unlink($file);
+    @unlink($file);
 
     $isSuccess = makeSafeQuery("UPDATE `users` SET `avatar_users` = NULL WHERE `id_users` = ?", [$user["id_users"]]);
     if (!$isSuccess) setAnswer("FAIL");
@@ -1319,13 +1324,13 @@ function buyItems($json)
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
     $json = $validatedData["data"];
 
-    $test = makeSelectQuery("SELECT * FROM `baskets` JOIN `orders` ON `orders`.`id_orders` = `baskets`.`orders_id_baskets` JOIN `items` ON `items`.`id_items` = `baskets`.`items_id_baskets` WHERE `orders`.`users_id_orders` = ? AND `orders`.`status_id_orders` = ?", [getUserID(), 1], false);
-    if ($test == "FAIL") setAnswer("FAIL");
+    $baskets = makeSelectQuery("SELECT * FROM `baskets` JOIN `orders` ON `orders`.`id_orders` = `baskets`.`orders_id_baskets` JOIN `items` ON `items`.`id_items` = `baskets`.`items_id_baskets` WHERE `orders`.`users_id_orders` = ? AND `orders`.`status_id_orders` = ?", [getUserID(), 1], false);
+    if ($baskets == "FAIL") setAnswer("FAIL");
     $sql = "";
     $params = [];
-    foreach ($test as $t) {
+    foreach ($baskets as $basket) {
         $sql .= "UPDATE `baskets` SET `cost_baskets` = ?, `discount_baskets` = ? WHERE `id_baskets` = ?;";
-        array_push($params, $t["cost_items"], $t["discount_items"], $t["id_baskets"]);
+        array_push($params, $basket["cost_items"], $basket["discount_items"], $basket["id_baskets"]);
     }
     if ($sql == "" || $params == []) setAnswer("FAIL");
     $isSuccess = makeSafeQuery($sql, $params);
@@ -1405,7 +1410,7 @@ function deleteItem($idItem)
     $itemImages = makeSelectQuery("SELECT `image_items_images` FROM `items_images` WHERE `items_id_items_images` = ?", [$idItem], false);
     if ($itemImages == "FAIL") setAnswer("FAIL");
     foreach ($itemImages as $image) {
-        unlink(__DIR__ . "/../upload/items/$image[image_items_images]"); 
+        @unlink(__DIR__ . "/../upload/items/$image[image_items_images]"); 
     }
 
     $isSuccess = makeSafeQuery("DELETE FROM `items` WHERE `id_items` = ?", [$idItem]);
@@ -1592,6 +1597,12 @@ function deleteUser($id)
 
     $validatedData = getValidatedData(["id_users" => $id], "editUser.php");
     if (!$validatedData["isCorrect"]) setAnswer("FAIL");
+
+    $userImg = makeSelectQuery("SELECT `avatar_users` FROM `users` WHERE `id_users` = ?", [$id], true);
+    if ($userImg == "FAIL") setAnswer("FAIL");
+    if (!empty($userImg["avatar_users"])) {
+        @unlink(__DIR__ . "/../upload/avatars/$userImg[avatar_users]");
+    }
 
     $isSuccess = makeSafeQuery("DELETE FROM `users` WHERE `id_users` = ?", [$id]);
     setAnswer($isSuccess ? "OK" : "FAIL");
