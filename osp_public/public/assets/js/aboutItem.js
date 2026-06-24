@@ -40,7 +40,7 @@ if (addComment) {
     });
 }
 
-const items = document.querySelectorAll(".items .item:has(.item-basket), .about .basket");
+const items = document.querySelectorAll(".items .item:has(.basket), .about .basket[data-id]");
 if (items != null) {
     items.forEach((item) => clickableItem(item));
 }

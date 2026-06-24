@@ -38,7 +38,7 @@ $timesOrders = [];
 $endTime = (clone $currentTime)->modify("+1 day")->setTime(0, 0);
 while ($currentTime < $endTime) {
     if (!in_array($currentTime->format("Y-m-d H"), $arrayBusyTimes)) {
-        $timesOrders[] = "Сегодня, " . $currentTime->format("H") . ":00 - " . $currentTime->format("H") + 1 . ":00";
+        $timesOrders[] = "Сегодня, " . $currentTime->format("H") . ":00 - " . str_pad($currentTime->format("H") + 1, 2, "0", STR_PAD_LEFT) . ":00";
     }
     $currentTime->modify("+1 hour");
 }
@@ -46,7 +46,7 @@ while ($currentTime < $endTime) {
 $endTime->setTime($currentHour, 0);
 while ($currentTime < $endTime) {
     if (!in_array($currentTime->format("Y-m-d H"), $arrayBusyTimes)) {
-        $timesOrders[] = "Завтра, " . $currentTime->format("H") . ":00 - " . $currentTime->format("H") + 1 . ":00";
+        $timesOrders[] = "Завтра, " . $currentTime->format("H") . ":00 - " . str_pad($currentTime->format("H") + 1, 2, "0", STR_PAD_LEFT) . ":00";
     }
     $currentTime->modify("+1 hour");
 }

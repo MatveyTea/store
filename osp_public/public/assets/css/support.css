@@ -162,6 +162,8 @@
 
 .talk .form .field:has(input[type='submit']) .button {
     width: 100%;
+    max-width: unset;
+    margin-top: auto;
 }
 
 .talk .form .field:has(.input[data-name='text_supports']) .error-wrapper:has(.error:not(.invisible)) ~ .input[data-name='text_supports'] {

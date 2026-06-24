@@ -52,7 +52,7 @@ if (!empty($_POST["submit_button"]) && count($_POST) > 1 && !empty($_GET["type"]
                     $_SESSION["server"] = "Не удалось обновить";
                 }
             }
-            if ($isAttribute) {
+            if ($isAttribute && !empty($validatedData["data"]["attributes"])) {
                 $attributes = $validatedData["data"]["attributes"] ?? [];
                 $sql = "";
                 $params = [];
